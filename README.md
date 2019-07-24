@@ -1,7 +1,7 @@
 Speedify for Python
 =======================
 
-Lets you control [Speedify](https://speedify.com), the bonding VPN, from Python.  Nearly everything available to th)e user interface is available via this library.
+Lets you control [Speedify](https://speedify.com), the bonding VPN, from Python.  Nearly everything available to the user interface is available via this library.
 
 This library exposes all of the functionality from the [Speedify CLI](https://support.speedify.com/article/285-speedify-command-line-interface).  
 
