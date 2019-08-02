@@ -328,6 +328,38 @@ adapter's maximum speed, in bits per second.
         }, {
     ...
 
+.. _adapter-resetusage:
+
+adapter resetusage <adapter id>
+--------------------------------------------------------------------
+
+The ``adapter resetusage`` command allows resets the user's daily and monthly data caps.
+
+.. code:: text
+
+    $ speedify_cli adapter resetusage wlo1
+    [{
+    	"adapterID":	"wlo1",
+    	"description":	"wlo1",
+    	"name":	"wlo1",
+    	"state":	"connected",
+    	"type":	"Wi-Fi",
+    	"priority":	"always",
+    	"connectedNetworkName":	"",
+    	"connectedNetworkBSSID":	"",
+    	"rateLimit":	0,
+    	"dataUsage":	{
+    		"usageMonthly":	0,
+    		"usageDaily":	0,
+    		"usageMonthlyLimit":	0,
+    		"usageMonthlyResetDay":	0,
+    		"usageDailyLimit":	0,
+    		"usageDailyBoost":	0,
+    		"overlimitRatelimit":	0
+    	}
+    }, {
+    ...
+
 .. _connect:
 
 connect [ closest \| public \| private \| p2p \| country [city [number]] \| last ]
@@ -636,6 +668,33 @@ Speed in Mbps after which ``Secondary`` connections are not used.
         "perConnectionEncryptionEnabled":   false,
         "perConnectionEncryptionSettings":  [],
         "overflowThreshold":    10
+    }
+
+.. _packetaggr:
+
+packetaggr <on|off>
+------------------------
+
+The ``packetaggr`` command sets packet aggregation on/off.
+
+.. code:: text
+
+    $ speedify_cli packetaggr on
+    {
+    	"jumboPackets":	true,
+    	"encrypted":	false,
+    	"allowChaChaEncryption":	true,
+    	"bondingMode":	"speed",
+    	"startupConnect":	true,
+    	"transportMode":	"auto",
+    	"packetAggregation":	true,
+    	"forwardedPorts":	[{
+    			"protocol":	"tcp",
+    			"port":	8001
+    		}],
+    	"perConnectionEncryptionEnabled":	false,
+    	"perConnectionEncryptionSettings":	[],
+    	"overflowThreshold":	10
     }
 
 .. _ports:
