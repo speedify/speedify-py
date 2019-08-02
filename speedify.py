@@ -7,6 +7,7 @@ import subprocess
 import os
 from enum import Enum
 from functools import wraps
+from dataclasses import dataclass
 
 from utils import use_shell
 logger = logging.getLogger(__name__)
@@ -689,24 +690,42 @@ def _run_speedify_cmd(args, cmdtimeout=60):
         out = cpe.stderr.decode('utf-8').strip()
         if not out:
             out=cpe.stdout.decode('utf-8').strip()
-        if("Usage :" in out):
-            # usage message our command make no sesne
-            raise SpeedifyError("Unknown command")
+        returncode = cpe.returncode
+        errorKind = "Unknown"
+        if returncode == 1:
+            errorKind ="Speedify API"
+        elif returncode == 2:
+            errorKind = "Invalid Parameter"
+        elif returncode == 3:
+            errorKind = "Missing Parameter"
+        elif returncode == 4:
+            errorKind = "Unknown Parameter"
+            # whole usage message here, no help
+            raise SpeedifyError(errorKind)
+
         newerror = None
-        try:
-            job = json.loads(out)
-            if("errorCode" in job):
-                #json error! came from the speedify daemon
-                newerror = SpeedifyAPIError(job["errorCode"], job["errorType"], job["errorMessage"])
-        except ValueError:
-            #not json
-            pass
-        if(newerror):
+        if (returncode ==1):
+            try:
+                job = json.loads(out)
+                if("errorCode" in job):
+                    #json error! came from the speedify daemon
+                    newerror = SpeedifyAPIError(job["errorCode"], job["errorType"], job["errorMessage"])
+            except ValueError:
+                logger.error("Could not parse Speedify API Error: " + out)
+                newerror = SpeedifyError(errorKind + ": Could not parse error message")
+        else:
+            lastline = [ i for i in out.split("\n") if i][-1]
+            if lastline:
+                newerror = SpeedifyError( str(lastline))
+            else:
+                newerror = SpeedifyError(errorKind + ": " + str("Unknown error"))
+
+        if newerror:
             raise newerror
         else:
             # treat the plain text as an error, common for valid command, with invalud arguments
             logger.error("runSpeedifyCmd CPE : " + out)
-            raise SpeedifyError(": " + out)
+            raise SpeedifyError(errorKind + ": " + str(": " + out))
 
 # CALLBACK VERSIONS
 # The normal _run_speedify_cmd runs the command and waits for the final output.

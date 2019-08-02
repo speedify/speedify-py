@@ -122,6 +122,33 @@ class TestSpeedify(unittest.TestCase):
         self.assertTrue(my_settings["packetAggregation"])
         self.assertTrue(my_settings["jumboPackets"])
 
+    def test_badarguments(self):
+        # reaching into private methods to force some errors to be sure they're handled
+        try:
+            goterror = False
+            #invalid command
+            speedify._run_speedify_cmd(["invalidcommand"])
+        except speedify.SpeedifyError as sapie:
+            self.assertTrue("Unknown Parameter" in sapie.message)
+            goterror = True
+        self.assertTrue(goterror)
+        try:
+            #valid command, missing required argument
+            goterror = False
+            speedify._run_speedify_cmd(["overflow"])
+        except speedify.SpeedifyError as sapie:
+            self.assertTrue("Missing parameters" in sapie.message)
+            goterror = True
+        self.assertTrue(goterror)
+        try:
+            goterror = False
+            #valid command, invalid argument
+            speedify._run_speedify_cmd(["overflow", "bob"])
+        except speedify.SpeedifyError as sapie:
+            self.assertTrue("Invalid parameters" in sapie.message)
+            goterror = True
+        self.assertTrue(goterror)
+
     def test_privacy(self):
         speedify.crashreports(False)
         privacy_settings = speedify.show_privacy()
