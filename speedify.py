@@ -101,7 +101,7 @@ def connect(server=""):
 
     :param server: Server to connect to.
     :type server: str
-    :returns:  dict -- :ref:`JSON response <connect>` from speedify.
+    :returns:  dict -- :ref:`JSON currentserver` from speedify.
     '''
     args = ['connect']
     if(server!= None and server != ""):
@@ -116,25 +116,25 @@ def connect(server=""):
 def connect_closest():
     '''Connects to the closest server
 
-    :returns:  dict -- :ref:`JSON response <connect>` from speedify.
+    :returns:  dict -- :ref:`JSON currentserver` from speedify.
     '''
     return connect("closest")
 def connect_public():
     '''Connects to the closest public server
 
-    :returns:  dict -- :ref:`JSON response <connect>` from speedify.
+    :returns:  dict -- :ref:`JSON currentserver` from speedify.
     '''
     return connect("public")
 def connect_private():
     '''Connects to the closest private server
 
-    :returns:  dict -- :ref:`JSON response <connect>` from speedify.
+    :returns:  dict -- :ref:`JSON currentserver` from speedify.
     '''
     return connect("private")
 def connect_p2p():
     '''Connects to a server that allows p2p traffic
 
-    :returns:  dict -- :ref:`JSON response <connect>` from speedify.
+    :returns:  dict -- :ref:`JSON currentserver` from speedify.
     '''
     return connect("p2p")
 def connect_country(country="us"):
@@ -143,13 +143,13 @@ def connect_country(country="us"):
 
     :param country: 2 letter country code.
     :type country: str
-    :returns:  dict -- :ref:`JSON response <connect>` from speedify.
+    :returns:  dict -- :ref:`JSON currentserver` from speedify.
     '''
     return connect(country)
 def connect_last():
     '''Connects to the last server
 
-    :returns:  dict -- :ref:`JSON response <connect>` from speedify.
+    :returns:  dict -- :ref:`JSON currentserver` from speedify.
     '''
     return connect("last")
 
@@ -178,7 +178,7 @@ def connectmethod(method, country="us", city=None, num=None):
     :type city: str
     :param num: The server number.
     :type num: int
-    :returns:  dict -- :ref:`JSON response <connectmethod>` from speedify.
+    :returns:  dict -- :ref:`JSON connectmethod` from speedify.
     '''
     args = ['connectmethod']
     if method == "dedicated":
@@ -229,17 +229,17 @@ def show_servers():
     show_servers()
     Returns all the servers, public and private
 
-    :returns:  dict -- :ref:`JSON response <show-servers>` from speedify.
+    :returns:  dict -- :ref:`JSON server list` from speedify.
     '''
     return _run_speedify_cmd(['show', 'servers'])
 
-@exception_wrapper("Failed to get privacy settings")
+@exception_wrapper("Failed to get privacy")
 def show_privacy():
     '''
     show_privacy()
-    Returns privacy settings, public and private
+    Returns privacy settings
 
-    :returns:  dict -- dict -- :ref:`JSON response <show-privacy>` from speedify.
+    :returns:  dict -- dict -- :ref:`JSON privacy` from speedify.
     '''
     return _run_speedify_cmd(['show', 'privacy'])
 
@@ -249,7 +249,7 @@ def show_settings():
     show_settings()
     Returns current settings
 
-    :returns:  dict -- dict -- :ref:`JSON response <show-settings>` from speedify.
+    :returns:  dict -- dict -- :ref:`JSON settings` from speedify.
     '''
     return _run_speedify_cmd(['show', 'settings'])
 
@@ -259,7 +259,7 @@ def show_adapters():
     show_adapters()
     Returns current adapters
 
-    :returns:  dict -- dict -- :ref:`JSON response <show-adapters>` from speedify.
+    :returns:  dict -- dict -- :ref:`JSON list of adapters` from speedify.
     '''
     return _run_speedify_cmd(['show', 'adapters'])
 
@@ -269,7 +269,7 @@ def show_currentserver():
     show_currentserver()
     Returns current server
 
-    :returns:  dict -- :ref:`JSON response <show-currentserver>` from speedify.
+    :returns:  dict -- :ref:`JSON currentserver` from speedify.
     '''
     return _run_speedify_cmd(['show', 'currentserver'])
 
@@ -310,7 +310,7 @@ def show_version():
     show_version()
     Returns speedify version
 
-    :returns:  dict -- :ref:`JSON response <version>` from speedify.
+    :returns:  dict -- :ref:`JSON version` from speedify.
     '''
     return  _run_speedify_cmd(['version'])
 
@@ -325,7 +325,7 @@ def adapter_priority(adapterID, priority=Priority.ALWAYS):
     :type adapterID: str
     :param priority: The speedify priority
     :type priority: speedify.Priority
-    :returns:  dict -- :ref:`JSON response <adapter-priority>` from speedify.
+    :returns:  dict -- :ref:`JSON adapter` from speedify.
     '''
     args = ['adapter',"priority"]
     args.append(str(adapterID))
@@ -344,7 +344,7 @@ def adapter_ratelimit(adapterID, ratelimit=0):
     :type adapterID: str
     :param ratelimit: The ratelimit in bps
     :type ratelimit: int
-    :returns:  dict -- :ref:`JSON response <adapter-ratelimit>` from speedify.
+    :returns:  dict -- :ref:`JSON adapter` from speedify.
     '''
     args = ['adapter',"ratelimit"]
     args.append(str(adapterID))
@@ -363,7 +363,7 @@ def adapter_datalimit_daily( adapterID, limit=0):
     :type adapterID: str
     :param limit: The daily usage limit, in bytes
     :type limit: int
-    :returns:  dict -- :ref:`JSON response <adapter-datalimit-daily>` from speedify
+    :returns:  dict -- :ref:`JSON adapter` from speedify
     '''
     args = ['adapter',"datalimit", "daily"]
     args.append(str(adapterID))
@@ -384,7 +384,7 @@ def adapter_datalimit_monthly(adapterID, limit=0, reset_day=0):
     :type limit: int
     :param reset_day: The day of the month to reset monthly usage (0-31)
     :type reset_Day: int
-    :returns:  dict -- :ref:`JSON response <adapter-datalimit-monthly>` from speedify.
+    :returns:  dict -- :ref:`JSON adapter` from speedify.
     '''
     args = ['adapter', "datalimit", "monthly"]
     args.append(str(adapterID))
@@ -402,7 +402,7 @@ def adapter_resetusage(adapterID):
 
     :param adapterID: The interface adapterID
     :type adapterID: str
-    :returns:  dict -- :ref:`JSON response <adapter-resetusage>` from speedify.
+    :returns:  dict -- :ref:`JSON adapter` from speedify.
     '''
     args = ['adapter', "resetusage"]
     args.append(str(adapterID))
@@ -420,7 +420,7 @@ def ports(tcpports=[], udpports=[]):
     :type tcpport: list
     :param udpports: List of udp ports to forward on
     :type udpport: list
-    :returns:  dict -- :ref:`JSON response <ports>` from speedify
+    :returns:  dict -- :ref:`JSON settings` from speedify
     '''
     args = ['ports']
     if tcpports is not None:
@@ -441,7 +441,7 @@ def mode(mode="speed"):
 
     :param mode: "redundant" or "speed"
     :type mode: str
-    :returns:  dict -- :ref:`JSON response <mode>` from speedify
+    :returns:  dict -- :ref:`JSON settings` from speedify
     '''
     args = ['mode',mode]
     resultjson = _run_speedify_cmd(args)
@@ -455,7 +455,7 @@ def encryption(encrypt=True):
 
     :param encrypt: Encrypted on or off
     :type encrypt: bool
-    :returns:  dict -- :ref:`JSON response <encryption>` from speedify
+    :returns:  dict -- :ref:`JSON settings` from speedify
     '''
     args = ['encryption']
     if encrypt == "on":
@@ -477,7 +477,7 @@ def jumbo(mode=True):
 
     :param mode: Jumbo MTU on or off
     :type mode: bool
-    :returns:  dict -- :ref:`JSON response <jumbo>` from speedify
+    :returns:  dict -- :ref:`JSON settings' from speedify
     '''
     args = ['jumbo']
     if mode == "on":
@@ -503,7 +503,7 @@ def packetaggregation(mode=True):
 
     :param mode: packetaggregation on or off
     :type mode: bool
-    :returns:  dict -- :ref:`JSON response <packetaggr>` from speedify
+    :returns:  dict -- :ref:`JSON settings` from speedify
     '''
     args = ['packetaggr']
     if mode == "on":
@@ -529,7 +529,7 @@ def killswitch(killswitch=False):
 
     :param killswitch: killswitch on or off
     :type killswitch: bool
-    :returns:  dict -- :ref:`JSON response <privacy-killswitch>` from speedify
+    :returns:  dict -- :ref:`JSON privacy` from speedify
     '''
     args = ['privacy','killswitch']
     args.append("on") if killswitch else args.append("off")
@@ -544,7 +544,7 @@ def overflow(speed_in_mbps=30.0):
 
     :param speed_in_mbps: Overflow threshold in mbps
     :type speed_in_mbps: float
-    :returns:  dict -- :ref:`JSON response <overflow>` from speedify
+    :returns:  dict -- :ref:`JSON settings` from speedify
     '''
     args = ['overflow']
     args.append(str(speed_in_mbps))
@@ -559,7 +559,7 @@ def dnsleak(leak=False):
 
     :param dnsleak: dnsleak on or off
     :type dnsleak: bool
-    :returns:  dict -- :ref:`JSON response <privacy-dnsleak>` from speedify
+    :returns:  dict -- :ref:`JSON privacy` from speedify
     '''
     args = ['privacy','dnsleak']
     args.append("on") if leak else args.append("off")
@@ -574,7 +574,7 @@ def crashreports(report=True):
 
     :param report: crashreports on or off
     :type dnsleak: bool
-    :returns:  dict -- :ref:`JSON response <privacy-crashreports>` from speedify
+    :returns:  dict -- :ref:`JSON privacy` from speedify
     '''
     args = ['privacy','crashreports']
     args.append("on") if report else args.append("off")
@@ -589,7 +589,7 @@ def startupconnect(connect=True):
 
     :param connect: Sets connect on startup on/off
     :type connect: bool
-    :returns:  dict -- :ref:`JSON response <startupconnect>` from speedify
+    :returns:  dict -- :ref:`JSON settings` from speedify
     '''
     args = ['startupconnect']
     args.append("on") if connect else args.append("off")
@@ -602,7 +602,7 @@ def speedtest():
     speedtest()
     Returns runs speed test returns final results. Will take around 30 seconds.
 
-    :returns:  dict -- :ref:`JSON response <speedtest>` from speedify
+    :returns:  dict -- :ref:`JSON speedtest>` from speedify
     '''
     jret = _run_speedify_cmd(['speedtest'], cmdtimeout=600)
     return jret
@@ -615,7 +615,7 @@ def transport(transport='auto'):
 
     :param transport: Sets the transport
     :type transport: str
-    :returns:  dict -- :ref:`JSON response <transport>` from speedify
+    :returns:  dict -- :ref:`JSON settings from speedify
     '''
     args = ['transport',transport]
     resultjson = _run_speedify_cmd(args)
