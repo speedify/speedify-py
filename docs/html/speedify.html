@@ -1,0 +1,801 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>speedify &#8212; Speedify for Python  documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="speedifysettings" href="speedifysettings.html" />
+    <link rel="prev" title="Speedify CLI" href="cli.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="speedify">
+<span id="id1"></span><h1>speedify<a class="headerlink" href="#speedify" title="Permalink to this headline">¶</a></h1>
+<span class="target" id="module-speedify"></span><dl class="class">
+<dt id="speedify.State">
+<em class="property">class </em><code class="descclassname">speedify.</code><code class="descname">State</code><a class="reference internal" href="_modules/speedify.html#State"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#speedify.State" title="Permalink to this definition">¶</a></dt>
+<dd><p>Enum of speedify states.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="speedify.Priority">
+<em class="property">class </em><code class="descclassname">speedify.</code><code class="descname">Priority</code><a class="reference internal" href="_modules/speedify.html#Priority"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#speedify.Priority" title="Permalink to this definition">¶</a></dt>
+<dd><p>Enum of speedify connection priorities.</p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="speedify.SpeedifyError">
+<em class="property">exception </em><code class="descclassname">speedify.</code><code class="descname">SpeedifyError</code><span class="sig-paren">(</span><em>message</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/speedify.html#SpeedifyError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#speedify.SpeedifyError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generic error thrown by library.</p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="speedify.SpeedifyAPIError">
+<em class="property">exception </em><code class="descclassname">speedify.</code><code class="descname">SpeedifyAPIError</code><span class="sig-paren">(</span><em>error_code</em>, <em>error_type</em>, <em>error_message</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/speedify.html#SpeedifyAPIError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#speedify.SpeedifyAPIError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Error thrown if speedify gave a bad json response.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="speedify.set_cli">
+<code class="descclassname">speedify.</code><code class="descname">set_cli</code><span class="sig-paren">(</span><em>new_cli_path</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/speedify.html#set_cli"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#speedify.set_cli" title="Permalink to this definition">¶</a></dt>
+<dd><p>Change the path to the cli after importing the module.
+The path defaults to the cli’s default install location.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>new_cli_path</strong> (<em>str</em>) – Full path to speedify_cli.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="speedify.get_cli">
+<code class="descclassname">speedify.</code><code class="descname">get_cli</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/speedify.html#get_cli"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#speedify.get_cli" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">str – The full path to the speedify cli.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="speedify.connect">
+<code class="descclassname">speedify.</code><code class="descname">connect</code><span class="sig-paren">(</span><em>server=&quot;&quot;</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/speedify.html#connect"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#speedify.connect" title="Permalink to this definition">¶</a></dt>
+<dd><p>Tell Speedify to connect. Returns serverInformation if success, raises Speedify if unsuccessful.
+See show_servers() for the list of servers available.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>server</strong> (<em>str</em>) – Server to connect to.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">dict – <a class="reference internal" href="cli.html#connect"><span class="std std-ref">JSON currentserver</span></a> from speedify.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="speedify.connect_closest">
+<code class="descclassname">speedify.</code><code class="descname">connect_closest</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/speedify.html#connect_closest"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#speedify.connect_closest" title="Permalink to this definition">¶</a></dt>
+<dd><p>Connects to the closest server</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">dict – <a class="reference internal" href="cli.html#connect"><span class="std std-ref">JSON currentserver</span></a> from speedify.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="speedify.connect_public">
+<code class="descclassname">speedify.</code><code class="descname">connect_public</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/speedify.html#connect_public"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#speedify.connect_public" title="Permalink to this definition">¶</a></dt>
+<dd><p>Connects to the closest public server</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">dict – <a class="reference internal" href="cli.html#connect"><span class="std std-ref">JSON currentserver</span></a> from speedify.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="speedify.connect_private">
+<code class="descclassname">speedify.</code><code class="descname">connect_private</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/speedify.html#connect_private"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#speedify.connect_private" title="Permalink to this definition">¶</a></dt>
+<dd><p>Connects to the closest private server</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">dict – <a class="reference internal" href="cli.html#connect"><span class="std std-ref">JSON currentserver</span></a> from speedify.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="speedify.connect_p2p">
+<code class="descclassname">speedify.</code><code class="descname">connect_p2p</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/speedify.html#connect_p2p"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#speedify.connect_p2p" title="Permalink to this definition">¶</a></dt>
+<dd><p>Connects to a server that allows p2p traffic</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">dict – <a class="reference internal" href="cli.html#connect"><span class="std std-ref">JSON currentserver</span></a> from speedify.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="speedify.connect_country">
+<code class="descclassname">speedify.</code><code class="descname">connect_country</code><span class="sig-paren">(</span><em>country='us'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/speedify.html#connect_country"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#speedify.connect_country" title="Permalink to this definition">¶</a></dt>
+<dd><p>Connects to a server via the 2 letter country code
+See show_servers() for the list of servers available.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>country</strong> (<em>str</em>) – 2 letter country code.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">dict – <a class="reference internal" href="cli.html#connect"><span class="std std-ref">JSON currentserver</span></a> from speedify.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="speedify.connect_last">
+<code class="descclassname">speedify.</code><code class="descname">connect_last</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/speedify.html#connect_last"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#speedify.connect_last" title="Permalink to this definition">¶</a></dt>
+<dd><p>Connects to the last server</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">dict – <a class="reference internal" href="cli.html#connect"><span class="std std-ref">JSON currentserver</span></a> from speedify.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="speedify.disconnect">
+<code class="descclassname">speedify.</code><code class="descname">disconnect</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/speedify.html#disconnect"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#speedify.disconnect" title="Permalink to this definition">¶</a></dt>
+<dd><p>Disconnects. Waits for disconnect to complete</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">bool – TRUE if disconnect succeeded</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="speedify.connectmethod">
+<code class="descclassname">speedify.</code><code class="descname">connectmethod</code><span class="sig-paren">(</span><em>method</em>, <em>country=&quot;us&quot;</em>, <em>city=None</em>, <em>num=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/speedify.html#connectmethod"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#speedify.connectmethod" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets the default connectmethod of closest,p2p,private or country (in which case country is required)</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>method</strong> (<em>str</em>) – The connect method.</li>
+<li><strong>country</strong> (<em>str</em>) – 2 letter country code.</li>
+<li><strong>city</strong> (<em>str</em>) – The city the server is located.</li>
+<li><strong>num</strong> (<em>int</em>) – The server number.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">dict – <a class="reference internal" href="cli.html#connectmethod"><span class="std std-ref">JSON connectmethod</span></a> from speedify.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="speedify.login">
+<code class="descclassname">speedify.</code><code class="descname">login</code><span class="sig-paren">(</span><em>user</em>, <em>password</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/speedify.html#login"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#speedify.login" title="Permalink to this definition">¶</a></dt>
+<dd><p>Login.  Returns a State.  returns the state if succesful</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>user</strong> (<em>str</em>) – username</li>
+<li><strong>password</strong> (<em>str</em>) – password</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">speedify.State – The speedify state enum.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="speedify.logout">
+<code class="descclassname">speedify.</code><code class="descname">logout</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/speedify.html#logout"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#speedify.logout" title="Permalink to this definition">¶</a></dt>
+<dd><p>logout.  returns the state, desc=LOGGED_OUT is a success</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">speedify.State – The speedify state enum.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="speedify.show_servers">
+<code class="descclassname">speedify.</code><code class="descname">show_servers</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/speedify.html#show_servers"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#speedify.show_servers" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns all the servers, public and private</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">dict – <a class="reference internal" href="cli.html#show-servers"><span class="std std-ref">JSON server list</span></a> from speedify.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="speedify.show_privacy">
+<code class="descclassname">speedify.</code><code class="descname">show_privacy</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/speedify.html#show_privacy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#speedify.show_privacy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns privacy settings</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">dict – dict – <a class="reference internal" href="cli.html#show-privacy"><span class="std std-ref">JSON privacy</span></a> from speedify.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="speedify.show_settings">
+<code class="descclassname">speedify.</code><code class="descname">show_settings</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/speedify.html#show_settings"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#speedify.show_settings" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns current settings</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">dict – dict – <a class="reference internal" href="cli.html#show-settings"><span class="std std-ref">JSON settings</span></a> from speedify.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="speedify.show_adapters">
+<code class="descclassname">speedify.</code><code class="descname">show_adapters</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/speedify.html#show_adapters"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#speedify.show_adapters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns current adapters</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">dict – dict – <a class="reference internal" href="cli.html#show-adapters"><span class="std std-ref">JSON list of adapters</span></a> from speedify.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="speedify.show_currentserver">
+<code class="descclassname">speedify.</code><code class="descname">show_currentserver</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/speedify.html#show_currentserver"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#speedify.show_currentserver" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns current server</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">dict – <a class="reference internal" href="cli.html#show-currentserver"><span class="std std-ref">JSON currentserver</span></a> from speedify.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="speedify.show_user">
+<code class="descclassname">speedify.</code><code class="descname">show_user</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/speedify.html#show_user"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#speedify.show_user" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns current user</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">dict – <a class="reference internal" href="cli.html#show-user"><span class="std std-ref">JSON response</span></a> from speedify.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="speedify.show_connectmethod">
+<code class="descclassname">speedify.</code><code class="descname">show_connectmethod</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/speedify.html#show_connectmethod"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#speedify.show_connectmethod" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the connectmethod related settings</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><a class="reference internal" href="cli.html#show-connectmethod"><span class="std std-ref">JSON response</span></a> from speedify.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="speedify.show_state">
+<code class="descclassname">speedify.</code><code class="descname">show_state</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/speedify.html#show_state"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#speedify.show_state" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the current state of Speedify (CONNECTED, CONNECTING, etc.)</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">speedify.State – The speedify state enum.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="speedify.show_version">
+<code class="descclassname">speedify.</code><code class="descname">show_version</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/speedify.html#show_version"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#speedify.show_version" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns speedify version</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">dict – <a class="reference internal" href="cli.html#version"><span class="std std-ref">JSON version</span></a> from speedify.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="speedify.adapter_priority">
+<code class="descclassname">speedify.</code><code class="descname">adapter_priority</code><span class="sig-paren">(</span><em>adapterID</em>, <em>priority=Priority.ALWAYS</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/speedify.html#adapter_priority"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#speedify.adapter_priority" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets the priority on the adapter whose adapterID is provided (show_adapters is where you find the adapterIDs)</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>adapterID</strong> (<em>str</em>) – The interface adapterID</li>
+<li><strong>priority</strong> (<a class="reference internal" href="#speedify.Priority" title="speedify.Priority"><em>speedify.Priority</em></a>) – The speedify priority</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">dict – <a class="reference internal" href="cli.html#adapter-ratelimit"><span class="std std-ref">JSON adapter response</span></a> from speedify.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="speedify.adapter_ratelimit">
+<code class="descclassname">speedify.</code><code class="descname">adapter_ratelimit</code><span class="sig-paren">(</span><em>adapterID</em>, <em>ratelimit=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/speedify.html#adapter_ratelimit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#speedify.adapter_ratelimit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets the ratelimit in bps on the adapter whose adapterID is provided
+(show_adapters is where you find the adapterIDs)</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>adapterID</strong> (<em>str</em>) – The interface adapterID</li>
+<li><strong>ratelimit</strong> (<em>int</em>) – The ratelimit in bps</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">dict – <a class="reference internal" href="cli.html#adapter-datalimit-daily"><span class="std std-ref">JSON adapter response</span></a> from speedify.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="speedify.adapter_datalimit_daily">
+<code class="descclassname">speedify.</code><code class="descname">adapter_datalimit_daily</code><span class="sig-paren">(</span><em>adapterID</em>, <em>limit=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/speedify.html#adapter_datalimit_daily"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#speedify.adapter_datalimit_daily" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets the daily usage limit in bytes on the adapter whose adapterID is provided
+(show_adapters is where you find the adapterIDs)</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>adapterID</strong> (<em>str</em>) – The interface adapterID</li>
+<li><strong>limit</strong> (<em>int</em>) – The daily usage limit, in bytes</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">dict – <a class="reference internal" href="cli.html#adapter-datalimit-daily"><span class="std std-ref">JSON adapter response</span></a> from speedify</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="speedify.adapter_datalimit_monthly">
+<code class="descclassname">speedify.</code><code class="descname">adapter_datalimit_monthly</code><span class="sig-paren">(</span><em>adapterID</em>, <em>limit=0</em>, <em>reset_day=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/speedify.html#adapter_datalimit_monthly"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#speedify.adapter_datalimit_monthly" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets the monthly usage limit in bytes on the adapter whose adapterID is provided
+(show_adapters is where you find the adapterIDs)</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>adapterID</strong> (<em>str</em>) – The interface adapterID</li>
+<li><strong>limit</strong> (<em>int</em>) – The monthly usage limit, in bytes</li>
+<li><strong>reset_day</strong> – The day of the month to reset monthly usage (0-31)</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">dict – <a class="reference internal" href="cli.html#adapter-datalimit-monthly"><span class="std std-ref">JSON adapter response</span></a> from speedify.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="speedify.adapter_resetusage">
+<code class="descclassname">speedify.</code><code class="descname">adapter_resetusage</code><span class="sig-paren">(</span><em>adapterID</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/speedify.html#adapter_resetusage"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#speedify.adapter_resetusage" title="Permalink to this definition">¶</a></dt>
+<dd><p>Resets all the stats on this adapter back to 0.  Starts both daily and monthly limits over, if set.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>adapterID</strong> (<em>str</em>) – The interface adapterID</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">dict – <a class="reference internal" href="cli.html#adapter-resetusage"><span class="std std-ref">JSON adapter response</span></a> from speedify.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="speedify.ports">
+<code class="descclassname">speedify.</code><code class="descname">ports</code><span class="sig-paren">(</span><em>tcpports=[]</em>, <em>udpports=[]</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/speedify.html#ports"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#speedify.ports" title="Permalink to this definition">¶</a></dt>
+<dd><p>sets port forwarding. call with no arguments to unset all port forwarding</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>tcpports</strong> – List of tcp ports to forward on</li>
+<li><strong>udpports</strong> – List of udp ports to forward on</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">dict – <a class="reference internal" href="cli.html#ports"><span class="std std-ref">JSON settings</span></a> from speedify</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="speedify.mode">
+<code class="descclassname">speedify.</code><code class="descname">mode</code><span class="sig-paren">(</span><em>mode=&quot;speed&quot;</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/speedify.html#mode"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#speedify.mode" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set ‘redundant’ or ‘speed’ operation modes</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>mode</strong> (<em>str</em>) – “redundant” or “speed”</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">dict – <a class="reference internal" href="cli.html#mode"><span class="std std-ref">JSON settings</span></a> from speedify</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="speedify.encryption">
+<code class="descclassname">speedify.</code><code class="descname">encryption</code><span class="sig-paren">(</span><em>encrypt=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/speedify.html#encryption"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#speedify.encryption" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets encryption on or off.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>encrypt</strong> (<em>bool</em>) – Encrypted on or off</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">dict – <a class="reference internal" href="cli.html#encryption"><span class="std std-ref">JSON settings</span></a> from speedify</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="speedify.jumbo">
+<code class="descclassname">speedify.</code><code class="descname">jumbo</code><span class="sig-paren">(</span><em>mode=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/speedify.html#jumbo"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#speedify.jumbo" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets jumbo MTU mode on or off.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>mode</strong> (<em>bool</em>) – Jumbo MTU on or off</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">dict – <a class="reference internal" href="cli.html#jumbo"><span class="std std-ref">JSON settings</span></a> from speedify</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="speedify.packetaggregation">
+<code class="descclassname">speedify.</code><code class="descname">packetaggregation</code><span class="sig-paren">(</span><em>mode=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/speedify.html#packetaggregation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#speedify.packetaggregation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets packetaggregation mode on or off.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>mode</strong> (<em>bool</em>) – packetaggregation on or off</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">dict – <a class="reference internal" href="cli.html#packetaggr"><span class="std std-ref">JSON settings</span></a> from speedify</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="speedify.killswitch">
+<code class="descclassname">speedify.</code><code class="descname">killswitch</code><span class="sig-paren">(</span><em>killswitch=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/speedify.html#killswitch"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#speedify.killswitch" title="Permalink to this definition">¶</a></dt>
+<dd><p>sets killswitch on or off. (Windows only)</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>killswitch</strong> (<em>bool</em>) – killswitch on or off</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">dict – <a class="reference internal" href="cli.html#privacy-killswitch"><span class="std std-ref">JSON privacy response</span></a> from speedify</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="speedify.overflow">
+<code class="descclassname">speedify.</code><code class="descname">overflow</code><span class="sig-paren">(</span><em>speed_in_mbps=30.0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/speedify.html#overflow"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#speedify.overflow" title="Permalink to this definition">¶</a></dt>
+<dd><p>sets overflow threshold.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>speed_in_mbps</strong> (<em>float</em>) – Overflow threshold in mbps</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">dict – <a class="reference internal" href="cli.html#overflow"><span class="std std-ref">JSON settings</span></a> from speedify</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="speedify.dnsleak">
+<code class="descclassname">speedify.</code><code class="descname">dnsleak</code><span class="sig-paren">(</span><em>leak=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/speedify.html#dnsleak"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#speedify.dnsleak" title="Permalink to this definition">¶</a></dt>
+<dd><p>sets dnsleak on or off. (Windows only)</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>dnsleak</strong> (<em>bool</em>) – dnsleak on or off</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">dict – <a class="reference internal" href="cli.html#privacy-dnsleak"><span class="std std-ref">JSON privacy response</span></a> from speedify</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="speedify.crashreports">
+<code class="descclassname">speedify.</code><code class="descname">crashreports</code><span class="sig-paren">(</span><em>report=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/speedify.html#crashreports"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#speedify.crashreports" title="Permalink to this definition">¶</a></dt>
+<dd><p>sets crashreports on or off.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>report</strong> – crashreports on or off</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">dict – <a class="reference internal" href="cli.html#privacy-crashreports"><span class="std std-ref">JSON privacy response</span></a> from speedify</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="speedify.startupconnect">
+<code class="descclassname">speedify.</code><code class="descname">startupconnect</code><span class="sig-paren">(</span><em>connect=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/speedify.html#startupconnect"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#speedify.startupconnect" title="Permalink to this definition">¶</a></dt>
+<dd><p>sets whether to automatically connect on login.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>connect</strong> (<em>bool</em>) – Sets connect on startup on/off</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">dict – <a class="reference internal" href="cli.html#startupconnect"><span class="std std-ref">JSON settings</span></a> from speedify</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="speedify.speedtest">
+<code class="descclassname">speedify.</code><code class="descname">speedtest</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/speedify.html#speedtest"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#speedify.speedtest" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns runs speed test returns final results. Will take around 30 seconds.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">dict – <a class="reference internal" href="cli.html#speedtest"><span class="std std-ref">JSON speedtest</span></a> from speedify</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="speedify.transport">
+<code class="descclassname">speedify.</code><code class="descname">transport</code><span class="sig-paren">(</span><em>transport='auto'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/speedify.html#transport"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#speedify.transport" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets the transport mode (auto/tcp/udp).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>transport</strong> (<em>str</em>) – Sets the transport</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">dict – <a class="reference internal" href="cli.html#transport"><span class="std std-ref">JSON settings</span></a> from speedify</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="speedify.stats">
+<code class="descclassname">speedify.</code><code class="descname">stats</code><span class="sig-paren">(</span><em>time=1</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/speedify.html#stats"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#speedify.stats" title="Permalink to this definition">¶</a></dt>
+<dd><p>calls stats returns a list of all the parsed json objects it gets back</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>time</strong> (<em>int</em>) – How long to run the stats command.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">list – list JSON stat responses from speedify.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="speedify.stats_callback">
+<code class="descclassname">speedify.</code><code class="descname">stats_callback</code><span class="sig-paren">(</span><em>time</em>, <em>callback</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/speedify.html#stats_callback"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#speedify.stats_callback" title="Permalink to this definition">¶</a></dt>
+<dd><p>calls stats, and callback supplied function with each line of output. 0 is forever</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>time</strong> (<em>int</em>) – How long to run the stats command.</li>
+<li><strong>callback</strong> (<em>function</em>) – Callback function</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">Speedify for Python</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="cli.html">Speedify CLI</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">speedify</a></li>
+<li class="toctree-l1"><a class="reference internal" href="speedifysettings.html">speedifysettings</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="cli.html" title="previous chapter">Speedify CLI</a></li>
+      <li>Next: <a href="speedifysettings.html" title="next chapter">speedifysettings</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2019, Connectify.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/speedify.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
