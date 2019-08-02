@@ -20,6 +20,7 @@ class TestSpeedify(unittest.TestCase):
         speedify.transport("auto")
         speedify.jumbo(True)
         speedify.crashreports(True)
+        speedify.packetaggregation(True)
         speedify.connectmethod("closest")
         speedify.disconnect()
 
@@ -29,6 +30,8 @@ class TestSpeedify(unittest.TestCase):
         self.assertEqual(state,State.CONNECTED)
         self.assertIn("tag", serverinfo)
         self.assertIn("country", serverinfo)
+
+
 
     def test_connect_country(self):
         serverinfo = speedify.connect_country("de")
@@ -41,14 +44,18 @@ class TestSpeedify(unittest.TestCase):
         self.assertEqual(new_serverinfo["country"], "de")
 
     def test_bad_country(self):
-        logging.disable(logging.ERROR);
+        #logging.disable(logging.ERROR);
+        logging.info("Testing error handling, ignore next few errors")
         state = speedify.show_state()
         self.assertEqual(state,State.LOGGED_IN)
+        logging.debug("connecting to bad country")
         with self.assertRaises(SpeedifyAPIError):
             speedify.connect_country("pp")
+        logging.debug("after connecting to bad country")
         state = speedify.show_state()
         self.assertEqual(state,State.LOGGED_IN)
-        logging.disable(logging.NOTSET)
+        logging.info("Done testing error handling")
+        #logging.disable(logging.NOTSET)
 
     def test_disconnect(self):
         speedify.connect_closest()
@@ -96,11 +103,24 @@ class TestSpeedify(unittest.TestCase):
     def test_version(self):
         version = speedify.show_version()
         self.assertIn("maj",version)
-        # the cli we use only showed up in 7, so this must be bigger
-        self.assertGreater(version["maj"], 6)
+        # expect at least Speedify 8.0
+        self.assertGreater(version["maj"], 7)
         self.assertIn("min",version)
         self.assertIn("bug",version)
         self.assertIn("build",version)
+
+    def test_settings(self):
+        # test some basic settings
+        speedify.packetaggregation(False)
+        speedify.jumbo(False)
+        my_settings = speedify.show_settings()
+        self.assertFalse(my_settings["packetAggregation"])
+        self.assertFalse(my_settings["jumboPackets"])
+        speedify.packetaggregation(True)
+        speedify.jumbo(True)
+        my_settings = speedify.show_settings()
+        self.assertTrue(my_settings["packetAggregation"])
+        self.assertTrue(my_settings["jumboPackets"])
 
     def test_privacy(self):
         speedify.crashreports(False)
@@ -156,12 +176,14 @@ class TestSpeedify(unittest.TestCase):
         self._set_and_test_adapter_list(adapterIDs, Priority.BACKUP, 10000000)
         self._set_and_test_adapter_list(adapterIDs, Priority.ALWAYS, 0)
 
+
+
     def _set_and_test_adapter_list(self, adapterIDs, priority, limit):
         for adapterID in adapterIDs:
             speedify.adapter_priority(adapterID, priority)
             speedify.adapter_ratelimit(adapterID, limit)
             speedify.adapter_datalimit_daily(adapterID, limit)
-            speedify.adapter_datalimit_monthly(adapterID, limit)
+            speedify.adapter_datalimit_monthly(adapterID, limit,0)
         updated_adapters = speedify.show_adapters()
         priorities = [adapter['priority'] for adapter in updated_adapters]
         rate_limits = [adapter['rateLimit'] for adapter in updated_adapters]
@@ -176,5 +198,6 @@ class TestSpeedify(unittest.TestCase):
             self.assertEqual(monthly_limit, limit)
 
 if __name__ == '__main__':
+    speedifysettings.apply_speedify_settings(speedifysettings.speedify_defaults)
     unittest.main()
     speedifysettings.apply_speedify_settings(speedifysettings.speedify_defaults)

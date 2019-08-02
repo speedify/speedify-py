@@ -71,7 +71,8 @@ def get_cli():
     '''
     global _cli_path
     if ((_cli_path == None) or  (_cli_path == "")):
-        return _find_cli()
+        _cli_path = _find_cli()
+    return _cli_path
 
 def find_state_for_string(mystate):
     return State[str(mystate).upper().strip()]
@@ -393,6 +394,22 @@ def adapter_datalimit_monthly(adapterID, limit=0, reset_day=0):
     resultjson = _run_speedify_cmd(args)
     return resultjson
 
+@exception_wrapper("Failed to reset adapter usage")
+def adapter_resetusage(adapterID):
+    '''
+    adapter_resetusage(adapterID)
+    Resets all the stats on this adapter back to 0.  Starts both daily and monthly limits over, if set.
+
+    :param adapterID: The interface adapterID
+    :type adapterID: str
+    :returns:  dict -- :ref:`JSON response <adapter-resetusage>` from speedify.
+    '''
+    args = ['adapter', "resetusage"]
+    args.append(str(adapterID))
+
+    resultjson = _run_speedify_cmd(args)
+    return resultjson
+
 @exception_wrapper("Failed to set ports")
 def ports(tcpports=[], udpports=[]):
     '''
@@ -441,7 +458,14 @@ def encryption(encrypt=True):
     :returns:  dict -- :ref:`JSON response <encryption>` from speedify
     '''
     args = ['encryption']
-    args.append("on") if encrypt else args.append("off")
+    if encrypt == "on":
+        args.append("on")
+    elif encrypt == "off":
+        args.append("off")
+    elif encrypt:
+        args.append("on")
+    else:
+        args.append("off")
     resultjson = _run_speedify_cmd(args)
     return resultjson
 
@@ -456,6 +480,32 @@ def jumbo(mode=True):
     :returns:  dict -- :ref:`JSON response <jumbo>` from speedify
     '''
     args = ['jumbo']
+    if mode == "on":
+        args.append("on")
+    elif mode == "off":
+        args.append("off")
+    elif mode == True:
+        args.append("on")
+    elif mode == False:
+        args.append("off")
+    else:
+        #probably invalid, but we'll let speedify tell us THAT
+        args.append(mode)
+
+    resultjson = _run_speedify_cmd(args)
+    return resultjson
+
+@exception_wrapper("Failed to set packetaggregation")
+def packetaggregation(mode=True):
+    '''
+    packetaggregation(mode=True)
+    Sets packetaggregation mode on or off.
+
+    :param mode: packetaggregation on or off
+    :type mode: bool
+    :returns:  dict -- :ref:`JSON response <packetaggr>` from speedify
+    '''
+    args = ['packetaggr']
     if mode == "on":
         args.append("on")
     elif mode == "off":
