@@ -7,7 +7,6 @@ import subprocess
 import os
 from enum import Enum
 from functools import wraps
-from dataclasses import dataclass
 
 from utils import use_shell
 logger = logging.getLogger(__name__)
