@@ -20,9 +20,10 @@ def ping_internet(host="8.8.8.8", port=53, timeout=3):
        return False
 
 def use_shell():
-    if platform.system() == "darwin":
+
+    if platform.system().lower() == "darwin":
         return False
-    if platform.system() == "Linux":
+    if platform.system().lower() == "linux":
         return False
     else:
         return True
