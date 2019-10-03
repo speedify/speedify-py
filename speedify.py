@@ -333,6 +333,33 @@ def adapter_priority(adapterID, priority=Priority.ALWAYS):
     resultjson = _run_speedify_cmd(args)
     return resultjson
 
+@exception_wrapper("Failed to set adapter encryption")
+def adapter_encryption(adapterID, encrypt):
+    '''
+    adapter_encryption(adapterID, encrypt)
+    Sets the encryption on the adapter whose adapterID is provided (show_adapters is where you find the adapterIDs).
+
+    Note that any time the main encryption() function is called, all the per adapter encryption settings are immeidately reset.
+
+    :param adapterID: The interface adapterID
+    :type adapterID: str
+    :param priority: Whether to encrypt
+    :type encrypt: boolean
+    :returns:  dict -- :ref:`JSON adapter response <adapter-ratelimit>` from speedify.
+    '''
+    args = ['adapter',"encryption"]
+    args.append(str(adapterID))
+    if encrypt == "on":
+        args.append("on")
+    elif encrypt == "off":
+        args.append("off")
+    elif encrypt:
+        args.append("on")
+    else:
+        args.append("off")
+    resultjson = _run_speedify_cmd(args)
+    return resultjson
+
 @exception_wrapper("Failed to set adapter ratelimit")
 def adapter_ratelimit(adapterID, ratelimit=0):
     '''

@@ -203,7 +203,40 @@ class TestSpeedify(unittest.TestCase):
         self._set_and_test_adapter_list(adapterIDs, Priority.BACKUP, 10000000)
         self._set_and_test_adapter_list(adapterIDs, Priority.ALWAYS, 0)
 
+    def test_encryption(self):
+        adapters = speedify.show_adapters()
+        self.assertTrue(adapters)
+        # just grab first adapter for testing
+        adapterID = [adapter['adapterID'] for adapter in adapters][0]
+        speedify.adapter_encryption(adapterID, False)
+        # NO WAY TO CHECK CURRENT ENCRPTION?
+        mysettings = speedify.show_settings()
+        perConnectionEncryptionEnabled = mysettings["perConnectionEncryptionEnabled"]
+        self.assertTrue(perConnectionEncryptionEnabled)
+        encrypted = mysettings["encrypted"]
+        perConnectionEncryptionSettings = mysettings["perConnectionEncryptionSettings"]
+        firstadapter = perConnectionEncryptionSettings[0]
+        self.assertEqual(firstadapter["adapterID"], adapterID)
+        self.assertEqual(firstadapter["encrypted"], False)
+        # main thing should still be encrypted just not our one adapter
+        self.assertTrue(encrypted)
 
+
+        speedify.encryption(False)
+        #this should both turn off encryption and wipe the custom settings
+        mysettings = speedify.show_settings()
+        perConnectionEncryptionEnabled = mysettings["perConnectionEncryptionEnabled"]
+        self.assertFalse(perConnectionEncryptionEnabled)
+        encrypted = mysettings["encrypted"]
+        self.assertFalse(encrypted)
+
+        speedify.encryption(True)
+        #this should both turn on encryption and wipe the custom settings
+        mysettings = speedify.show_settings()
+        perConnectionEncryptionEnabled = mysettings["perConnectionEncryptionEnabled"]
+        self.assertFalse(perConnectionEncryptionEnabled)
+        encrypted = mysettings["encrypted"]
+        self.assertTrue(encrypted)
 
     def _set_and_test_adapter_list(self, adapterIDs, priority, limit):
         for adapterID in adapterIDs:
