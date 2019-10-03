@@ -209,7 +209,6 @@ class TestSpeedify(unittest.TestCase):
         # just grab first adapter for testing
         adapterID = [adapter['adapterID'] for adapter in adapters][0]
         speedify.adapter_encryption(adapterID, False)
-        # NO WAY TO CHECK CURRENT ENCRPTION?
         mysettings = speedify.show_settings()
         perConnectionEncryptionEnabled = mysettings["perConnectionEncryptionEnabled"]
         self.assertTrue(perConnectionEncryptionEnabled)
@@ -229,6 +228,16 @@ class TestSpeedify(unittest.TestCase):
         self.assertFalse(perConnectionEncryptionEnabled)
         encrypted = mysettings["encrypted"]
         self.assertFalse(encrypted)
+        # now let's test with only the adapter being encrypted
+        speedify.adapter_encryption(adapterID, True)
+        mysettings = speedify.show_settings()
+        perConnectionEncryptionEnabled = mysettings["perConnectionEncryptionEnabled"]
+        self.assertTrue(perConnectionEncryptionEnabled)
+        encrypted = mysettings["encrypted"]
+        perConnectionEncryptionSettings = mysettings["perConnectionEncryptionSettings"]
+        firstadapter = perConnectionEncryptionSettings[0]
+        self.assertEqual(firstadapter["adapterID"], adapterID)
+        self.assertEqual(firstadapter["encrypted"], True)
 
         speedify.encryption(True)
         #this should both turn on encryption and wipe the custom settings
