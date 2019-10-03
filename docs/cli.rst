@@ -172,6 +172,8 @@ adapter is disabled or rate limited is controlled by the
         }, {
     ...
 
+.. _adapter-encryption:
+
 adapter encryption <adapter id> <on\|off>
 -----------------------------------------
 

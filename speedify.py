@@ -345,7 +345,7 @@ def adapter_encryption(adapterID, encrypt):
     :type adapterID: str
     :param priority: Whether to encrypt
     :type encrypt: boolean
-    :returns:  dict -- :ref:`JSON adapter response <adapter-ratelimit>` from speedify.
+    :returns:  dict -- :ref:`JSON adapter response <adapter-encryption>` from speedify.
     '''
     args = ['adapter',"encryption"]
     args.append(str(adapterID))
