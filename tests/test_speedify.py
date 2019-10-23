@@ -36,12 +36,26 @@ class TestSpeedify(unittest.TestCase):
     def test_connect_country(self):
         serverinfo = speedify.connect_country("de")
         state = speedify.show_state()
+
         self.assertEqual(state,State.CONNECTED)
         self.assertIn("tag", serverinfo)
         self.assertIn("country", serverinfo)
         self.assertEqual(serverinfo["country"], "de")
         new_serverinfo = speedify.show_currentserver()
         self.assertEqual(new_serverinfo["country"], "de")
+
+    def test_transport(self):
+        mysettings = speedify.transport("websocket")
+        serverinfo = speedify.connect()
+        mysettings = speedify.show_settings()
+        self.assertEqual(mysettings["transportMode"], "websocket")
+
+        # to make sure runtime changed, could check stats and look for connectionstats : connections[] : protocol
+        mysettings = speedify.transport("tcp")
+        self.assertEqual(mysettings["transportMode"], "tcp")
+        serverinfo = speedify.connect()
+        mysettings = speedify.show_settings()
+        self.assertEqual(mysettings["transportMode"], "tcp")
 
     def test_bad_country(self):
         #logging.disable(logging.ERROR);

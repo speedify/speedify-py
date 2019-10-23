@@ -263,6 +263,51 @@ def show_adapters():
     '''
     return _run_speedify_cmd(['show', 'adapters'])
 
+@exception_wrapper("Failed to do captiveportal_check")
+def captiveportal_check():
+    '''
+    captiveportal_check()
+    Returns adapters which are currently blocked by a captive portal
+
+    :returns:  dict -- dict -- :ref:`JSON list of adapters behind captive portal` from speedify.
+    '''
+    return _run_speedify_cmd(['captiveportal', 'check'])
+
+@exception_wrapper("Failed to do captiveportal_login")
+def captiveportal_login(proxy=True, adapterID = None):
+    '''
+    captiveportal_login()
+    Starts or stops the local proxy intercepting traffic on ports 52,80,433, for
+    filling in a captive portal.   If the user interface is running, once this is
+    turned on, it will launch a captive portal browser.  If it's not, then it's
+    up to you to launch a browser pointing at an http website to get to the
+    portal page.
+
+    :param proxy: Whether the local proxy should intercept captive portal traffic
+    :type priority: boolean 
+    :param adapterID: The interface adapterID
+    :type adapterID: str
+
+    :returns:  dict -- dict -- :ref:`JSON list of adapters behind captive portal` from speedify.
+    '''
+    args = ['captiveportal', 'login']
+    startproxy = True
+    if proxy == "on":
+        args.append("on")
+    elif proxy == "off":
+        startproxy = False
+        args.append("off")
+    elif proxy:
+        args.append("on")
+    else:
+        startproxy = False
+        args.append("off")
+
+
+    if adapterID and startproxy:
+        args.append(adapterID)
+    return _run_speedify_cmd(args)
+
 @exception_wrapper("Failed to get current server")
 def show_currentserver():
     '''
@@ -638,7 +683,7 @@ def speedtest():
 def transport(transport='auto'):
     '''
     transport(transport='auto')
-    Sets the transport mode (auto/tcp/udp).
+    Sets the transport mode (auto/tcp/udp/websocket).
 
     :param transport: Sets the transport
     :type transport: str
