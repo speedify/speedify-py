@@ -45,10 +45,10 @@ class TestSpeedify(unittest.TestCase):
         self.assertEqual(new_serverinfo["country"], "de")
 
     def test_transport(self):
-        mysettings = speedify.transport("websocket")
+        mysettings = speedify.transport("https")
         serverinfo = speedify.connect()
         mysettings = speedify.show_settings()
-        self.assertEqual(mysettings["transportMode"], "websocket")
+        self.assertEqual(mysettings["transportMode"], "https")
 
         # to make sure runtime changed, could check stats and look for connectionstats : connections[] : protocol
         mysettings = speedify.transport("tcp")

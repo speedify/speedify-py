@@ -284,7 +284,7 @@ def captiveportal_login(proxy=True, adapterID = None):
     portal page.
 
     :param proxy: Whether the local proxy should intercept captive portal traffic
-    :type priority: boolean 
+    :type priority: boolean
     :param adapterID: The interface adapterID
     :type adapterID: str
 
@@ -683,9 +683,9 @@ def speedtest():
 def transport(transport='auto'):
     '''
     transport(transport='auto')
-    Sets the transport mode (auto/tcp/udp/websocket).
+    Sets the transport mode (auto/tcp/udp/https).
 
-    :param transport: Sets the transport
+    :param transport: Sets the transport to "auto","udp","tcp" or "https"
     :type transport: str
     :returns:  dict -- :ref:`JSON settings <transport>` from speedify
     '''
