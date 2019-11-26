@@ -65,12 +65,12 @@ class TestSpeedifySettings(unittest.TestCase):
         # wrong data type on boolean
         json_string ='{ "jumbo" :"bob", "transport":"auto"}'
         self.assertFalse(speedifysettings.apply_speedify_settings(json_string))
-        # nonexistant Priority
-        json_string ='{"adapter_priority_wifi" : "frank"}'
+
+        # nonexistent Priority
+        json_string ='{"adapter_priority_all" : "frank"}'
         self.assertFalse(speedifysettings.apply_speedify_settings(json_string))
+
         logging.disable(logging.NOTSET)
-
-
 
 if __name__ == '__main__':
     unittest.main()

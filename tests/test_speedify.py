@@ -34,15 +34,15 @@ class TestSpeedify(unittest.TestCase):
 
 
     def test_connect_country(self):
-        serverinfo = speedify.connect_country("de")
+        serverinfo = speedify.connect_country("sg")
         state = speedify.show_state()
 
         self.assertEqual(state,State.CONNECTED)
         self.assertIn("tag", serverinfo)
         self.assertIn("country", serverinfo)
-        self.assertEqual(serverinfo["country"], "de")
+        self.assertEqual(serverinfo["country"], "sg")
         new_serverinfo = speedify.show_currentserver()
-        self.assertEqual(new_serverinfo["country"], "de")
+        self.assertEqual(new_serverinfo["country"], "sg")
 
     def test_transport(self):
         mysettings = speedify.transport("https")
@@ -96,10 +96,10 @@ class TestSpeedify(unittest.TestCase):
         self.assertEqual(cm_settings["country"], "")
         self.assertEqual(cm_settings["num"], 0)
         self.assertEqual(cm_settings["city"], "")
-        retval = speedify.connectmethod("country", country="de")
+        retval = speedify.connectmethod("country", country="sg")
         cm_settings = speedify.show_connectmethod()
         self.assertEqual(cm_settings["connectMethod"],"country")
-        self.assertEqual(cm_settings["country"], "de")
+        self.assertEqual(cm_settings["country"], "sg")
 
         # the settings were returned by the actual connectmethod call,
         # and should be exactly the same
