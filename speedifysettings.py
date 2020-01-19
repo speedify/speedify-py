@@ -161,8 +161,6 @@ def get_speedify_settings():
         if("killswitch" in privacysettings):
             settings["privacy_killswitch"] = privacysettings["killswitch"]
 
-        # CANNOT GET  "privacy_dnsleak" or "privacy_killswitch"
-        # without setting on of them
 
     except SpeedifyError as se:
         logging.error("Speedify error on getSpeedfiySetting:"  + str(se))

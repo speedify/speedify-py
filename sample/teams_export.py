@@ -41,7 +41,6 @@ def get_team_settings(locked):
         ratelimitExport = {}
         settingsExport["rateLimit"] = ratelimitExport
         monthlyLimitExport = {}
-        # TODO: What goes in the daily/monthly limits if there's no limit?
         settingsExport["monthlyLimit"] = monthlyLimitExport
         dailyLimitExport = {}
         settingsExport["dailyLimit"] = dailyLimitExport
@@ -63,21 +62,17 @@ def get_team_settings(locked):
 
             if "dataUsage" in adapter:
                 limits = adapter["dataUsage"]
-                if limits:
-                    if limits["usageMonthlyLimit"]:
-                        monthlyLimitExport[adaptertype] = {}
-                        monthlyLimitExport[adaptertype]["value"] = {}
-                        monthlyLimitExport[adaptertype]["value"]["monthlyLimit"] = limits["usageMonthlyLimit"]
-                        monthlyLimitExport[adaptertype]["value"]["monthlyResetDay"] = limits["usageMonthlyResetDay"]
-                        monthlyLimitExport[adaptertype]["locked"] = locked
-                    if limits["usageDailyLimit"]:
-                        dailyLimitExport[adaptertype] = {}
-                        dailyLimitExport[adaptertype]["value"] =limits["usageDailyLimit"]
-                        dailyLimitExport[adaptertype]["locked"] = locked
-                    if limits["overlimitRatelimit"]:
-                        overlimitRateLimitExport[adaptertype] = {}
-                        overlimitRateLimitExport[adaptertype]["value"] = limits["overlimitRatelimit"]
-                        overlimitRateLimitExport[adaptertype]["locked"] = locked
+                monthlyLimitExport[adaptertype] = {}
+                monthlyLimitExport[adaptertype]["value"] = {}
+                monthlyLimitExport[adaptertype]["value"]["monthlyLimit"] = limits["usageMonthlyLimit"]
+                monthlyLimitExport[adaptertype]["value"]["monthlyResetDay"] = limits["usageMonthlyResetDay"]
+                monthlyLimitExport[adaptertype]["locked"] = locked
+                dailyLimitExport[adaptertype] = {}
+                dailyLimitExport[adaptertype]["value"] =limits["usageDailyLimit"]
+                dailyLimitExport[adaptertype]["locked"] = locked
+                overlimitRateLimitExport[adaptertype] = {}
+                overlimitRateLimitExport[adaptertype]["value"] = limits["overlimitRatelimit"]
+                overlimitRateLimitExport[adaptertype]["locked"] = locked
         currentsettings = speedify.show_settings();
         logging.debug("Settings are:" + str( currentsettings))
         settingsExport["encrypted"] = {}
@@ -125,14 +120,13 @@ def get_team_settings(locked):
             settingsExport["forwardedPorts"] = forwardedPortsExport
 
         privacysettings = speedify.show_privacy()
-        if "dnsleak" in privacysettings:
-            settingsExport["dnsleak"] = {}
-            settingsExport["dnsleak"]["value"] = privacysettings["dnsleak"]
-            settingsExport["dnsleak"]["locked"] = locked
-        if "killswitch" in privacysettings:
-            settingsExport["killswitch"] = {}
-            settingsExport["killswitch"]["value"] =privacysettings["killswitch"]
-            settingsExport["killswitch"]["locked"] = locked
+
+        settingsExport["dnsleak"] = {}
+        settingsExport["dnsleak"]["value"] = privacysettings["dnsleak"]
+        settingsExport["dnsleak"]["locked"] = locked
+        settingsExport["killswitch"] = {}
+        settingsExport["killswitch"]["value"] =privacysettings["killswitch"]
+        settingsExport["killswitch"]["locked"] = locked
         if "dnsAddresses" in privacysettings:
             settingsExport["dnsAddresses"] = {}
             settingsExport["dnsAddresses"]["locked"] = locked
