@@ -14,15 +14,15 @@ import logging
 
 logging.basicConfig(handlers=[logging.FileHandler('test.log'),logging.StreamHandler(sys.stdout)],format='%(asctime)s\t%(levelname)s\t%(module)s\t%(message)s',  level=logging.INFO)
 
-def get_team_settings_as_json_string(locked=False):
+def get_team_settings_as_json_string(locked=False, exportadapters=True):
     '''
     Returns the current speedify settings as a JSON string
 
     :returns:  str -- JSON string of speedify settings
     '''
-    return json.dumps( get_team_settings(locked))
+    return json.dumps( get_team_settings(locked,exportadapters))
 
-def get_team_settings(locked):
+def get_team_settings(locked,exportadapters):
     '''
     Returns the current speedify settings as a dict
 
@@ -32,47 +32,49 @@ def get_team_settings(locked):
     settingsExport = {}
 
     try:
-        adapters = speedify.show_adapters()
-        #TODO: perConnectionEncryptionSettings
-        #perConnectionEncryptionSettings = {}
-        #settingsExport["perConnectionEncryptionSettings"] = perConnectionEncryptionSettings;
-        prioritiesExport = {}
-        settingsExport["priorities"] = prioritiesExport
-        ratelimitExport = {}
-        settingsExport["rateLimit"] = ratelimitExport
-        monthlyLimitExport = {}
-        settingsExport["monthlyLimit"] = monthlyLimitExport
-        dailyLimitExport = {}
-        settingsExport["dailyLimit"] = dailyLimitExport
-        overlimitRateLimitExport = {}
-        settingsExport["overlimitRateLimit"] = overlimitRateLimitExport
+        if exportadapters:
+            adapters = speedify.show_adapters()
+            #TODO: perConnectionEncryptionSettings
+            #perConnectionEncryptionSettings = {}
+            #settingsExport["perConnectionEncryptionSettings"] = perConnectionEncryptionSettings;
+            prioritiesExport = {}
+            settingsExport["priorities"] = prioritiesExport
+            ratelimitExport = {}
+            settingsExport["rateLimit"] = ratelimitExport
+            monthlyLimitExport = {}
+            settingsExport["monthlyLimit"] = monthlyLimitExport
+            dailyLimitExport = {}
+            settingsExport["dailyLimit"] = dailyLimitExport
+            overlimitRateLimitExport = {}
+            settingsExport["overlimitRateLimit"] = overlimitRateLimitExport
 
-        for adapter in adapters:
-            logging.debug("Adapter is :" + str(adapter))
-            adaptertype= adapter["type"]
-            # everything is keyed on adapter type, if you have
-            # more than one adapter with same type, one of them
-            # will get overwritten by the other.
-            ratelimitExport[adaptertype] = {}
-            ratelimitExport[adaptertype]["value"] = adapter["rateLimit"]
-            ratelimitExport[adaptertype]["locked"] = locked
-            prioritiesExport[adaptertype] = {}
-            prioritiesExport[adaptertype]["value"] = adapter["priority"]
-            prioritiesExport[adaptertype]["locked"] = locked
+            for adapter in adapters:
+                logging.debug("Adapter is :" + str(adapter))
+                adaptertype= adapter["type"]
+                # everything is keyed on adapter type, if you have
+                # more than one adapter with same type, one of them
+                # will get overwritten by the other.
+                ratelimitExport[adaptertype] = {}
+                ratelimitExport[adaptertype]["value"] = adapter["rateLimit"]
+                ratelimitExport[adaptertype]["locked"] = locked
+                prioritiesExport[adaptertype] = {}
+                prioritiesExport[adaptertype]["value"] = adapter["priority"]
+                prioritiesExport[adaptertype]["locked"] = locked
 
-            if "dataUsage" in adapter:
-                limits = adapter["dataUsage"]
-                monthlyLimitExport[adaptertype] = {}
-                monthlyLimitExport[adaptertype]["value"] = {}
-                monthlyLimitExport[adaptertype]["value"]["monthlyLimit"] = limits["usageMonthlyLimit"]
-                monthlyLimitExport[adaptertype]["value"]["monthlyResetDay"] = limits["usageMonthlyResetDay"]
-                monthlyLimitExport[adaptertype]["locked"] = locked
-                dailyLimitExport[adaptertype] = {}
-                dailyLimitExport[adaptertype]["value"] =limits["usageDailyLimit"]
-                dailyLimitExport[adaptertype]["locked"] = locked
-                overlimitRateLimitExport[adaptertype] = {}
-                overlimitRateLimitExport[adaptertype]["value"] = limits["overlimitRatelimit"]
-                overlimitRateLimitExport[adaptertype]["locked"] = locked
+                if "dataUsage" in adapter:
+                    limits = adapter["dataUsage"]
+                    monthlyLimitExport[adaptertype] = {}
+                    monthlyLimitExport[adaptertype]["value"] = {}
+                    monthlyLimitExport[adaptertype]["value"]["monthlyLimit"] = limits["usageMonthlyLimit"]
+                    monthlyLimitExport[adaptertype]["value"]["monthlyResetDay"] = limits["usageMonthlyResetDay"]
+                    monthlyLimitExport[adaptertype]["locked"] = locked
+                    dailyLimitExport[adaptertype] = {}
+                    dailyLimitExport[adaptertype]["value"] =limits["usageDailyLimit"]
+                    dailyLimitExport[adaptertype]["locked"] = locked
+                    overlimitRateLimitExport[adaptertype] = {}
+                    overlimitRateLimitExport[adaptertype]["value"] = limits["overlimitRatelimit"]
+                    overlimitRateLimitExport[adaptertype]["locked"] = locked
+        # done with adapters
         currentsettings = speedify.show_settings();
         logging.debug("Settings are:" + str( currentsettings))
         settingsExport["encrypted"] = {}
@@ -140,11 +142,16 @@ def get_team_settings(locked):
     except SpeedifyError as se:
         logging.error("Speedify error on getTeamSetting:"  + str(se))
 
-    return settingsExport
+    jsonExport = {}
+    jsonExport["settings"] = settingsExport
+    return jsonExport
 
-locked = False
+lockoutput = False
+exportAdapters = False
 if  len(sys.argv) > 1:
-    if "lock" in sys.argv[1] :
-        locked = True
-currentsettings = get_team_settings_as_json_string(locked)
+    if "lock" in sys.argv :
+        lockoutput = True
+    if "adapters" in sys.argv:
+        exportAdapters = True
+currentsettings = get_team_settings_as_json_string(locked=lockoutput,exportadapters=exportAdapters )
 print(currentsettings)
