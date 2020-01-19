@@ -103,9 +103,9 @@ def get_team_settings(locked):
         #settingsExport["route_default"] = currentsettings["enableDefaultRoute"]
 
         connectmethodsettings = speedify.show_connectmethod();
-        settingsExport["connectmethod"] = {}
-        settingsExport["connectmethod"]["value"] = connectmethodsettings["connectMethod"]
-        settingsExport["connectmethod"]["locked"] = locked
+        settingsExport["connectMethod"] = {}
+        settingsExport["connectMethod"]["value"] = connectmethodsettings["connectMethod"]
+        settingsExport["connectMethod"]["locked"] = locked
 
         if "forwardedPorts" in currentsettings:
             forwardedPortsExport = {}
