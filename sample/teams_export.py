@@ -28,25 +28,25 @@ def get_team_settings(locked):
 
     :returns:  dict -- dict of speedify settings
     '''
-    settings = {}
-    # pulls out the current settings... couple flaws:
-    # can't get the privacy settings without changing them first, CAN get overflow_threshold
-    # but the other functions can't actually set that.
+    # The tree where we build our export
+    settingsExport = {}
+
     try:
         adapters = speedify.show_adapters()
         #TODO: perConnectionEncryptionSettings
         #perConnectionEncryptionSettings = {}
-        #settings["perConnectionEncryptionSettings"] = perConnectionEncryptionSettings;
-        priorities = {}
-        settings["priorities"] = priorities
-        rateLimit = {}
-        settings["rateLimit"] = rateLimit
-        monthlyLimit = {}
-        settings["monthlyLimit"] = monthlyLimit
-        dailyLimit = {}
-        settings["dailyLimit"] = dailyLimit
-        overlimitRateLimit = {}
-        settings["overlimitRateLimit"] = overlimitRateLimit
+        #settingsExport["perConnectionEncryptionSettings"] = perConnectionEncryptionSettings;
+        prioritiesExport = {}
+        settingsExport["priorities"] = prioritiesExport
+        ratelimitExport = {}
+        settingsExport["rateLimit"] = ratelimitExport
+        monthlyLimitExport = {}
+        # TODO: What goes in the daily/monthly limits if there's no limit?
+        settingsExport["monthlyLimit"] = monthlyLimitExport
+        dailyLimitExport = {}
+        settingsExport["dailyLimit"] = dailyLimitExport
+        overlimitRateLimitExport = {}
+        settingsExport["overlimitRateLimit"] = overlimitRateLimitExport
 
         for adapter in adapters:
             logging.debug("Adapter is :" + str(adapter))
@@ -54,96 +54,99 @@ def get_team_settings(locked):
             # everything is keyed on adapter type, if you have
             # more than one adapter with same type, one of them
             # will get overwritten by the other.
-            rateLimit[adaptertype] = {}
-            rateLimit[adaptertype]["value"] = adapter["rateLimit"]
-            rateLimit[adaptertype]["locked"] = locked
-            priorities[adaptertype] = {}
-            priorities[adaptertype]["value"] = adapter["priority"]
-            priorities[adaptertype]["locked"] = locked
+            ratelimitExport[adaptertype] = {}
+            ratelimitExport[adaptertype]["value"] = adapter["rateLimit"]
+            ratelimitExport[adaptertype]["locked"] = locked
+            prioritiesExport[adaptertype] = {}
+            prioritiesExport[adaptertype]["value"] = adapter["priority"]
+            prioritiesExport[adaptertype]["locked"] = locked
 
             if "dataUsage" in adapter:
                 limits = adapter["dataUsage"]
                 if limits:
                     if limits["usageMonthlyLimit"]:
-                        monthlyLimit[adaptertype] = {}
-                        monthlyLimit[adaptertype]["value"] = {}
-                        monthlyLimit[adaptertype]["value"]["monthlyLimit"] = limits["usageMonthlyLimit"]
-                        monthlyLimit[adaptertype]["value"]["monthlyResetDay"] = limits["usageMonthlyResetDay"]
-                        monthlyLimit[adaptertype]["locked"] = locked
+                        monthlyLimitExport[adaptertype] = {}
+                        monthlyLimitExport[adaptertype]["value"] = {}
+                        monthlyLimitExport[adaptertype]["value"]["monthlyLimit"] = limits["usageMonthlyLimit"]
+                        monthlyLimitExport[adaptertype]["value"]["monthlyResetDay"] = limits["usageMonthlyResetDay"]
+                        monthlyLimitExport[adaptertype]["locked"] = locked
                     if limits["usageDailyLimit"]:
-                        dailyLimit[adaptertype] = {}
-                        dailyLimit[adaptertype]["value"] =limits["usageDailyLimit"]
-                        dailyLimit[adaptertype]["locked"] = locked
-
+                        dailyLimitExport[adaptertype] = {}
+                        dailyLimitExport[adaptertype]["value"] =limits["usageDailyLimit"]
+                        dailyLimitExport[adaptertype]["locked"] = locked
+                    if limits["overlimitRatelimit"]:
+                        overlimitRateLimitExport[adaptertype] = {}
+                        overlimitRateLimitExport[adaptertype]["value"] = limits["overlimitRatelimit"]
+                        overlimitRateLimitExport[adaptertype]["locked"] = locked
         currentsettings = speedify.show_settings();
         logging.debug("Settings are:" + str( currentsettings))
-        settings["encrypted"] = {}
-        settings["encrypted"]["value"] = currentsettings["encrypted"];
-        settings["encrypted"]["locked"] = locked
-        settings["jumboPackets"] = {}
-        settings["jumboPackets"]["value"] = currentsettings["jumboPackets"]
-        settings["jumboPackets"]["locked"] = locked
-        settings["transportMode"] = {}
-        settings["transportMode"]["value"]= currentsettings["transportMode"]
-        settings["transportMode"]["locked"] = locked
-        settings["startupConnect"] = {}
-        settings["startupConnect"]["value"] = currentsettings["startupConnect"]
-        settings["startupConnect"]["locked"] = locked
-        settings["bondingMode"] = {}
-        settings["bondingMode"]["value"] = currentsettings["bondingMode"]
-        settings["bondingMode"]["locked"] = locked
-        settings["overflowThreshold"] = {}
-        settings["overflowThreshold"]["value"] =currentsettings["overflowThreshold"]
-        settings["overflowThreshold"]["locked"] = locked
-        settings["packetAggregation"] = {}
-        settings["packetAggregation"]["value"] = currentsettings["packetAggregation"]
-        settings["packetAggregation"]["locked"] = locked
-        settings["allowChaChaEncryption"] = {}
-        settings["allowChaChaEncryption"]["value"] = currentsettings["allowChaChaEncryption"]
-        settings["allowChaChaEncryption"]["locked"] = locked
+        settingsExport["encrypted"] = {}
+        settingsExport["encrypted"]["value"] = currentsettings["encrypted"];
+        settingsExport["encrypted"]["locked"] = locked
+        settingsExport["jumboPackets"] = {}
+        settingsExport["jumboPackets"]["value"] = currentsettings["jumboPackets"]
+        settingsExport["jumboPackets"]["locked"] = locked
+        settingsExport["transportMode"] = {}
+        settingsExport["transportMode"]["value"]= currentsettings["transportMode"]
+        settingsExport["transportMode"]["locked"] = locked
+        settingsExport["startupConnect"] = {}
+        settingsExport["startupConnect"]["value"] = currentsettings["startupConnect"]
+        settingsExport["startupConnect"]["locked"] = locked
+        settingsExport["bondingMode"] = {}
+        settingsExport["bondingMode"]["value"] = currentsettings["bondingMode"]
+        settingsExport["bondingMode"]["locked"] = locked
+        settingsExport["overflowThreshold"] = {}
+        settingsExport["overflowThreshold"]["value"] =currentsettings["overflowThreshold"]
+        settingsExport["overflowThreshold"]["locked"] = locked
+        settingsExport["packetAggregation"] = {}
+        settingsExport["packetAggregation"]["value"] = currentsettings["packetAggregation"]
+        settingsExport["packetAggregation"]["locked"] = locked
+        settingsExport["allowChaChaEncryption"] = {}
+        settingsExport["allowChaChaEncryption"]["value"] = currentsettings["allowChaChaEncryption"]
+        settingsExport["allowChaChaEncryption"]["locked"] = locked
         # TODO: not yet in schema
-        #settings["route_default"] = currentsettings["enableDefaultRoute"]
+        #settingsExport["route_default"] = currentsettings["enableDefaultRoute"]
 
         connectmethodsettings = speedify.show_connectmethod();
-        settings["connectmethod"] = {}
-        settings["connectmethod"]["value"] = connectmethodsettings["connectMethod"]
-        settings["connectmethod"]["locked"] = locked
+        settingsExport["connectmethod"] = {}
+        settingsExport["connectmethod"]["value"] = connectmethodsettings["connectMethod"]
+        settingsExport["connectmethod"]["locked"] = locked
 
         if "forwardedPorts" in currentsettings:
-            forwardedPorts = {}
-            forwardedPorts["locked"] = locked
-            forwardedPorts["value"] = []
+            forwardedPortsExport = {}
+            forwardedPortsExport["locked"] = locked
+            forwardedPortsExport["value"] = []
             forwardedPortSettings = currentsettings["forwardedPorts"]
             for portInfo in forwardedPortSettings:
-                newPort = {}
-                newPort["port"] = portInfo["port"]
-                newPort["proto"] = portInfo["protocol"]
-                forwardedPorts["value"].append(newPort)
-            settings["forwardedPorts"] = forwardedPorts
+                newPortExport = {}
+                newPortExport["port"] = portInfo["port"]
+                newPortExport["proto"] = portInfo["protocol"]
+                forwardedPortsExport["value"].append(newPortExport)
+            settingsExport["forwardedPorts"] = forwardedPortsExport
 
         privacysettings = speedify.show_privacy()
         if "dnsleak" in privacysettings:
-            settings["dnsleak"] = {}
-            settings["dnsleak"]["value"] = privacysettings["dnsleak"]
-            settings["dnsleak"]["locked"] = locked
+            settingsExport["dnsleak"] = {}
+            settingsExport["dnsleak"]["value"] = privacysettings["dnsleak"]
+            settingsExport["dnsleak"]["locked"] = locked
         if "killswitch" in privacysettings:
-            settings["killswitch"] = {}
-            settings["killswitch"]["value"] =privacysettings["killswitch"]
-            settings["killswitch"]["locked"] = locked
+            settingsExport["killswitch"] = {}
+            settingsExport["killswitch"]["value"] =privacysettings["killswitch"]
+            settingsExport["killswitch"]["locked"] = locked
         if "dnsAddresses" in privacysettings:
-            settings["dnsAddresses"] = {}
-            settings["dnsAddresses"]["locked"] = locked
-            settings["dnsAddresses"]["value"] = []
+            settingsExport["dnsAddresses"] = {}
+            settingsExport["dnsAddresses"]["locked"] = locked
+            settingsExport["dnsAddresses"]["value"] = []
             for dnsserver in privacysettings["dnsAddresses"]:
-                settings["dnsAddresses"]["value"].append(dnsserver)
-        settings["crashReports"] = {}
-        settings["crashReports"]["value"] = privacysettings["crashReports"]
-        settings["crashReports"]["locked"] = locked
+                settingsExport["dnsAddresses"]["value"].append(dnsserver)
+        settingsExport["crashReports"] = {}
+        settingsExport["crashReports"]["value"] = privacysettings["crashReports"]
+        settingsExport["crashReports"]["locked"] = locked
 
     except SpeedifyError as se:
         logging.error("Speedify error on getTeamSetting:"  + str(se))
 
-    return settings
+    return settingsExport
 
 locked = False
 if  len(sys.argv) > 1:
