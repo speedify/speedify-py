@@ -10,6 +10,8 @@ import logging
 
 # Write out the current speedify settings to std out
 # In format suitable for use with the Speedify for Teams API.
+# if the first command line argument is "lock" then all the settings will be generated marked as locked
+
 logging.basicConfig(handlers=[logging.FileHandler('test.log'),logging.StreamHandler(sys.stdout)],format='%(asctime)s\t%(levelname)s\t%(module)s\t%(message)s',  level=logging.INFO)
 
 def get_team_settings_as_json_string(locked=False):
@@ -32,8 +34,9 @@ def get_team_settings(locked):
     # but the other functions can't actually set that.
     try:
         adapters = speedify.show_adapters()
-        perConnectionEncryptionSettings = {}
-        settings["perConnectionEncryptionSettings"] = perConnectionEncryptionSettings;
+        #TODO: perConnectionEncryptionSettings
+        #perConnectionEncryptionSettings = {}
+        #settings["perConnectionEncryptionSettings"] = perConnectionEncryptionSettings;
         priorities = {}
         settings["priorities"] = priorities
         rateLimit = {}
@@ -48,6 +51,9 @@ def get_team_settings(locked):
         for adapter in adapters:
             logging.debug("Adapter is :" + str(adapter))
             adaptertype= adapter["type"]
+            # everything is keyed on adapter type, if you have
+            # more than one adapter with same type, one of them
+            # will get overwritten by the other.
             rateLimit[adaptertype] = {}
             rateLimit[adaptertype]["value"] = adapter["rateLimit"]
             rateLimit[adaptertype]["locked"] = locked
@@ -92,26 +98,47 @@ def get_team_settings(locked):
         settings["packetAggregation"] = {}
         settings["packetAggregation"]["value"] = currentsettings["packetAggregation"]
         settings["packetAggregation"]["locked"] = locked
-        # not yet in schema
+        settings["allowChaChaEncryption"] = {}
+        settings["allowChaChaEncryption"]["value"] = currentsettings["allowChaChaEncryption"]
+        settings["allowChaChaEncryption"]["locked"] = locked
+        # TODO: not yet in schema
         #settings["route_default"] = currentsettings["enableDefaultRoute"]
-        # TODO: can no longer get connectmethod back out!
+
         connectmethodsettings = speedify.show_connectmethod();
         settings["connectmethod"] = {}
         settings["connectmethod"]["value"] = connectmethodsettings["connectMethod"]
         settings["connectmethod"]["locked"] = locked
 
+        if "forwardedPorts" in currentsettings:
+            forwardedPorts = {}
+            forwardedPorts["locked"] = locked
+            forwardedPorts["value"] = []
+            forwardedPortSettings = currentsettings["forwardedPorts"]
+            for portInfo in forwardedPortSettings:
+                newPort = {}
+                newPort["port"] = portInfo["port"]
+                newPort["proto"] = portInfo["protocol"]
+                forwardedPorts["value"].append(newPort)
+            settings["forwardedPorts"] = forwardedPorts
+
         privacysettings = speedify.show_privacy()
-        if("dnsleak" in privacysettings):
-            settings["dnsLeak"] = {}
-            settings["dnsLeak"]["value"] = privacysettings["dnsleak"]
-            settings["dnsLeak"]["locked"] = locked
-        if("killswitch" in privacysettings):
+        if "dnsleak" in privacysettings:
+            settings["dnsleak"] = {}
+            settings["dnsleak"]["value"] = privacysettings["dnsleak"]
+            settings["dnsleak"]["locked"] = locked
+        if "killswitch" in privacysettings:
             settings["killswitch"] = {}
             settings["killswitch"]["value"] =privacysettings["killswitch"]
             settings["killswitch"]["locked"] = locked
-
-        # CANNOT GET  "privacy_dnsleak" or "privacy_killswitch"
-        # without setting on of them
+        if "dnsAddresses" in privacysettings:
+            settings["dnsAddresses"] = {}
+            settings["dnsAddresses"]["locked"] = locked
+            settings["dnsAddresses"]["value"] = []
+            for dnsserver in privacysettings["dnsAddresses"]:
+                settings["dnsAddresses"]["value"].append(dnsserver)
+        settings["crashReports"] = {}
+        settings["crashReports"]["value"] = privacysettings["crashReports"]
+        settings["crashReports"]["locked"] = locked
 
     except SpeedifyError as se:
         logging.error("Speedify error on getTeamSetting:"  + str(se))
