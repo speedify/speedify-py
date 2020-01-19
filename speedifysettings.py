@@ -20,7 +20,7 @@ speedify_defaults = '''{"connectmethod" : "closest","encryption" : true, "jumbo"
     "startupconnect": true,  "packet_aggregation": true,  "transport":"auto","overflow_threshold": 30.0,
     "adapter_priority_ethernet" : "always","adapter_priority_wifi" : "always",
     "adapter_priority_cellular" : "secondary", "adapter_datalimit_daily_all" : 0,
-    "adapter_datalimit_monthly_all" : 0, "adapter_ratelimit_all" : 0
+    "adapter_datalimit_monthly_all" : 0, "adapter_ratelimit_all" : 0, "route_default": true
     }'''
 
 def apply_setting(setting, value):
@@ -68,6 +68,8 @@ def apply_setting(setting, value):
             speedify.mode(value)
         elif setting == "overflow_threshold":
             speedify.overflow(float(value))
+        elif setting == "route_default":
+            speedify.routedefault(value)
         elif setting == "startupconnect" :
             speedify.startupconnect(value)
         elif setting == "transport" :
@@ -145,8 +147,8 @@ def get_speedify_settings():
         settings["startupconnect"] = currentsettings["startupConnect"]
         settings["mode"] = currentsettings["bondingMode"]
         settings["overflow_threshold"] = currentsettings["overflowThreshold"]
-
         settings["packet_aggregation"] = currentsettings["packetAggregation"]
+        settings["route_default"] = currentsettings["enableDefaultRoute"]
         # TODO: can no longer get connectmethod back out!
         connectmethodsettings = speedify.show_connectmethod();
         settings["connectmethod"] =connectmethodsettings["connectMethod"]

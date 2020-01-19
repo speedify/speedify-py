@@ -668,6 +668,23 @@ def startupconnect(connect=True):
     resultjson = _run_speedify_cmd(args)
     return resultjson
 
+@exception_wrapper("Failed to set routedefault")
+def routedefault(route=True):
+    '''
+    routedefault(route=True)
+    sets whether Speedify should take the default route to the internet.
+    defaults to True, only make it False if you're planning to set up
+    routing rules, like IP Tables, yourself..
+
+    :param connect: Sets routedefault on/off
+    :type connect: bool
+    :returns:  dict -- :ref:`JSON settings <routedefault>` from speedify
+    '''
+    args = ['route','default']
+    args.append("on") if route else args.append("off")
+    resultjson = _run_speedify_cmd(args)
+    return resultjson
+
 @exception_wrapper("Failed to run speedtest")
 def speedtest():
     '''
