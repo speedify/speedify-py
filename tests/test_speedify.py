@@ -188,7 +188,9 @@ class TestSpeedify(unittest.TestCase):
 
     def test_routedefault(self):
         speedify.connect()
-        self.assertTrue(speedifyutil.using_speedify())
+        if not speedifyutil.using_speedify():
+            time.sleep(3)
+            self.assertTrue(speedifyutil.using_speedify())
         speedify.routedefault(False)
         self.assertFalse(speedify.show_settings()[ "enableDefaultRoute"])
         time.sleep(1)

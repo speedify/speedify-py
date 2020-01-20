@@ -56,7 +56,7 @@ class TestSpeedifySettings(unittest.TestCase):
         self.assertFalse(settings["encrypted"])
         self.assertFalse(settings["jumboPackets"])
         self.assertFalse(settings["packetAggregation"])
-        self.assertFalse(settings["route_default"])
+        self.assertFalse(settings["enableDefaultRoute"])
         self.assertEqual( settings["transportMode"] , "tcp")
 
     def test_bad_json(self):
