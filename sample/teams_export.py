@@ -106,7 +106,7 @@ def get_team_settings(locked,exportadapters):
 
         connectmethodsettings = speedify.show_connectmethod();
         settingsExport["connectMethod"] = {}
-        settingsExport["connectMethod"]["value"] = connectmethodsettings["connectMethod"]
+        settingsExport["connectMethod"]["value"] = speedify.connectMethodAsString(connectmethodsettings)
         settingsExport["connectMethod"]["locked"] = locked
 
         if "forwardedPorts" in currentsettings:
