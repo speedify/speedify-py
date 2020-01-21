@@ -104,7 +104,7 @@ def get_team_settings(locked,exportadapters):
         # TODO: not yet in schema
         #settingsExport["route_default"] = currentsettings["enableDefaultRoute"]
 
-        connectmethodsettings = speedify.show_connectmethod();
+        connectmethodsettings = speedify.show_connectmethod()
         settingsExport["connectMethod"] = {}
         settingsExport["connectMethod"]["value"] = speedify.connectMethodAsString(connectmethodsettings)
         settingsExport["connectMethod"]["locked"] = locked
@@ -123,12 +123,14 @@ def get_team_settings(locked,exportadapters):
 
         privacysettings = speedify.show_privacy()
 
-        settingsExport["dnsleak"] = {}
-        settingsExport["dnsleak"]["value"] = privacysettings["dnsleak"]
-        settingsExport["dnsleak"]["locked"] = locked
-        settingsExport["killswitch"] = {}
-        settingsExport["killswitch"]["value"] =privacysettings["killswitch"]
-        settingsExport["killswitch"]["locked"] = locked
+        if "dnsLeak" in privacysettings:
+            settingsExport["dnsleak"] = {}
+            settingsExport["dnsleak"]["value"] = privacysettings["dnsleak"]
+            settingsExport["dnsleak"]["locked"] = locked
+        if "killswitch" in privacysettings:
+            settingsExport["killswitch"] = {}
+            settingsExport["killswitch"]["value"] =privacysettings["killswitch"]
+            settingsExport["killswitch"]["locked"] = locked
         if "dnsAddresses" in privacysettings:
             settingsExport["dnsAddresses"] = {}
             settingsExport["dnsAddresses"]["locked"] = locked
