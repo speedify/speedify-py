@@ -194,7 +194,7 @@ def connectmethod(method, country="us", city=None, num=None):
     resultjson = _run_speedify_cmd(args)
     return resultjson
 
-def connectMethodAsString(connectMethodObject, hypens=True):
+def connectmethod_as_string(connectMethodObject, hypens=True):
     ''' takes the JSON returned by show_connectmethod and turns it into a string
     either with -s for places that want us-nova-2 type strings, or with spaces
     for passing to command line of connectmethod, "us nova 2", for example
