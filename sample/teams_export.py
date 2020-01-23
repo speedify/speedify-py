@@ -32,6 +32,7 @@ def get_team_settings(locked,exportadapters):
     settingsExport = {}
 
     try:
+        currentsettings = speedify.show_settings();
         if exportadapters:
             adapters = speedify.show_adapters()
             #TODO: perConnectionEncryptionSettings
@@ -47,6 +48,9 @@ def get_team_settings(locked,exportadapters):
             settingsExport["dailyLimit"] = dailyLimitExport
             overlimitRateLimitExport = {}
             settingsExport["overlimitRateLimit"] = overlimitRateLimitExport
+            perConnectionEncryptionSettingExport = {}
+            settingsExport["perConnectionEncryptionSetting"] = perConnectionEncryptionSettingExport
+            perConnectionEncryptionSettings = currentsettings["perConnectionEncryptionSettings"]
 
             for adapter in adapters:
                 logging.debug("Adapter is :" + str(adapter))
@@ -54,6 +58,16 @@ def get_team_settings(locked,exportadapters):
                 # everything is keyed on adapter type, if you have
                 # more than one adapter with same type, one of them
                 # will get overwritten by the other.
+
+                for perConnectionEncryptionSetting in perConnectionEncryptionSettings:
+                    # the per connection encryption is tucked into settings instead of adapters,
+                    # but you still need to look in adapters to find the adaptertype
+                    if perConnectionEncryptionSetting["adapterID"] == adapter["adapterID"]:
+                        encryptExport = {}
+                        encryptExport["value"] = perConnectionEncryptionSetting["encrypted"]
+                        encryptExport["locked"] = locked
+                        perConnectionEncryptionSettingExport[adaptertype] = encryptExport
+
                 ratelimitExport[adaptertype] = {}
                 ratelimitExport[adaptertype]["value"] = adapter["rateLimit"]
                 ratelimitExport[adaptertype]["locked"] = locked
@@ -75,7 +89,7 @@ def get_team_settings(locked,exportadapters):
                     overlimitRateLimitExport[adaptertype]["value"] = limits["overlimitRatelimit"]
                     overlimitRateLimitExport[adaptertype]["locked"] = locked
         # done with adapters
-        currentsettings = speedify.show_settings();
+
         logging.debug("Settings are:" + str( currentsettings))
         settingsExport["encrypted"] = {}
         settingsExport["encrypted"]["value"] = currentsettings["encrypted"];
