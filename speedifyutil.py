@@ -54,4 +54,5 @@ def using_speedify(destination="8.8.8.8"):
     if '10.202.0.1' in resultstr:
         return True
     else:
+        # print(resultstr)
         return False

@@ -174,9 +174,9 @@ def connectmethod(method, country="us", city=None, num=None):
     :type method: str
     :param country: 2 letter country code.
     :type country: str
-    :param city: The city the server is located.
+    :param city: The (optional) city the server is located.
     :type city: str
-    :param num: The server number.
+    :param num: The (optional) server number.
     :type num: int
     :returns:  dict -- :ref:`JSON connectmethod <connectmethod>` from speedify.
     '''
@@ -193,6 +193,23 @@ def connectmethod(method, country="us", city=None, num=None):
         args.append(method)
     resultjson = _run_speedify_cmd(args)
     return resultjson
+
+def connectmethod_as_string(connectMethodObject, hypens=True):
+    ''' takes the JSON returned by show_connectmethod and turns it into a string
+    either with -s for places that want us-nova-2 type strings, or with spaces
+    for passing to command line of connectmethod, "us nova 2", for example
+    '''
+    sep = " "
+    if hypens:
+        sep = "-"
+    ret = connectMethodObject["connectMethod"]
+    if  ret == "country":
+        ret = str(connectMethodObject["country"])
+        if connectMethodObject["city"]:
+            ret = ret + sep + str(connectMethodObject["city"])
+            if connectMethodObject["num"]:
+                ret = ret + sep + str(connectMethodObject["num"])
+    return ret
 
 @exception_wrapper("Failed to login")
 def login(user, password):
@@ -665,6 +682,23 @@ def startupconnect(connect=True):
     '''
     args = ['startupconnect']
     args.append("on") if connect else args.append("off")
+    resultjson = _run_speedify_cmd(args)
+    return resultjson
+
+@exception_wrapper("Failed to set routedefault")
+def routedefault(route=True):
+    '''
+    routedefault(route=True)
+    sets whether Speedify should take the default route to the internet.
+    defaults to True, only make it False if you're planning to set up
+    routing rules, like IP Tables, yourself..
+
+    :param connect: Sets routedefault on/off
+    :type connect: bool
+    :returns:  dict -- :ref:`JSON settings <routedefault>` from speedify
+    '''
+    args = ['route','default']
+    args.append("on") if route else args.append("off")
     resultjson = _run_speedify_cmd(args)
     return resultjson
 

@@ -17,6 +17,7 @@ class TestSpeedifySettings(unittest.TestCase):
         speedify.transport("auto")
         speedify.jumbo(True)
         speedify.packetaggregation(True)
+        speedify.routedefault(True)
 
     def test_reset(self):
         #read settings
@@ -49,12 +50,13 @@ class TestSpeedifySettings(unittest.TestCase):
 
     def test_set_json(self):
         # lets use a settings string to apply it back
-        json_string ='{"encryption" : false, "jumbo" : false, "packet_aggregation":false,"transport":"tcp","adapter_priority_wifi" : "backup"}'
+        json_string ='{"encryption" : false, "jumbo" : false, "packet_aggregation":false,"transport":"tcp","adapter_priority_wifi" : "backup", "route_default": false}'
         self.assertTrue( speedifysettings.apply_speedify_settings(json_string))
         settings = speedify.show_settings()
         self.assertFalse(settings["encrypted"])
         self.assertFalse(settings["jumboPackets"])
         self.assertFalse(settings["packetAggregation"])
+        self.assertFalse(settings["enableDefaultRoute"])
         self.assertEqual( settings["transportMode"] , "tcp")
 
     def test_bad_json(self):
