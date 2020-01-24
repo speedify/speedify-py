@@ -14,6 +14,8 @@ import logging
 
 logging.basicConfig(handlers=[logging.FileHandler('test.log'),logging.StreamHandler(sys.stdout)],format='%(asctime)s\t%(levelname)s\t%(module)s\t%(message)s',  level=logging.INFO)
 
+adaptertypes = ["Wi-Fi", "Cellular", "Ethernet", "Unknown"]
+
 def get_team_settings_as_json_string(locked=False, exportadapters=True):
     '''
     Returns the current speedify settings as a JSON string
@@ -38,19 +40,38 @@ def get_team_settings(locked,exportadapters):
             #TODO: perConnectionEncryptionSettings
             #perConnectionEncryptionSettings = {}
             #settingsExport["perConnectionEncryptionSettings"] = perConnectionEncryptionSettings;
-            prioritiesExport = {}
+            prioritiesExport = { "Wi-Fi": {"value":"always","locked":locked},
+                "Ethernet": {"value":"always","locked":locked},
+                "Unknown": {"value":"always","locked":locked},
+                "Cellular": {"value":"secondary","locked":locked}}
             settingsExport["priorities"] = prioritiesExport
-            ratelimitExport = {}
+            ratelimitExport = { "Wi-Fi": {"value":0,"locked":locked},
+                "Ethernet": {"value":0,"locked":locked},
+                "Unknown": {"value":0,"locked":locked},
+                "Cellular": {"value":0,"locked":locked}}
             settingsExport["rateLimit"] = ratelimitExport
-            monthlyLimitExport = {}
-            settingsExport["monthlyLimit"] = monthlyLimitExport
-            dailyLimitExport = {}
-            settingsExport["dailyLimit"] = dailyLimitExport
-            overlimitRateLimitExport = {}
+            monthlyLimitExport = { "Wi-Fi": {"value":{"monthlyLimit": 0,	"monthlyResetDay": 0},"locked":locked},
+                "Ethernet": {"value":{"monthlyLimit": 0,	"monthlyResetDay": 0},"locked":locked},
+                "Unknown": {"value":{"monthlyLimit": 0,	"monthlyResetDay": 0},"locked":locked},
+                "Cellular": {"value":{"monthlyLimit": 0,	"monthlyResetDay": 0},"locked":locked}}
+            dailyLimitExport = { "Wi-Fi": {"value":0,"locked":locked},
+                "Ethernet": {"value":0,"locked":locked},
+                "Unknown": {"value":0,"locked":locked},
+                "Cellular": {"value":0,"locked":locked}}
+            overlimitRateLimitExport = { "Wi-Fi": {"value":0,"locked":locked},
+                "Ethernet": {"value":0,"locked":locked},
+                "Unknown": {"value":0,"locked":locked},
+                "Cellular": {"value":0,"locked":locked}}
             settingsExport["overlimitRateLimit"] = overlimitRateLimitExport
-            perConnectionEncryptionSettingExport = {}
-            settingsExport["perConnectionEncryptionSetting"] = perConnectionEncryptionSettingExport
+            encyptdefault = currentsettings["encrypted"];
+            perConnectionEncryptionSettingExport = { "Wi-Fi": {"value":encyptdefault,"locked":locked},
+                "Ethernet": {"value":encyptdefault,"locked":locked},
+                "Unknown": {"value":encyptdefault,"locked":locked},
+                "Cellular": {"value":encyptdefault,"locked":locked}}
+
             perConnectionEncryptionSettings = currentsettings["perConnectionEncryptionSettings"]
+            anyperconnection = False
+            anylimits = False
 
             for adapter in adapters:
                 logging.debug("Adapter is :" + str(adapter))
@@ -58,7 +79,6 @@ def get_team_settings(locked,exportadapters):
                 # everything is keyed on adapter type, if you have
                 # more than one adapter with same type, one of them
                 # will get overwritten by the other.
-
                 for perConnectionEncryptionSetting in perConnectionEncryptionSettings:
                     # the per connection encryption is tucked into settings instead of adapters,
                     # but you still need to look in adapters to find the adaptertype
@@ -66,6 +86,7 @@ def get_team_settings(locked,exportadapters):
                         encryptExport = {}
                         encryptExport["value"] = perConnectionEncryptionSetting["encrypted"]
                         encryptExport["locked"] = locked
+                        anyperconnection = True
                         perConnectionEncryptionSettingExport[adaptertype] = encryptExport
 
                 ratelimitExport[adaptertype] = {}
@@ -77,6 +98,7 @@ def get_team_settings(locked,exportadapters):
 
                 if "dataUsage" in adapter:
                     limits = adapter["dataUsage"]
+                    anylimits = True
                     monthlyLimitExport[adaptertype] = {}
                     monthlyLimitExport[adaptertype]["value"] = {}
                     monthlyLimitExport[adaptertype]["value"]["monthlyLimit"] = limits["usageMonthlyLimit"]
@@ -88,11 +110,16 @@ def get_team_settings(locked,exportadapters):
                     overlimitRateLimitExport[adaptertype] = {}
                     overlimitRateLimitExport[adaptertype]["value"] = limits["overlimitRatelimit"]
                     overlimitRateLimitExport[adaptertype]["locked"] = locked
+            # add optional sections only if they have something
+            if anyperconnection:
+                settingsExport["perConnectionEncryptionSetting"] = perConnectionEncryptionSettingExport
+            if anylimits:
+                settingsExport["monthlyLimit"] = monthlyLimitExport
+                settingsExport["dailyLimit"] = dailyLimitExport
         # done with adapters
-
         logging.debug("Settings are:" + str( currentsettings))
         settingsExport["encrypted"] = {}
-        settingsExport["encrypted"]["value"] = currentsettings["encrypted"];
+        settingsExport["encrypted"]["value"] = currentsettings["encrypted"]
         settingsExport["encrypted"]["locked"] = locked
         settingsExport["jumboPackets"] = {}
         settingsExport["jumboPackets"]["value"] = currentsettings["jumboPackets"]
@@ -115,8 +142,6 @@ def get_team_settings(locked,exportadapters):
         settingsExport["allowChaChaEncryption"] = {}
         settingsExport["allowChaChaEncryption"]["value"] = currentsettings["allowChaChaEncryption"]
         settingsExport["allowChaChaEncryption"]["locked"] = locked
-        # TODO: not yet in schema
-        #settingsExport["route_default"] = currentsettings["enableDefaultRoute"]
 
         connectmethodsettings = speedify.show_connectmethod()
         settingsExport["connectMethod"] = {}
@@ -163,11 +188,9 @@ def get_team_settings(locked,exportadapters):
     return jsonExport
 
 lockoutput = False
-exportAdapters = False
+exportAdapters = True
 if  len(sys.argv) > 1:
     if "lock" in sys.argv :
         lockoutput = True
-    if "adapters" in sys.argv:
-        exportAdapters = True
 currentsettings = get_team_settings_as_json_string(locked=lockoutput,exportadapters=exportAdapters )
 print(currentsettings)
