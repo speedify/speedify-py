@@ -892,3 +892,53 @@ def _find_cli():
 
     logging.error("Could not find speedify_cli!")
     raise SpeedifyError("Speedify CLI not found")
+def daemon_exit():
+    """
+    :return: daemon exit causes Speedify to disconnect and exit
+    """
+    _run_speedify_cmd(['daemon', 'exit'])
+    return True
+def directory():
+    """
+    directory controls the directory server
+    :return: returns an output domain: ...
+    """
+    return _run_speedify_cmd(['directory'])
+def login_auto():
+    """
+
+    :return: returns the speedify state enum which would be LOGGED IN
+    """
+    jret = _run_speedify_cmd(['login auto'])
+    return find_state_for_string(jret['login', 'auto'])
+def login_oauth(access_token):
+    """
+
+    :param access_token:
+    :return:
+    """
+def streaming_bypass(service_name):
+    """
+
+    :param service_name:
+    :return:
+    """
+def show_directory():
+    """
+
+    :return: the output is domain:  ...
+    """
+    return _run_speedify_cmd(['directory'])
+def show_streaming_bypass():
+    """
+
+    :return: output are the titles of subscriptions
+     and if the by pass is enabled. If not enabled it will show 0
+    """
+    return _run_speedify_cmd(['show','streamingbypass'])
+def dns(ip_address):
+    """
+
+    :param ip_address:
+    :return:
+    """
