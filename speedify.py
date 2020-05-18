@@ -892,12 +892,7 @@ def _find_cli():
 
     logging.error("Could not find speedify_cli!")
     raise SpeedifyError("Speedify CLI not found")
-def daemon_exit():
-    """
-    :return: daemon exit causes Speedify to disconnect and exit
-    """
-    _run_speedify_cmd(['daemon', 'exit'])
-    return True
+
 def directory(directory_server_domain):
     """
     :param directory_server_domain: this string variable controls the directory
@@ -916,12 +911,7 @@ def login_auto():
     """
     jret = _run_speedify_cmd(['login','auto'])
     return find_state_for_string(jret['state'])
-def login_oauth(access_token):
-    """
 
-    :param access_token:
-    :return:
-    """
 def streamingbypass(service_name, bypass):
     """
 
