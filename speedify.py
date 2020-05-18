@@ -898,38 +898,51 @@ def daemon_exit():
     """
     _run_speedify_cmd(['daemon', 'exit'])
     return True
-def directory():
+def directory(directory_server_domain):
     """
+    :param directory_server_domain: this string variable controls the directory
+    server
+
     directory controls the directory server
-    :return: returns an output domain: ...
+    :return: returns an output domain: 'directory_server_domain'
     """
-    return _run_speedify_cmd(['directory'])
+    args = ['directory', directory_server_domain]
+    resultjson = _run_speedify_cmd(args)
+    return resultjson
 def login_auto():
     """
 
     :return: returns the speedify state enum which would be LOGGED IN
     """
-    jret = _run_speedify_cmd(['login auto'])
-    return find_state_for_string(jret['login', 'auto'])
+    jret = _run_speedify_cmd(['login','auto'])
+    return find_state_for_string(jret['state'])
 def login_oauth(access_token):
     """
 
     :param access_token:
     :return:
     """
-def streaming_bypass(service_name):
+def streamingbypass(service_name, bypass):
     """
 
-    :param service_name:
-    :return:
+    :param service_name: service_name is a string of the name of the
+    streaming service used and bypass is type bool
+    
+    :return: returns the updated on/off status of the streamingbypass service
+    used with a specific streaming service
     """
+    args = ['streamingbypass',service_name]
+    args.append("on") if bypass else args.append("off")
+    resultjson = _run_speedify_cmd(args)
+    return resultjson
+
 def show_directory():
     """
 
-    :return: the output is domain:  ...
+    :return: the output is domain: '...'
     """
-    return _run_speedify_cmd(['directory'])
-def show_streaming_bypass():
+    return _run_speedify_cmd(['show','directory'])
+def show_streamingbypass():
     """
 
     :return: output are the titles of subscriptions
@@ -939,6 +952,9 @@ def show_streaming_bypass():
 def dns(ip_address):
     """
 
-    :param ip_address:
-    :return:
+    :param ip_address: string variable that is the user's custom inputted ip address
+    :return: 'crashReports': true/false and the dnsAddresses:[ip_address]
     """
+    args = ['dns', ip_address]
+    resultjson = _run_speedify_cmd(args)
+    return resultjson
