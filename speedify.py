@@ -728,7 +728,7 @@ def transport(transport='auto'):
     return resultjson
 
 @exception_wrapper("Failed getting stats")
-def stats(time=1, period=None):
+def stats(time=1, period='current'):
     '''
     stats(time=1)
     calls stats returns a list of all the parsed json objects it gets back
@@ -749,10 +749,10 @@ def stats(time=1, period=None):
         def __call__(self, input):
             self.result_list.append(input)
     list_callback = list_callback()
-    stats_callback(time,period, list_callback)
+    stats_callback(time, list_callback, period)
     return list_callback.result_list
 
-def stats_callback(time, period, callback):
+def stats_callback(time, callback, period='current'):
     '''
     stats_callback(time, callback)
     calls stats, and callback supplied function with each line of output. 0 is forever
