@@ -728,11 +728,11 @@ def transport(transport='auto'):
     return resultjson
 
 @exception_wrapper("Failed getting stats")
-def stats(time=1):
+def stats(time=1, period=None):
     '''
     stats(time=1)
     calls stats returns a list of all the parsed json objects it gets back
-
+    :param period: optional period of time
     :param time: How long to run the stats command.
     :type time: int
     :returns:  list -- list JSON stat responses from speedify.
@@ -748,22 +748,23 @@ def stats(time=1):
             self.result_list= list()
         def __call__(self, input):
             self.result_list.append(input)
-
     list_callback = list_callback()
-    stats_callback(time, list_callback)
+    stats_callback(time,period, list_callback)
     return list_callback.result_list
 
-def stats_callback(time, callback):
+def stats_callback(time, period, callback):
     '''
     stats_callback(time, callback)
     calls stats, and callback supplied function with each line of output. 0 is forever
-
+    :param optional period of time
     :param time: How long to run the stats command.
     :type time: int
     :param callback: Callback function
     :type callback: function
     '''
     args = ["stats", str(time)]
+    if period != None:
+        args.append(str(period))
     cmd = [get_cli()] + args
 
     _run_long_command(cmd, callback)
