@@ -769,7 +769,7 @@ def stats_callback(time, callback):
     _run_long_command(cmd, callback)
 
 ### Internal functions ###
-def _run_speedify_cmd(args, cmdtimeout=60):
+def _run_speedify_cmd(args, cmdtimeout=600):
     "passes list of args to speedify command line returns the objects pulled from the json"
     resultstr = ""
     try:
@@ -792,7 +792,7 @@ def _run_speedify_cmd(args, cmdtimeout=60):
         raise SpeedifyError("Invalid output from CLI")
     except subprocess.CalledProcessError as cpe:
         #TODO: errors can be json now
-        out = cpe.stderr.decode('utf-8').strip()
+        out = cpe.stderr.decode('utf-8')
         if not out:
             out=cpe.stdout.decode('utf-8').strip()
         returncode = cpe.returncode
@@ -807,25 +807,32 @@ def _run_speedify_cmd(args, cmdtimeout=60):
             errorKind = "Unknown Parameter"
             # whole usage message here, no help
             raise SpeedifyError(errorKind)
+        else:
+            logger.warning("Unknown return code: " + str(returncode) )
 
+
+        logger.warning("ErrorKind: " + str(errorKind) + ", retcode: " + str(returncode))
         newerror = None
         if (returncode ==1):
             try:
-                job = json.loads(out)
-                if("errorCode" in job):
+                #job = json.loads(out)
+                #if("errorCode" in job):
                     #json error! came from the speedify daemon
-                    newerror = SpeedifyAPIError(job["errorCode"], job["errorType"], job["errorMessage"])
+                #    newerror = SpeedifyAPIError(job["errorCode"], job["errorType"], job["errorMessage"])
+                newerror = SpeedifyAPIError(returncode,"Disaster", "||| "+str(out) +" |||")
             except ValueError:
                 logger.error("Could not parse Speedify API Error: " + out)
                 newerror = SpeedifyError(errorKind + ": Could not parse error message")
         else:
-            lastline = [ i for i in out.split("\n") if i][-1]
-            if lastline:
-                newerror = SpeedifyError( str(lastline))
-            else:
-                newerror = SpeedifyError(errorKind + ": " + str("Unknown error"))
+            #lastline = [ i for i in out.split("\n") if i][-1]
+            #if lastline:
+                newerror = SpeedifyError( str(out))
+            #else:
+            #    newerror = SpeedifyError(errorKind + ": " + str("Unknown error"))
 
         if newerror:
+            logger.warning("error running command :" +str(args))
+            logger.warning("Raising error " + str(newerror) + " on error kind " + str(errorKind) + " for message: " + str(out))
             raise newerror
         else:
             # treat the plain text as an error, common for valid command, with invalud arguments
