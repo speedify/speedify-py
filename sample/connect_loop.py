@@ -3,6 +3,7 @@ sys.path.append('../')
 import speedify
 import json
 import os
+import time
 
 from speedify import Priority
 from speedify import SpeedifyError
@@ -22,9 +23,13 @@ for x in range(1,loops):
     try:
         state = speedify.show_state();
         #logging.info("state at top of loop " + str(x) + " " + str(state))
+        #time.sleep(2)
         speedify.connect()
+        #time.sleep(2)
         state = speedify.show_state();
+        #time.sleep(2)
         speedify.disconnect()
+        #time.sleep(2)
     except Exception as e:
         logging.warning("Loop " + str(x) + " Exception: " + str(e))
 
