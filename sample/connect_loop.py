@@ -15,7 +15,7 @@ import logging
 
 logging.basicConfig(handlers=[logging.FileHandler('test.log'),logging.StreamHandler(sys.stdout)],format='%(asctime)s\t%(levelname)s\t%(module)s\t%(message)s',  level=logging.INFO)
 
-loops = 100
+loops = 200
 
 logging.info("START")
 
@@ -26,7 +26,7 @@ for x in range(1,loops):
         #time.sleep(2)
         speedify.connect()
         #time.sleep(2)
-        state = speedify.show_state();
+        #state = speedify.show_state();
         #time.sleep(2)
         speedify.disconnect()
         #time.sleep(2)

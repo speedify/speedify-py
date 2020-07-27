@@ -41,17 +41,20 @@ class Priority(Enum):
 class SpeedifyError(Exception):
     """Generic error thrown by library.
     """
-    def __init__(self,  message):
+    def __init__(self,  message, detailed_trace=None):
         self.message = message
+        self.detailed_trace = detailed_trace
 
 class SpeedifyAPIError(SpeedifyError):
     """Error thrown if speedify gave a bad json response.
     """
-    def __init__(self, error_code, error_type, error_message):
+    def __init__(self, error_code, error_type, error_message, detailed_trace=None):
         self.error_code = error_code
         self.error_type = error_type
         self.error_message = error_message
         self.message =error_message
+        self.detailed_trace=detailed_trace
+
 
 _cli_path = None
 
@@ -806,38 +809,50 @@ def _run_speedify_cmd(args, cmdtimeout=600):
         elif returncode == 4:
             errorKind = "Unknown Parameter"
             # whole usage message here, no help
-            raise SpeedifyError(errorKind)
+            raise SpeedifyAPIError(returncode,errorKind,errorKind)
         else:
-            logger.warning("Unknown return code: " + str(returncode) )
-
+            errorKind = "Unknown Error"
+            logger.warning("Unknown return code: " + str(returncode) + ", output=|||" +out + "|||" )
 
         logger.warning("ErrorKind: " + str(errorKind) + ", retcode: " + str(returncode))
         newerror = None
         if (returncode ==1):
             try:
-                #job = json.loads(out)
-                #if("errorCode" in job):
+                # rip out the debug messages before the json error message
+                lines = [ i for i in out.split("\n") if i]
+                message = ""
+                foundstart = False
+                for line in lines:
+                    if line.startswith("{"):
+                        foundstart = True
+                    if foundstart:
+                        message = message + line + "\n"
+                    if line.startswith("}"):
+                        foundstart = False
+                job = json.loads(message)
+                logging.warning("message: " + str(job))
+                if("errorCode" in job):
                     #json error! came from the speedify daemon
-                #    newerror = SpeedifyAPIError(job["errorCode"], job["errorType"], job["errorMessage"])
-                newerror = SpeedifyAPIError(returncode,"Disaster", "||| "+str(out) +" |||")
+                    newerror = SpeedifyAPIError(job["errorCode"], job["errorType"], job["errorMessage"],out)
+                #newerror = SpeedifyAPIError(returncode,"Disaster", "||| "+str(out) +" |||",out)
             except ValueError:
-                logger.error("Could not parse Speedify API Error: " + out)
-                newerror = SpeedifyError(errorKind + ": Could not parse error message")
-        else:
-            #lastline = [ i for i in out.split("\n") if i][-1]
-            #if lastline:
-                newerror = SpeedifyError( str(out))
-            #else:
-            #    newerror = SpeedifyError(errorKind + ": " + str("Unknown error"))
+                logger.error("Could not parse Speedify API Error: |||" + out + "|||")
+                newerror = SpeedifyAPIError(returncode, errorKind, errorKind + ": Could not parse error message",out)
 
-        if newerror:
-            logger.warning("error running command :" +str(args))
-            logger.warning("Raising error " + str(newerror) + " on error kind " + str(errorKind) + " for message: " + str(out))
-            raise newerror
+        elif ((returncode ==2) or (returncode ==3) or (returncode ==2)):
+            lastline = [ i for i in out.split("\n") if i][-1]
+            if lastline:
+                newerror = SpeedifyAPIError(returncode,errorKind, str(lastline),out)
+            else:
+                newerror = SpeedifyAPIError(returncode,errorKind,errorKind + ": " + str("Unknown error"),out)
         else:
-            # treat the plain text as an error, common for valid command, with invalud arguments
-            logger.error("runSpeedifyCmd CPE : " + out)
-            raise SpeedifyError(errorKind + ": " + str(": " + out))
+
+            newerror = SpeedifyAPIError(returncode,errorKind,errorKind + ": " + str("Unknown error"),out)
+
+        logger.warning("error running command :" +str(args))
+        logger.warning("Raising error " + str(newerror) + " on error kind " + str(errorKind) + " for message: " + str(out))
+        raise newerror
+
 
 # CALLBACK VERSIONS
 # The normal _run_speedify_cmd runs the command and waits for the final output.
