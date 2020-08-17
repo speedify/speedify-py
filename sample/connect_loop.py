@@ -15,16 +15,27 @@ import logging
 
 logging.basicConfig(handlers=[logging.FileHandler('test.log'),logging.StreamHandler(sys.stdout)],format='%(asctime)s\t%(levelname)s\t%(module)s\t%(message)s',  level=logging.INFO)
 
-loops = 200
+loops = 20
 
 logging.info("START")
-
+server_name = "us-nyc-17"
+total = 0
+count = 0
 for x in range(1,loops):
     try:
         state = speedify.show_state();
         #logging.info("state at top of loop " + str(x) + " " + str(state))
         #time.sleep(2)
-        speedify.connect()
+        start_time = time.time()
+
+        connected_server = speedify.connect(server_name)
+        if (connected_server["tag"] == server_name):
+            elapsed_time = time.time() - start_time
+            total = total + elapsed_time
+            count = count + 1
+            logging.info("connect took " + str(elapsed_time))
+        else:
+            logging.warning("connected to wrong server: " + str(connected_server["tag"]))
         #time.sleep(2)
         #state = speedify.show_state();
         #time.sleep(2)
@@ -34,3 +45,4 @@ for x in range(1,loops):
         logging.warning("Loop " + str(x) + " Exception: " + str(e))
 
 logging.info("DONE")
+logging.info("Average connect time: " + str(total/count))
