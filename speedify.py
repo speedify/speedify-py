@@ -778,6 +778,11 @@ def safebrowsing_initialize(settings: str):
     args = ["safebrowsing", "initialize", settings]
     return _run_speedify_cmd(args)
 
+@exception_wrapper("Failed to configure safe browsing")
+def safebrowsing_configure(settings: str):
+    args = ["safebrowsing", "config", settings]
+    return _run_speedify_cmd(args)
+
 @exception_wrapper("Failed to enable safe browsing")
 def safebrowsing_enable(enable: bool):
     args = ["safebrowsing", "enable"]
