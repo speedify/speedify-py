@@ -789,12 +789,6 @@ def safebrowsing_enable(enable: bool):
     args.append("on") if enable else args.append("off")
     return _run_speedify_cmd(args)
 
-@exception_wrapper("Failed to set timeout")
-def safebrowsing_timeout(ms):
-    args = ["safebrowsing", "timeout"]
-    args.append(str(ms))
-    return _run_speedify_cmd(args)
-
 @exception_wrapper("Failed getting safebrowsing error")
 def safebrowsing_error(time=1):
     if time == 0:
