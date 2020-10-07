@@ -376,6 +376,11 @@ def show_version():
     '''
     return  _run_speedify_cmd(['version'])
 
+@exception_wrapper("Failed to get stats")
+def safebrowsing_stats():
+    args = ["safebrowsing", "stats"]
+    return _run_speedify_cmd(args)
+
 ### Setter functions ###
 @exception_wrapper("Failed to set adapter priority")
 def adapter_priority(adapterID, priority=Priority.ALWAYS):
@@ -764,6 +769,43 @@ def stats_callback(time, callback):
     :type callback: function
     '''
     args = ["stats", str(time)]
+    cmd = [get_cli()] + args
+
+    _run_long_command(cmd, callback)
+
+@exception_wrapper("Failed to initialize safe browsing")
+def safebrowsing_initialize(settings: str):
+    args = ["safebrowsing", "initialize", settings]
+    return _run_speedify_cmd(args)
+
+@exception_wrapper("Failed to configure safe browsing")
+def safebrowsing_configure(settings: str):
+    args = ["safebrowsing", "config", settings]
+    return _run_speedify_cmd(args)
+
+@exception_wrapper("Failed to enable safe browsing")
+def safebrowsing_enable(enable: bool):
+    args = ["safebrowsing", "enable"]
+    args.append("on") if enable else args.append("off")
+    return _run_speedify_cmd(args)
+
+@exception_wrapper("Failed getting safebrowsing error")
+def safebrowsing_error(time=1):
+    if time == 0:
+        logger.error('safebrowsing error cannot be run with 0, would never return')
+        raise SpeedifyError("safebrowsing error cannot be run with 0, would never return")
+    class list_callback():
+        def __init__( self ):
+            self.result_list= list()
+        def __call__(self, input):
+            self.result_list.append(input)
+
+    list_callback = list_callback()
+    safebrowsing_error_callback(time, list_callback)
+    return list_callback.result_list
+
+def safebrowsing_error_callback(time, callback):
+    args = ["safebrowsing", "errors", str(time)]
     cmd = [get_cli()] + args
 
     _run_long_command(cmd, callback)
