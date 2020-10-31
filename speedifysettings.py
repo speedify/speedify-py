@@ -20,7 +20,7 @@ speedify_defaults = '''{"connectmethod" : "closest","encryption" : true, "jumbo"
     "startupconnect": true,  "packet_aggregation": true,  "transport":"auto","overflow_threshold": 30.0,
     "adapter_priority_ethernet" : "always","adapter_priority_wifi" : "always",
     "adapter_priority_cellular" : "secondary", "adapter_datalimit_daily_all" : 0,
-    "adapter_datalimit_monthly_all" : 0, "adapter_ratelimit_all" : 0, "route_default": true
+    "adapter_datalimit_monthly_all" : 0, "adapter_ratelimit_all" : 0, "route_default": true, "compression": True
     }'''
 
 def apply_setting(setting, value):
@@ -45,6 +45,8 @@ def apply_setting(setting, value):
             speedify.connectmethod(value)
         elif setting == "directory":
             speedify.directory(value)
+        elif setting == "compression":
+            speedify.compression(value)
         elif setting == "encryption":
             speedify.encryption(value)
         elif setting == "packet_aggregation":
@@ -142,6 +144,7 @@ def get_speedify_settings():
         currentsettings = speedify.show_settings();
         logging.debug("Settings are:" + str( currentsettings))
         settings["encryption"] = currentsettings["encrypted"];
+        settings["compression"] = currentsettings["headerCompression"];
         settings["jumbo"] = currentsettings["jumboPackets"]
         settings["transport"] = currentsettings["transportMode"]
         settings["startupconnect"] = currentsettings["startupConnect"]

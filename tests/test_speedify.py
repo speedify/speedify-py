@@ -26,6 +26,7 @@ class TestSpeedify(unittest.TestCase):
         speedify.routedefault(True)
         speedify.connectmethod("closest")
         speedify.disconnect()
+        speedify.compression(True)
 
     def test_connect(self):
         serverinfo = speedify.connect_closest()
@@ -128,14 +129,18 @@ class TestSpeedify(unittest.TestCase):
         # test some basic settings
         speedify.packetaggregation(False)
         speedify.jumbo(False)
+        speedify.compression(False)
         my_settings = speedify.show_settings()
         self.assertFalse(my_settings["packetAggregation"])
         self.assertFalse(my_settings["jumboPackets"])
+        self.assertFalse(my_settings["headerCompression"])
         speedify.packetaggregation(True)
         speedify.jumbo(True)
+        speedify.compression(True)
         my_settings = speedify.show_settings()
         self.assertTrue(my_settings["packetAggregation"])
         self.assertTrue(my_settings["jumboPackets"])
+        self.assertFalse(my_settings["headerCompression"])
 
     def test_badarguments(self):
         # reaching into private methods to force some errors to be sure they're handled
