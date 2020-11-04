@@ -541,17 +541,17 @@ def mode(mode="speed"):
     resultjson = _run_speedify_cmd(args)
     return resultjson
 
-@exception_wrapper("Failed to set compression")
-def compression(compress=True):
+@exception_wrapper("Failed to set headercompression")
+def headercompression(compress=True):
     '''
-    compression(compress=True)
-    Sets header compression on or off.
+    headercompression(compress=True)
+    Sets header headercompression on or off.
 
     :param compress: Header compression on or off
     :type compress: bool
-    :returns:  dict -- :ref:`JSON settings <compression>` from speedify
+    :returns:  dict -- :ref:`JSON settings <headercompression>` from speedify
     '''
-    args = ['compression']
+    args = ['headercompression']
     if compress == "on":
         args.append("on")
     elif compress == "off":
