@@ -16,7 +16,7 @@ from speedify import SpeedifyError
 
 # for convenience, here's a JSON that resets everything to normal
 speedify_defaults = '''{"connectmethod" : "closest","encryption" : true, "jumbo" : true,
-    "mode" : "speed", "privacy_killswitch":false, "privacy_dnsleak": true, "privacy_crashreports": true,
+    "mode" : "streaming", "privacy_killswitch":false, "privacy_dnsleak": true, "privacy_crashreports": true,
     "startupconnect": true,  "packet_aggregation": true,  "transport":"auto","overflow_threshold": 30.0,
     "adapter_priority_ethernet" : "always","adapter_priority_wifi" : "always",
     "adapter_priority_cellular" : "secondary", "adapter_datalimit_daily_all" : 0,
