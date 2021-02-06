@@ -58,6 +58,13 @@ class TestSpeedify(unittest.TestCase):
         mysettings = speedify.show_settings()
         self.assertEqual(mysettings["transportMode"], "tcp")
 
+        #tcp-multi
+        mysettings = speedify.transport("tcp-multi")
+        self.assertEqual(mysettings["transportMode"], "tcp-multi")
+        serverinfo = speedify.connect()
+        mysettings = speedify.show_settings()
+        self.assertEqual(mysettings["transportMode"], "tcp-multi")
+
     def test_bad_country(self):
         #logging.disable(logging.ERROR);
         logging.info("Testing error handling, ignore next few errors")
@@ -127,15 +134,19 @@ class TestSpeedify(unittest.TestCase):
     def test_settings(self):
         # test some basic settings
         speedify.packetaggregation(False)
+        speedify.headercompression(False)
         speedify.jumbo(False)
         my_settings = speedify.show_settings()
         self.assertFalse(my_settings["packetAggregation"])
         self.assertFalse(my_settings["jumboPackets"])
+        self.assertFalse(my_settings["headerCompression"])
         speedify.packetaggregation(True)
         speedify.jumbo(True)
+        speedify.headercompression(True)
         my_settings = speedify.show_settings()
         self.assertTrue(my_settings["packetAggregation"])
         self.assertTrue(my_settings["jumboPackets"])
+        self.assertTrue(my_settings["headerCompression"])
 
     def test_badarguments(self):
         # reaching into private methods to force some errors to be sure they're handled

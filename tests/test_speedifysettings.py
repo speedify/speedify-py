@@ -28,34 +28,39 @@ class TestSpeedifySettings(unittest.TestCase):
     def test_set_defaults(self):
         speedify.encryption(False)
         speedify.transport("tcp")
+        speedify.headercompression(False)
         self.assertTrue(speedifysettings.apply_speedify_settings(speedifysettings.speedify_defaults))
         settings = speedify.show_settings()
         self.assertTrue(settings["encrypted"])
         self.assertTrue(settings["jumboPackets"])
+        self.assertTrue(settings["headerCompression"])
         self.assertEqual( settings["transportMode"] , "auto")
 
     def test_read_settings(self):
         speedify.encryption(False)
-        speedify.transport("tcp")
+        speedify.transport("tcp-multi")
         speedify.packetaggregation(False)
+        speedify.headercompression(False)
         mysettings = speedifysettings.get_speedify_settings()
         self.assertIn("encryption", mysettings)
         self.assertFalse(mysettings["encryption"])
+        self.assertFalse(mysettings["headercompression"])
         self.assertFalse(mysettings["packet_aggregation"])
         self.assertIn("transport", mysettings)
-        self.assertEqual("tcp", mysettings["transport"])
+        self.assertEqual("tcp-multi", mysettings["transport"])
         self.assertIn("jumbo", mysettings)
         self.assertTrue(mysettings["jumbo"])
 
 
     def test_set_json(self):
         # lets use a settings string to apply it back
-        json_string ='{"encryption" : false, "jumbo" : false, "packet_aggregation":false,"transport":"tcp","adapter_priority_wifi" : "backup", "route_default": false}'
+        json_string ='{"encryption" : false, "jumbo" : false, "packet_aggregation":false,"transport":"tcp","adapter_priority_wifi" : "backup", "route_default": false, "headercompression": false}'
         self.assertTrue( speedifysettings.apply_speedify_settings(json_string))
         settings = speedify.show_settings()
         self.assertFalse(settings["encrypted"])
         self.assertFalse(settings["jumboPackets"])
         self.assertFalse(settings["packetAggregation"])
+        self.assertFalse(settings["headerCompression"])
         self.assertFalse(settings["enableDefaultRoute"])
         self.assertEqual( settings["transportMode"] , "tcp")
 

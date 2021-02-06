@@ -16,11 +16,11 @@ from speedify import SpeedifyError
 
 # for convenience, here's a JSON that resets everything to normal
 speedify_defaults = '''{"connectmethod" : "closest","encryption" : true, "jumbo" : true,
-    "mode" : "speed", "privacy_killswitch":false, "privacy_dnsleak": true, "privacy_crashreports": true,
+    "mode" : "streaming", "privacy_killswitch":false, "privacy_dnsleak": true, "privacy_crashreports": true,
     "startupconnect": true,  "packet_aggregation": true,  "transport":"auto","overflow_threshold": 30.0,
     "adapter_priority_ethernet" : "always","adapter_priority_wifi" : "always",
     "adapter_priority_cellular" : "secondary", "adapter_datalimit_daily_all" : 0,
-    "adapter_datalimit_monthly_all" : 0, "adapter_ratelimit_all" : 0, "route_default": true
+    "adapter_datalimit_monthly_all" : 0, "adapter_ratelimit_all" : 0, "route_default": true, "headercompression": true
     }'''
 
 def apply_setting(setting, value):
@@ -49,6 +49,8 @@ def apply_setting(setting, value):
             speedify.encryption(value)
         elif setting == "packet_aggregation":
             speedify.packetaggregation(value)
+        elif setting == "headercompression":
+            speedify.headercompression(value)
         elif setting == "jumbo":
             speedify.jumbo(value)
         # dnsleak and killswitch not available on all platforms
@@ -149,6 +151,7 @@ def get_speedify_settings():
         settings["overflow_threshold"] = currentsettings["overflowThreshold"]
         settings["packet_aggregation"] = currentsettings["packetAggregation"]
         settings["route_default"] = currentsettings["enableDefaultRoute"]
+        settings["headercompression"] = currentsettings["headerCompression"]
         # TODO: can no longer get connectmethod back out!
         connectmethodsettings = speedify.show_connectmethod();
         settings["connectmethod"] =connectmethodsettings["connectMethod"]
