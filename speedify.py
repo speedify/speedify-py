@@ -707,16 +707,6 @@ def routedefault(route=True):
     resultjson = _run_speedify_cmd(args)
     return resultjson
 
-@exception_wrapper("Failed to run speedtest")
-def speedtest():
-    '''
-    speedtest()
-    Returns runs speed test returns final results. Will take around 30 seconds.
-
-    :returns:  dict -- :ref:`JSON speedtest <speedtest>` from speedify
-    '''
-    jret = _run_speedify_cmd(['speedtest'], cmdtimeout=600)
-    return jret
 
 @exception_wrapper("Failed to set transport")
 def transport(transport='auto'):
@@ -877,7 +867,7 @@ def _run_speedify_cmd(args, cmdtimeout=60):
 # CALLBACK VERSIONS
 # The normal _run_speedify_cmd runs the command and waits for the final output.
 # these versions keep running, calling you back as json objects are emitted. useful
-# for stats and for a verbose speedtest, otherwise, stick with the non-callback versions
+# for stats, otherwise, stick with the non-callback versions
 @exception_wrapper("SpeedifyError in longRunCommand")
 def _run_long_command(cmdarray, callback):
     "callback is a function you provide, passed parsed json objects"
