@@ -92,6 +92,51 @@ def exception_wrapper(argument):
 
 # Functions for controlling Speedify State
 
+@exception_wrapper("Failed to do captiveportal_check")
+def captiveportal_check():
+    '''
+    captiveportal_check()
+    Returns adapters which are currently blocked by a captive portal
+
+    :returns:  dict -- dict -- :ref:`JSON list of adapters behind captive portal` from speedify.
+    '''
+    return _run_speedify_cmd(['captiveportal', 'check'])
+
+@exception_wrapper("Failed to do captiveportal_login")
+def captiveportal_login(proxy=True, adapterID = None):
+    '''
+    captiveportal_login()
+    Starts or stops the local proxy intercepting traffic on ports 52,80,433, for
+    filling in a captive portal.   If the user interface is running, once this is
+    turned on, it will launch a captive portal browser.  If it's not, then it's
+    up to you to launch a browser pointing at an http website to get to the
+    portal page.
+
+    :param proxy: Whether the local proxy should intercept captive portal traffic
+    :type priority: boolean
+    :param adapterID: The interface adapterID
+    :type adapterID: str
+
+    :returns:  dict -- dict -- :ref:`JSON list of adapters behind captive portal` from speedify.
+    '''
+    args = ['captiveportal', 'login']
+    startproxy = True
+    if proxy == "on":
+        args.append("on")
+    elif proxy == "off":
+        startproxy = False
+        args.append("off")
+    elif proxy:
+        args.append("on")
+    else:
+        startproxy = False
+        args.append("off")
+
+
+    if adapterID and startproxy:
+        args.append(adapterID)
+    return _run_speedify_cmd(args)
+
 @exception_wrapper("Failed to connect")
 def connect(server=""):
     '''
@@ -153,16 +198,6 @@ def connect_last():
     '''
     return connect("last")
 
-@exception_wrapper("Disconnect failed")
-def disconnect():
-    '''
-    disconnect()
-    Disconnects. Waits for disconnect to complete
-
-    :returns: bool -- TRUE if disconnect succeeded
-    '''
-    _run_speedify_cmd(["disconnect"])
-    return True
 
 @exception_wrapper("Failed to set connect method")
 def connectmethod(method, country="us", city=None, num=None):
@@ -211,6 +246,17 @@ def connectmethod_as_string(connectMethodObject, hypens=True):
                 ret = ret + sep + str(connectMethodObject["num"])
     return ret
 
+@exception_wrapper("Disconnect failed")
+def disconnect():
+    '''
+    disconnect()
+    Disconnects. Waits for disconnect to complete
+
+    :returns: bool -- TRUE if disconnect succeeded
+    '''
+    _run_speedify_cmd(["disconnect"])
+    return True
+
 @exception_wrapper("Failed to login")
 def login(user, password):
     '''
@@ -240,7 +286,7 @@ def logout():
 
 ### Getter functions ###
 
-@exception_wrapper("Failed to get server list")
+@exception_wrapper("Failed to show servers")
 def show_servers():
     '''
     show_servers()
@@ -250,7 +296,7 @@ def show_servers():
     '''
     return _run_speedify_cmd(['show', 'servers'])
 
-@exception_wrapper("Failed to get privacy")
+@exception_wrapper("Failed to show privacy")
 def show_privacy():
     '''
     show_privacy()
@@ -260,7 +306,7 @@ def show_privacy():
     '''
     return _run_speedify_cmd(['show', 'privacy'])
 
-@exception_wrapper("Failed to get settings")
+@exception_wrapper("Failed to show settings")
 def show_settings():
     '''
     show_settings()
@@ -270,7 +316,7 @@ def show_settings():
     '''
     return _run_speedify_cmd(['show', 'settings'])
 
-@exception_wrapper("Failed to get adapters")
+@exception_wrapper("Failed to show adapters")
 def show_adapters():
     '''
     show_adapters()
@@ -280,50 +326,27 @@ def show_adapters():
     '''
     return _run_speedify_cmd(['show', 'adapters'])
 
-@exception_wrapper("Failed to do captiveportal_check")
-def captiveportal_check():
+@exception_wrapper("Failed to show streamingbypass")
+def show_streamingbypass():
     '''
-    captiveportal_check()
-    Returns adapters which are currently blocked by a captive portal
+    show_streamingbypass()
+    Returns current streamingbypass settings (allows services like Netflix to go around the VPN)
 
-    :returns:  dict -- dict -- :ref:`JSON list of adapters behind captive portal` from speedify.
+    :returns:  dict -- dict -- :ref:`JSON list of services <show-streamingbypass>` from speedify.
     '''
-    return _run_speedify_cmd(['captiveportal', 'check'])
+    return _run_speedify_cmd(['show', 'streamingbypass'])
 
-@exception_wrapper("Failed to do captiveportal_login")
-def captiveportal_login(proxy=True, adapterID = None):
+@exception_wrapper("Failed to show disconnect")
+def show_disconnect():
     '''
-    captiveportal_login()
-    Starts or stops the local proxy intercepting traffic on ports 52,80,433, for
-    filling in a captive portal.   If the user interface is running, once this is
-    turned on, it will launch a captive portal browser.  If it's not, then it's
-    up to you to launch a browser pointing at an http website to get to the
-    portal page.
+    show_disconnect()
+    Returns the disconnect reason for the previous session
 
-    :param proxy: Whether the local proxy should intercept captive portal traffic
-    :type priority: boolean
-    :param adapterID: The interface adapterID
-    :type adapterID: str
-
-    :returns:  dict -- dict -- :ref:`JSON list of adapters behind captive portal` from speedify.
+    :returns:  dict -- dict -- :ref:`Contains "disconnectReason" string from speedify.
     '''
-    args = ['captiveportal', 'login']
-    startproxy = True
-    if proxy == "on":
-        args.append("on")
-    elif proxy == "off":
-        startproxy = False
-        args.append("off")
-    elif proxy:
-        args.append("on")
-    else:
-        startproxy = False
-        args.append("off")
+    return _run_speedify_cmd(['show', 'disconnect'])
 
 
-    if adapterID and startproxy:
-        args.append(adapterID)
-    return _run_speedify_cmd(args)
 
 @exception_wrapper("Failed to get current server")
 def show_currentserver():
@@ -344,6 +367,16 @@ def show_user():
     :returns:  dict -- :ref:`JSON response <show-user>` from speedify.
     '''
     return _run_speedify_cmd(['show', 'user'])
+
+@exception_wrapper("Failed to get current user")
+def show_directory():
+    '''
+    show_directory()
+    Returns current directory
+
+    :returns:  dict -- :ref:`JSON response <show-directory>` from speedify.
+    '''
+    return _run_speedify_cmd(['show', 'directory'])
 
 @exception_wrapper("Failed to show connect method")
 def show_connectmethod():
@@ -563,6 +596,32 @@ def encryption(encrypt=True):
     resultjson = _run_speedify_cmd(args)
     return resultjson
 
+@exception_wrapper("Failed to set headercompression")
+def headercompression(mode=True):
+    '''
+    headercompression(mode=True)
+    Sets headercompression mode on or off.
+
+    :param mode: Header compression on or off
+    :type mode: bool
+    :returns:  dict -- :ref:`JSON settings <headercompression>` from speedify
+    '''
+    args = ['headercompression']
+    if mode == "on":
+        args.append("on")
+    elif mode == "off":
+        args.append("off")
+    elif mode == True:
+        args.append("on")
+    elif mode == False:
+        args.append("off")
+    else:
+        #probably invalid, but we'll let speedify tell us THAT
+        args.append(mode)
+
+    resultjson = _run_speedify_cmd(args)
+    return resultjson
+
 @exception_wrapper("Failed to set jumbo")
 def jumbo(mode=True):
     '''
@@ -714,7 +773,7 @@ def transport(transport='auto'):
     transport(transport='auto')
     Sets the transport mode (auto/tcp/udp/https).
 
-    :param transport: Sets the transport to "auto","udp","tcp" or "https"
+    :param transport: Sets the transport to "auto","udp","tcp","tcp-multi" or "https"
     :type transport: str
     :returns:  dict -- :ref:`JSON settings <transport>` from speedify
     '''
