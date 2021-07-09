@@ -1,5 +1,4 @@
 import pandas as pd
-import GPUtil
 import time
 import psutil
 import sys
@@ -17,13 +16,15 @@ from speedify import State, SpeedifyError, Priority
 # Issues:
 #  * Notification is making a noise every time now.  I want silent notificaitons, the person is streaming!  fix https://stackoverflow.com/questions/56695061/is-there-any-way-to-disable-the-notification-sound-on-win10toast-python-library
 #  * Not using the crossplatform notification library, would work on linux and mac if i did that
-#  * GPU api turns out to be NVIDIA only, I'll probably tear that out at some point.
+#  * There's a GPUUItl... but it only works on NVIDIA so i removed.
 #  * Notifications show the app name as 'Python'.  It's true, and this is a prototype, so whatever.
 #  * Wonder if there's a way to tell if there's  congestion that's causing stream to not hit full speed?
 
+# If you don't see the notifications, it probably means you have Windows Focus Assist on.  Turn it off.
+
 stopped_num = 10000000 # (set a maximum number of acquisition, to prevent explosions recorded text)
 delay = 10 # sampling interval information
-Gpus = GPUtil.getGPUs()
+
 toaster = ToastNotifier()
 
 low_memory = False
@@ -31,24 +32,13 @@ busy_cpus = 0
 is_streaming = False
 
 
-def get_gpu_info():
-    '''
-    :return:
-    '''
-    # only works on NVIDIA GPUS
-
-    gpulist = []
-    GPUtil.showUtilization()
-    for k, gpu in Gpus:
-        print('gpu.id:', gpu.id)
-        print ( 'total GPU:', gpu.memoryTotal)
-        print ( 'GPU usage:', gpu.memoryUsed)
-        print ( 'gpu use proportion:', gpu.memoryUtil * 100)
-        Press # to add information one by one GPU
-        gpulist.append([ gpu.id, gpu.memoryTotal, gpu.memoryUsed,gpu.memoryUtil * 100])
-
-    return gpulist
-
+def notify(title, msg):
+    global toaster
+    try:
+        toaster.show_toast(str(title),str(msg),icon_path="SpeedifyApp.ico")
+        print("Toast: " +str(title) + " / " + str(msg))
+    except Exception as e:
+        print("Error showing notification " + str(e))
 
 def get_cpu_info():
     ''' :return:
@@ -59,7 +49,6 @@ def get_cpu_info():
          cpu: CPU usage of each accounting
     '''
     global low_memory
-    global toaster
     global busy_cpus
     mem = psutil.virtual_memory()
     memtotal = mem.total
@@ -70,7 +59,7 @@ def get_cpu_info():
 
     if mempercent > 90:
         if not low_memory:
-            toaster.show_toast("Low Memory","Memory used: " + str(mempercent) + "%.  Can you close some apps or tabs?",icon_path="SpeedifyApp.ico")
+            notify("Low Memory","Memory used: " + str(mempercent) + "%.  Can you close some apps or tabs?")
         low_memory = True
     else:
         low_memory = False
@@ -82,9 +71,9 @@ def get_cpu_info():
         if cpu_perc > 90:
             busy_cpus_now = busy_cpus_now + 1
     if (busy_cpus_now > 0 and busy_cpus != busy_cpus_now):
-        toaster.show_toast("CPUs Busy", str(busy_cpus_now) + " / " + str(total_cores) + " CPU Cores busy. Can you close some apps or tabs?",icon_path="SpeedifyApp.ico")
+        notify("CPUs Busy", str(busy_cpus_now) + " / " + str(total_cores) + " CPU Cores busy. Can you close some apps or tabs?")
     if (busy_cpus_now == 0 and busy_cpus != busy_cpus_now):
-        toaster.show_toast("CPUs Recovered", "No CPU Cores fully loaded",icon_path="SpeedifyApp.ico")
+        notify("CPUs Recovered", "No CPU Cores fully loaded")
     busy_cpus = busy_cpus_now
 
     # meh, load is in a future release that pip doesn't have yet
@@ -97,8 +86,7 @@ def get_cpu_info():
 def main():
     times = 0
     global is_streaming
-    global toaster
-
+    stream_name = None
     last_state = "DISCONNECTED"
     while True:
                  # The maximum number of cycles
@@ -107,7 +95,7 @@ def main():
             time.strftime('%Y-%m-%d %H:%M:%S',time.localtime(time.time()))
                          # Obtain information CPU
 
-            try:             
+            try:
                 stats = speedify.stats(1)
 
                 active_streams = False
@@ -123,34 +111,37 @@ def main():
                         for stream in streams_array :
                             if stream["active"] == True:
                                 active_streams = True;
+                                if "name" in stream:
+                                    # lazy cheat.  if there's more than one stream, i'm
+                                    # going to end out just using the name of hte last
+                                    # one which is not really correct, but i'm just
+                                    # experimenting
+                                    app_name = stream["name"]
                                 print("active stream")
                                 streaming_right_now = True
                         if( streaming_right_now and not is_streaming):
-                            toaster.show_toast("Live Stream","Speedify is enhancing streaming",icon_path="SpeedifyApp.ico" )
+                            notify("Live Stream","Speedify is enhancing " + app_name )
                         if( not streaming_right_now and is_streaming ):
-                            toaster.show_toast("Stream Complete","Stream complete",icon_path="SpeedifyApp.ico" )
+                            notify("Stream Complete",app_name + " stream complete")
                         is_streaming = streaming_right_now
                     if(str(json_array[0]) == "state"):
                         state_obj = json_array[1]
                         new_state = state_obj["state"]
                         if (new_state == "DISCONNECTED" or new_state == "DISCONNECTING") and is_streaming == True:
                             # stats returns things in whatever order it wants so there's no guarantee this will happen in this order to get caught
-                            toaster.show_toast("Stream broke?!" , "Speedify disconnected during live stream",icon_path="SpeedifyApp.ico")
+                            notify("Stream broke?!" , "Speedify disconnected during live stream")
                             is_streaming = False
                         if new_state != last_state and new_state == "CONNECTED":
-                            toaster.show_toast("Speedify Connected" , "Ready to start streaming",icon_path="SpeedifyApp.ico")
+                            notify("Speedify Connected" , "Ready to start streaming")
                             last_state = new_state
                         if (new_state == "DISCONNECTED" or new_state == "LOGGED_OUT") and (last_state != "LOGGED_OUT" and last_state != "LOGGED_IN" and last_state != "LOGGING_IN") :
-                            toaster.show_toast("Speedify Disconnected" , "Connect before streaming",icon_path="SpeedifyApp.ico")
-
+                            notify("Speedify Disconnected" , "Connect before streaming")
                         last_state = new_state
                 if(active_streams):
                     cpu_info = get_cpu_info()
-                                 # Obtain information GPU
-                    gpu_info = get_gpu_info()
-                                 # Added gap
+
                     print(cpu_info)
-                    print(gpu_info,'\n')
+
             except speedify.SpeedifyError as sapie:
                 print("SpeedifyError " + str(sapie))
             time.sleep(delay)
