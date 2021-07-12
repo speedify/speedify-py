@@ -113,12 +113,12 @@ def main():
                         if stream["active"] == True:
                             active_streams = True;
                             if "name" in stream:
-                                # lazy cheat.  if there's more than one stream, i'm
-                                # going to end out just using the name of hte last
-                                # one which is not really correct, but i'm just
-                                # experimenting
+                                # lazy cheat.  it's actually a list of streams, if there's more than one stream, i'm
+                                # going to end out just using the name of the last
+                                # active one which is not really correct, but i'm just
+                                # experimenting, and most times there's just one.
                                 app_name = stream["name"]
-                            print("active stream")
+                            print("active stream: " + str(stream))
                             streaming_right_now = True
                     if( streaming_right_now and not is_streaming):
                         notify("Live Stream","Speedify is enhancing " + app_name )
@@ -128,7 +128,7 @@ def main():
                 if(str(json_array[0]) == "state"):
                     state_obj = json_array[1]
                     new_state = state_obj["state"]
-                    if (new_state == "DISCONNECTED" or new_state == "DISCONNECTING") and is_streaming == True:
+                    if (new_state!= "CONNECTED" and last_state == "CONNECTED" ) and is_streaming == True:
                         # stats returns things in whatever order it wants so there's no guarantee this will happen in this order to get caught
                         notify("Stream broke?!" , "Speedify disconnected during live stream")
                         is_streaming = False
