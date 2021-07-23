@@ -41,6 +41,8 @@ def notify(title, msg):
         print("Toast: " +str(title) + " / " + str(msg))
     except Exception as e:
         print("Error showing notification " + str(e))
+        # seems like it can get stuck and never recover.  so let's try making a new one?
+        toaster = ToastNotifier()
 
 def get_cpu_info():
     ''' :return:
@@ -57,7 +59,7 @@ def get_cpu_info():
     memfree = mem.free
     mempercent = mem.percent
     memused = mem.used
-    cpu = psutil.cpu_percent(percpu=True)
+    cpu = psutil.cpu_percent(percpu=False)
 
     if mempercent > 90:
         if not low_memory:
@@ -68,12 +70,10 @@ def get_cpu_info():
 
     busy_cpus_now = 0
     total_cores = 0
-    for cpu_perc in cpu :
-        total_cores = total_cores + 1
-        if cpu_perc > 90:
-            busy_cpus_now = busy_cpus_now + 1
+    if cpu > 90:
+            busy_cpus_now = 1
     if (busy_cpus_now > 0 and busy_cpus != busy_cpus_now):
-        notify("CPUs Busy", str(busy_cpus_now) + " / " + str(total_cores) + " CPU Cores busy. Can you close some apps or tabs?")
+        notify("CPU Busy", "CPU " + str(cpu ) + "% busy. Can you close some apps or tabs?")
     if (busy_cpus_now == 0 and busy_cpus != busy_cpus_now):
         notify("CPUs Recovered", "No CPU Cores fully loaded")
     busy_cpus = busy_cpus_now
@@ -89,7 +89,7 @@ def main():
     times = 0
     global is_streaming
     stream_name = None
-    last_state = "DISCONNECTED"
+
     while True:
 
                      # Prints the current time
@@ -118,31 +118,28 @@ def main():
                                 # active one which is not really correct, but i'm just
                                 # experimenting, and most times there's just one.
                                 app_name = stream["name"]
-                            print("active stream: " + str(stream))
+                            #print("active stream: " + str(stream))
                             streaming_right_now = True
                     if( streaming_right_now and not is_streaming):
                         notify("Live Stream","Speedify is enhancing " + app_name )
                     if( not streaming_right_now and is_streaming ):
                         notify("Stream Complete",app_name + " stream complete")
                     is_streaming = streaming_right_now
-                if(str(json_array[0]) == "state"):
-                    state_obj = json_array[1]
-                    new_state = state_obj["state"]
-                    if (new_state!= "CONNECTED" and last_state == "CONNECTED" ) and is_streaming == True:
-                        # stats returns things in whatever order it wants so there's no guarantee this will happen in this order to get caught
-                        notify("Stream broke?!" , "Speedify disconnected during live stream")
-                        is_streaming = False
-                    elif ((new_state!= "CONNECTED") and last_state == "CONNECTED" ):
-                        notify("Speedify Disconnected" , "Connect before streaming")
-                    elif new_state != last_state and new_state == "CONNECTED":
-                        notify("Speedify Connected" , "Ready to start streaming")
-                        last_state = new_state
-                    last_state = new_state
+
             if(active_streams):
                 # only notify about busy cpu / memory if we think you're live streaming.  otherwise it wouldn't be speedify's business
-                cpu_info = get_cpu_info()
-                print(cpu_info)
+                (memtotal, memfree, memused, mempercent, cpu) = get_cpu_info()
+                print ("")
+                print ("Streaming " + app_name);
+                print ("   CPU:     " + str(cpu) + "%")
+                print ("   Memory:  " + str(mempercent) + "%")
+                if cpu > 90:
+                    print ("WARNING: High CPU.  Consider closing some apps or tabs")
 
+                if mempercent > 90:
+                    print ("WARNING: High memory usage.  Consider closing some apps or tabs")
+            else:
+                print("No streams active")
         except speedify.SpeedifyError as sapie:
             print("SpeedifyError " + str(sapie))
         time.sleep(delay)
