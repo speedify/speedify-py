@@ -13,6 +13,16 @@ from speedify import State, SpeedifyError, Priority
 # and then uses the psutil package to watch for excessive load that might interfere
 # with steaming and shows hte users appropriate notifications.
 
+# Things that could interfere with streams:
+#  * High CPU - check
+#  * High Memory - check
+#  * Busy GPU - i only see code/clil for checking NVIDIA GPUs even though task manager shows it for any GPU
+#  * Congestion - internet not fast enough for stream...  don't really see this in the cli output
+#  * Loss of internet during stream
+#  * Low Wifi signal strength
+#  * Increase in packet loss?
+#  * internet connections disconnecting?
+
 # Issues:
 #  * Notification is making a noise every time now.  I want silent notificaitons, the person is streaming!  fix https://stackoverflow.com/questions/56695061/is-there-any-way-to-disable-the-notification-sound-on-win10toast-python-library
 #  * Not using the crossplatform notification library, would work on linux and mac if i did that
@@ -70,7 +80,7 @@ def get_cpu_info():
 
     busy_cpus_now = 0
     total_cores = 0
-    if cpu > 90:
+    if cpu > 80:
             busy_cpus_now = 1
     if (busy_cpus_now > 0 and busy_cpus != busy_cpus_now):
         notify("CPU Busy", "CPU " + str(cpu ) + "% busy. Can you close some apps or tabs?")
@@ -87,9 +97,10 @@ def get_cpu_info():
  # Main function
 def main():
     times = 0
+    no_streams = True
     global is_streaming
     stream_name = None
-
+    current_state = "DISCONNECTED"
     while True:
 
                      # Prints the current time
@@ -120,26 +131,35 @@ def main():
                                 app_name = stream["name"]
                             #print("active stream: " + str(stream))
                             streaming_right_now = True
-                    if( streaming_right_now and not is_streaming):
-                        notify("Live Stream","Speedify is enhancing " + app_name )
-                    if( not streaming_right_now and is_streaming ):
-                        notify("Stream Complete",app_name + " stream complete")
                     is_streaming = streaming_right_now
-
+                if(str(json_array[0]) == "state"):
+                    state_obj = json_array[1]
+                    new_state = state_obj["state"]
+                    if new_state!="CONNECTED":
+                        is_streaming = False
+                    current_state = new_state
+                if(str(json_array[0]) == "connection_Stats"):
+                    json_dict = json_array[1]
+                    connections_array = json_dict["connections"]
             if(active_streams):
+                no_streams = False
                 # only notify about busy cpu / memory if we think you're live streaming.  otherwise it wouldn't be speedify's business
                 (memtotal, memfree, memused, mempercent, cpu) = get_cpu_info()
                 print ("")
                 print ("Streaming " + app_name);
                 print ("   CPU:     " + str(cpu) + "%")
                 print ("   Memory:  " + str(mempercent) + "%")
-                if cpu > 90:
+                if cpu > 80:
                     print ("WARNING: High CPU.  Consider closing some apps or tabs")
 
                 if mempercent > 90:
                     print ("WARNING: High memory usage.  Consider closing some apps or tabs")
             else:
-                print("No streams active")
+                # just print the no streams onces
+                if not no_streams:
+                    print("")
+                    print("No streams active")
+                no_streams = True
         except speedify.SpeedifyError as sapie:
             print("SpeedifyError " + str(sapie))
         time.sleep(delay)
