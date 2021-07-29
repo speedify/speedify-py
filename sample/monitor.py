@@ -73,11 +73,13 @@ def get_cpu_info():
     mempercent = mem.percent
     memused = mem.used
     # this cpu sometimes shoots off into the 90s but windows taskamanager doesn't show that.
-    # oh well.  it's a protoype
+    # strangely when this shows a high number and taskmanager doesn't my computer seems slow.
+    # I think, strangely that this is more accurate. oh well, not digging further, it's a protoype
+
     cpu = psutil.cpu_percent(percpu=False)
     #print("Cpu: " + str(cpu))
 
-    if mempercent > 90:
+    if mempercent > 95:
         if not low_memory:
             notify("Low Memory","Memory used: " + str(mempercent) + "%.  Can you close some apps or tabs?")
         low_memory = True
@@ -86,7 +88,7 @@ def get_cpu_info():
 
     #busy_cpus_now = 0
     total_cores = 0
-    if cpu > 85:
+    if cpu > 90:
             busy_cpus = busy_cpus + 1
     else:
         busy_cpus = 0
@@ -113,6 +115,7 @@ def main():
     stream_name = None
     bad_latency = False
     bad_loss = False
+    slow_count = 0
     current_state = "DISCONNECTED"
     while True:
 
@@ -143,65 +146,85 @@ def main():
                                 # experimenting, and most times there's just one.
                                 app_name = stream["name"]
                             #print("active stream: " + str(stream))
+                            uploadSpeed = stream["uploadSpeed"]
+                            averageUploadSpeed = stream["averageUploadSpeed"]
+                            print(str(app_name) + " upload: " +str(uploadSpeed) + " avg upload: " + str(averageUploadSpeed))
+                            if (uploadSpeed * 2) < averageUploadSpeed:
+                                print("slow stream")
+                                slow_count = slow_count+1
+                            else:
+                                slow_count = slow_count -1
+                                if slow_count < 0:
+                                    slow_count = 0
                             streaming_right_now = True
                     is_streaming = streaming_right_now
                     if not is_streaming:
                         bad_latency = False
                         bad_loss = False
+                        slow_count = 0
                 if(str(json_array[0]) == "state"):
                     state_obj = json_array[1]
                     new_state = state_obj["state"]
                     if new_state!="CONNECTED":
                         is_streaming = False
                         bad_latency = False
+                        slow_count=0
                         bad_loss = False
                     current_state = new_state
                 if(str(json_array[0]) == "connection_stats"):
                     json_dict = json_array[1]
                     bad_latency_now = False
                     bad_loss_now = False
-                    connections_array = json_dict["connections"]
-                    for connection in connections_array:
-                        #print(str(connection))
+                    if is_streaming:
+                        connections_array = json_dict["connections"]
+                        for connection in connections_array:
+                            #print(str(connection))
 
-                        if "connected" in connection and "inFlight" in connection and "latencyMs" in connection:
-                            if connection["connected"] == True and connection["inFlight"] > 0:
-                                if connection["latencyMs"] > 300:
-                                    # we're actually using a connection with 250 ms latency!
-                                    if not bad_latency and is_streaming:
-                                        notify("Unstable Connection", "Latency is high (" + str(connection["latencyMs"]) + "ms), can you move to get better signal?")
-                                        bad_latency_now = True
-                                # loss is always 0????
-                                #print("loss send: " + str(connection["lossSend"]))
-                                #print("loss rx: " + str(connection["lossReceive"]))
-                                if connection["lossSend"] > 0.02 and is_streaming:
-                                    if not bad_loss:
-                                        notify("Unstable Connection", "Loss is high (" + str(connection["lossSend"] * 100) + "%), can you move to get better signal?")
-                                        bad_loss_now = True
-                        bad_loss = bad_loss_now
-                        bad_latency = bad_latency_now
+                            if "connected" in connection and "inFlight" in connection and "latencyMs" in connection:
+                                if connection["connected"] == True and connection["inFlight"] > 0:
+                                    if connection["latencyMs"] > 300:
+                                        # we're actually using a connection with 250 ms latency!
+                                        if not bad_latency and is_streaming:
+                                            notify("Unstable Connection", "Latency is high (" + str(connection["latencyMs"]) + "ms), can you move to get better signal?")
+                                            bad_latency_now = True
+                                    # loss is always 0????
+                                    #print("loss send: " + str(connection["lossSend"]))
+                                    #print("loss rx: " + str(connection["lossReceive"]))
+                                    if (connection["lossReceive"] +connection["lossSend"]) > 0.03 and is_streaming:
+                                        if not bad_loss:
+                                            notify("Unstable Connection", "Loss is high, can you move to get better signal?")
+                                            bad_loss_now = True
+                            bad_loss = bad_loss_now
+                            bad_latency = bad_latency_now
             if(active_streams):
                 no_streams = False
                 # only notify about busy cpu / memory if we think you're live streaming.  otherwise it wouldn't be speedify's business
                 (memtotal, memfree, memused, mempercent, cpu) = get_cpu_info()
                 print ("")
-                print ("Streaming " + app_name);
+                if(not bad_loss and not bad_latency):
+                    print ("Streaming " + app_name);
+                else:
+                    print ("Weak Connection " + app_name);
+
                 print ("|   CPU:    | " + str(cpu) + "% |")
                 print ("|   Memory: | " + str(mempercent) + "% |")
-                if cpu > 85:
+                if cpu > 90:
                     print (" * High CPU.  Consider closing some apps or tabs")
-                if mempercent > 90:
+                if mempercent > 95:
                     print (" * High memory usage.  Consider closing some apps or tabs")
                 if bad_latency:
                     print (" * Unstable connection.  Latency is high, can you move to get better signal?")
                 if bad_loss:
                     print (" * Unstable connection.  Loss is high, can you move to get better signal?")
+                if slow_count > 2:
+                    print (" * Stream slowed! ")
             else:
                 # just print the no streams onces
                 if not no_streams:
                     print("")
                     print("No streams active")
                 no_streams = True
+
         except speedify.SpeedifyError as sapie:
             print("SpeedifyError " + str(sapie))
         time.sleep(delay)
