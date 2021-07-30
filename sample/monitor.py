@@ -115,8 +115,9 @@ def main():
     stream_name = None
     bad_latency = False
     bad_loss = False
-    slow_count = 0
+    streams_problem = False
     current_state = "DISCONNECTED"
+    current_streams = {}
     while True:
 
                      # Prints the current time
@@ -136,7 +137,18 @@ def main():
                     json_dict = json_array[1]
                     #print("json_dict" + str(json_dict))
                     streams_array = json_dict["streams"]
+                    new_streams = {}
+                    streams_problem = False
                     for stream in streams_array :
+                        stream_id = stream["id"]
+                        new_streams[stream_id] = stream
+                        warning = ""
+                        old_stream = None
+                        if stream_id in current_streams:
+                            old_stream = current_streams[stream_id]
+                        else:
+                            # new stream!  should we do anything special?
+                            pass
                         if stream["active"] == True:
                             active_streams = True;
                             if "name" in stream:
@@ -148,20 +160,33 @@ def main():
                             #print("active stream: " + str(stream))
                             uploadSpeed = stream["uploadSpeed"]
                             averageUploadSpeed = stream["averageUploadSpeed"]
-                            print(str(app_name) + " upload: " +str(uploadSpeed) + " avg upload: " + str(averageUploadSpeed))
+                            print(str(app_name) + "     upload: " +str(uploadSpeed) + " avg upload: " + str(averageUploadSpeed))
+                            slow_count = 0
+                            if old_stream != None and "slow_count" in old_stream:
+                                slow_count = old_stream["slow_count"]
                             if (uploadSpeed * 2) < averageUploadSpeed:
-                                print("slow stream")
+                                #print("slow stream")
+                                # this could be two things:  slow or gone to 0.
+                                # gone to 0 could be a disaster, or it might just be
+                                # end of stream.
                                 slow_count = slow_count+1
+                                if slow_count > 2:
+                                    warning = "slow"
+                                    streams_problem = True
+                                    slow_count = 3
                             else:
                                 slow_count = slow_count -1
                                 if slow_count < 0:
                                     slow_count = 0
+                            stream["slow_count"] =slow_count
                             streaming_right_now = True
+                            print("Streaming " + app_name + " " + warning)
                     is_streaming = streaming_right_now
                     if not is_streaming:
                         bad_latency = False
                         bad_loss = False
                         slow_count = 0
+                    current_streams = new_streams
                 if(str(json_array[0]) == "state"):
                     state_obj = json_array[1]
                     new_state = state_obj["state"]
@@ -201,13 +226,10 @@ def main():
                 # only notify about busy cpu / memory if we think you're live streaming.  otherwise it wouldn't be speedify's business
                 (memtotal, memfree, memused, mempercent, cpu) = get_cpu_info()
                 print ("")
-                if(not bad_loss and not bad_latency):
-                    print ("Streaming " + app_name);
-                else:
-                    print ("Weak Connection " + app_name);
 
                 print ("|   CPU:    | " + str(cpu) + "% |")
                 print ("|   Memory: | " + str(mempercent) + "% |")
+
                 if cpu > 90:
                     print (" * High CPU.  Consider closing some apps or tabs")
                 if mempercent > 95:
@@ -216,8 +238,8 @@ def main():
                     print (" * Unstable connection.  Latency is high, can you move to get better signal?")
                 if bad_loss:
                     print (" * Unstable connection.  Loss is high, can you move to get better signal?")
-                if slow_count > 2:
-                    print (" * Stream slowed! ")
+                #if slow_count > 2:
+                #    print (" * Stream slowed! ")
             else:
                 # just print the no streams onces
                 if not no_streams:
