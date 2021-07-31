@@ -118,6 +118,8 @@ def main():
     streams_problem = False
     current_state = "DISCONNECTED"
     current_streams = {}
+    bad_internet_count =0
+    bad_internet_notified = False
     while True:
 
                      # Prints the current time
@@ -160,10 +162,16 @@ def main():
                             #print("active stream: " + str(stream))
                             uploadSpeed = stream["uploadSpeed"]
                             averageUploadSpeed = stream["averageUploadSpeed"]
+
+                            # at this point I'm purposely biased towards uploadspeeds here
+                            # and only use downloads in few places.  right or wrong?  unsute
+                            downloadSpeed = stream["downloadSpeed"]
+                            averageDownloadSpeed = stream["averageDownloadSpeed"]
                             print(str(app_name) + "     upload: " +str(uploadSpeed) + " avg upload: " + str(averageUploadSpeed))
                             slow_count = 0
                             if old_stream != None and "slow_count" in old_stream:
                                 slow_count = old_stream["slow_count"]
+
                             if (uploadSpeed * 2) < averageUploadSpeed:
                                 #print("slow stream")
                                 # this could be two things:  slow or gone to 0.
@@ -179,8 +187,33 @@ def main():
                                 if slow_count < 0:
                                     slow_count = 0
                             stream["slow_count"] =slow_count
+
+                            zero_count = 0
+                            if old_stream != None and "zero_count" in old_stream:
+                                zero_count = old_stream["zero_count"]
+                            if uploadSpeed == 0 and downloadSpeed == 0:
+                                # stream has fallen to 0.  Hard or impossible to say if the
+                                # stream ended or is totally busted.  Suspect that if we
+                                # knew it was TCP then that would imply more likely a problem,
+                                # and with UDP it's more likely just the stream deciding to end.
+                                zero_count = zero_count + 1
+                                if zero_count > 1:
+                                    warning = "stopped"
+                            else:
+                                 zero_count = 0
+                            stream["zero_count"] = zero_count
+
                             streaming_right_now = True
-                            print("Streaming " + app_name + " " + warning)
+
+                            color = "[Green]"
+                            if zero_count > 2:
+                                # no data for 3 seconds?  Probably disconnected?
+                                color = "[Grey]"
+                            elif slow_count > 2 or zero_count > 1:
+                                # below average for 3 seconds, or no data for 2?  probably having bad time
+                                color = "[Yellow]"
+                            print(color + " Streaming " + app_name + " " + warning)
+
                     is_streaming = streaming_right_now
                     if not is_streaming:
                         bad_latency = False
@@ -195,6 +228,8 @@ def main():
                         bad_latency = False
                         slow_count=0
                         bad_loss = False
+                        bad_internet_count =0
+                        bad_internet_notified = False
                     current_state = new_state
                 if(str(json_array[0]) == "connection_stats"):
                     json_dict = json_array[1]
@@ -204,23 +239,37 @@ def main():
                         connections_array = json_dict["connections"]
                         for connection in connections_array:
                             #print(str(connection))
-
+                            # works pretty well in that when internet is good no notifications, when it's
+                            # terrible, I get a notification.  too many if i stand there though.
                             if "connected" in connection and "inFlight" in connection and "latencyMs" in connection:
                                 if connection["connected"] == True and connection["inFlight"] > 0:
                                     if connection["latencyMs"] > 300:
                                         # we're actually using a connection with 250 ms latency!
-                                        if not bad_latency and is_streaming:
-                                            notify("Unstable Connection", "Latency is high (" + str(connection["latencyMs"]) + "ms), can you move to get better signal?")
+                                        if not bad_latency:
+                                            #notify("Unstable Connection", "Latency is high (" + str(connection["latencyMs"]) + "ms), can you move to get better signal?")
                                             bad_latency_now = True
+                                            bad_internet_count = bad_internet_count + 1
                                     # loss is always 0????
                                     #print("loss send: " + str(connection["lossSend"]))
                                     #print("loss rx: " + str(connection["lossReceive"]))
                                     if (connection["lossReceive"] +connection["lossSend"]) > 0.03 and is_streaming:
                                         if not bad_loss:
-                                            notify("Unstable Connection", "Loss is high, can you move to get better signal?")
+                                            #notify("Unstable Connection", "Loss is high, can you move to get better signal?")
                                             bad_loss_now = True
+                                            bad_internet_count = bad_internet_count + 1
                             bad_loss = bad_loss_now
                             bad_latency = bad_latency_now
+                            if not bad_loss and not bad_latency:
+                                bad_internet_count = bad_internet_count -1
+
+            if not bad_internet_notified and bad_internet_count > 4:
+                msg = ""
+                if bad_loss :
+                    msg = "Loss is high, "
+                if bad_latency:
+                    msg = msg+ "Latency is high, "
+                notify("Unstable Connection", msg +" can you move to get better signal?")
+                bad_internet_notified = True
             if(active_streams):
                 no_streams = False
                 # only notify about busy cpu / memory if we think you're live streaming.  otherwise it wouldn't be speedify's business
