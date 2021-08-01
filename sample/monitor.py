@@ -32,7 +32,7 @@ from speedify import State, SpeedifyError, Priority
 
 # If you don't see the notifications, it probably means you have Windows Focus Assist on.  Turn it off.
 
-delay = 2 # sampling interval information
+delay = 1 # sampling interval information
 
 toaster = ToastNotifier()
 
@@ -42,6 +42,7 @@ busy_cpus_now = False
 is_streaming = False
 
 
+# show a native notification
 def notify(title, msg):
     global toaster
     try:
@@ -54,6 +55,11 @@ def notify(title, msg):
         print("Error showing notification " + str(e))
         # seems like it can get stuck and never recover.  so let's try making a new one?
         toaster = ToastNotifier()
+
+# show a banner in the app... really just prints a line
+def inapp_banner(title, subtitle, level="info"):
+    print("text-banner: " + title + " / " + subtitle + " (" + level +")")
+
 
 def get_cpu_info():
     ''' :return:
@@ -68,16 +74,14 @@ def get_cpu_info():
     global busy_cpus_now
 
     mem = psutil.virtual_memory()
-    memtotal = mem.total
-    memfree = mem.free
+
     mempercent = mem.percent
-    memused = mem.used
     # this cpu sometimes shoots off into the 90s but windows taskamanager doesn't show that.
     # strangely when this shows a high number and taskmanager doesn't my computer seems slow.
     # I think, strangely that this is more accurate. oh well, not digging further, it's a protoype
-
     cpu = psutil.cpu_percent(percpu=False)
     #print("Cpu: " + str(cpu))
+
 
     if mempercent > 95:
         if not low_memory:
@@ -104,43 +108,40 @@ def get_cpu_info():
     # meh, load is in a future release of psutil that pip doesn't have yet
     #load = psutil.getloadavg()
     #print("load: " + str(loads))
-    return memtotal, memfree, memused, mempercent, cpu
+    return mempercent, cpu
 
 
  # Main function
 def main():
-    times = 0
     no_streams = True
     global is_streaming
     stream_name = None
     bad_latency = False
     bad_loss = False
-    streams_problem = False
     current_state = "DISCONNECTED"
     current_streams = {}
     bad_internet_count =0
     bad_internet_notified = False
+    problems_yellow = False
+    problems_red = False
+    problems_grey = False
     while True:
-
-                     # Prints the current time
-        time.strftime('%Y-%m-%d %H:%M:%S',time.localtime(time.time()))
-                     # Obtain information CPU
-
         try:
+            problems_yellow = False
+            problems_red = False
+            problems_grey = False
             stats = speedify.stats(1)
-
-            active_streams = False
             for json_array in stats:
                 #print("object type: " + str(json_array[0]))
                 if(str(json_array[0]) == "streaming_stats"):
                     streaming_right_now = False
                     #print("  IS streaming_stats")
                     #print("Item: " + str(json_array))
+
                     json_dict = json_array[1]
                     #print("json_dict" + str(json_dict))
                     streams_array = json_dict["streams"]
                     new_streams = {}
-                    streams_problem = False
                     for stream in streams_array :
                         stream_id = stream["id"]
                         new_streams[stream_id] = stream
@@ -148,39 +149,37 @@ def main():
                         old_stream = None
                         if stream_id in current_streams:
                             old_stream = current_streams[stream_id]
-                        else:
-                            # new stream!  should we do anything special?
-                            pass
+
                         if stream["active"] == True:
-                            active_streams = True;
                             if "name" in stream:
-                                # lazy cheat.  it's actually a list of streams, if there's more than one stream, i'm
-                                # going to end out just using the name of the last
-                                # active one which is not really correct, but i'm just
-                                # experimenting, and most times there's just one.
                                 app_name = stream["name"]
-                            #print("active stream: " + str(stream))
+
                             uploadSpeed = stream["uploadSpeed"]
                             averageUploadSpeed = stream["averageUploadSpeed"]
 
-                            # at this point I'm purposely biased towards uploadspeeds here
-                            # and only use downloads in few places.  right or wrong?  unsute
+
                             downloadSpeed = stream["downloadSpeed"]
                             averageDownloadSpeed = stream["averageDownloadSpeed"]
-                            print(str(app_name) + "     upload: " +str(uploadSpeed) + " avg upload: " + str(averageUploadSpeed))
+                            print("     " + str(app_name) + " upload: " +str(uploadSpeed) + " avg upload: " + str(averageUploadSpeed))
+                            print("     " + str(app_name) + " download: " +str(uploadSpeed) + " avg download: " + str(averageUploadSpeed))
                             slow_count = 0
                             if old_stream != None and "slow_count" in old_stream:
                                 slow_count = old_stream["slow_count"]
 
-                            if (uploadSpeed * 2) < averageUploadSpeed:
-                                #print("slow stream")
+                            # we look at the average upload and download speeds for a stream
+                            # to decide which one its doing more of, and assume that's the
+                            # important direction.
+                            mostly_upload = averageUploadSpeed > averageDownloadSpeed
+                            print ("     mostly upload: " + str(mostly_upload) )
+                            if ((uploadSpeed * 2) < averageUploadSpeed) if mostly_upload else ((downloadSpeed * 2) < averageDownloadSpeed):
+                                # the speed in the "important direction" has dropped
+                                # to less than 1/2 of what it was.  Suggestions a problem.
                                 # this could be two things:  slow or gone to 0.
                                 # gone to 0 could be a disaster, or it might just be
                                 # end of stream.
                                 slow_count = slow_count+1
                                 if slow_count > 2:
                                     warning = "slow"
-                                    streams_problem = True
                                     slow_count = 3
                             else:
                                 slow_count = slow_count -1
@@ -192,10 +191,11 @@ def main():
                             if old_stream != None and "zero_count" in old_stream:
                                 zero_count = old_stream["zero_count"]
                             if uploadSpeed == 0 and downloadSpeed == 0:
-                                # stream has fallen to 0.  Hard or impossible to say if the
+                                # stream has fallen to 0 in both directions.  Hard or impossible to say if the
                                 # stream ended or is totally busted.  Suspect that if we
                                 # knew it was TCP then that would imply more likely a problem,
                                 # and with UDP it's more likely just the stream deciding to end.
+
                                 zero_count = zero_count + 1
                                 if zero_count > 1:
                                     warning = "stopped"
@@ -205,14 +205,24 @@ def main():
 
                             streaming_right_now = True
 
-                            color = "[Green]"
+                            # Based on what we know, classify to a color.
+                            # Green - all is well, we're streaming!
+                            color = "Green"
                             if zero_count > 2:
                                 # no data for 3 seconds?  Probably disconnected?
-                                color = "[Grey]"
+                                color = "Grey"
+                                problems_grey = True
                             elif slow_count > 2 or zero_count > 1:
                                 # below average for 3 seconds, or no data for 2?  probably having bad time
-                                color = "[Yellow]"
-                            print(color + " Streaming " + app_name + " " + warning)
+                                color = "Yellow"
+                                if bad_loss or bad_latency:
+                                    # also loss or latency?  Things must be bad.
+                                    color = "Red"
+                                    problems_red = True
+                                else:
+                                    problems_yellow = True
+                            stream["color"] = color
+                            print("[" + color + "] Streaming " + app_name + " " + warning)
 
                     is_streaming = streaming_right_now
                     if not is_streaming:
@@ -224,6 +234,7 @@ def main():
                     state_obj = json_array[1]
                     new_state = state_obj["state"]
                     if new_state!="CONNECTED":
+                        # disconnected, reset all the stats
                         is_streaming = False
                         bad_latency = False
                         slow_count=0
@@ -262,7 +273,7 @@ def main():
                             if not bad_loss and not bad_latency:
                                 bad_internet_count = bad_internet_count -1
 
-            if not bad_internet_notified and bad_internet_count > 4:
+            if not bad_internet_notified and bad_internet_count > 3:
                 msg = ""
                 if bad_loss :
                     msg = "Loss is high, "
@@ -270,25 +281,35 @@ def main():
                     msg = msg+ "Latency is high, "
                 notify("Unstable Connection", msg +" can you move to get better signal?")
                 bad_internet_notified = True
-            if(active_streams):
-                no_streams = False
+            if(is_streaming):
                 # only notify about busy cpu / memory if we think you're live streaming.  otherwise it wouldn't be speedify's business
-                (memtotal, memfree, memused, mempercent, cpu) = get_cpu_info()
+                no_streams = False
+                (mempercent, cpu) = get_cpu_info()
                 print ("")
 
-                print ("|   CPU:    | " + str(cpu) + "% |")
-                print ("|   Memory: | " + str(mempercent) + "% |")
+                # think this should be shown in our ui when someone is streaming
+                print ("|   CPU: " + str(cpu) + "% ,  Memory: " + str(mempercent) + "% |")
 
-                if cpu > 90:
-                    print (" * High CPU.  Consider closing some apps or tabs")
-                if mempercent > 95:
-                    print (" * High memory usage.  Consider closing some apps or tabs")
-                if bad_latency:
-                    print (" * Unstable connection.  Latency is high, can you move to get better signal?")
-                if bad_loss:
-                    print (" * Unstable connection.  Loss is high, can you move to get better signal?")
-                #if slow_count > 2:
-                #    print (" * Stream slowed! ")
+                ### BANNERS!!!
+                # Inapp banners while streaming to show the user if there's an issue
+                level = "info"
+                if problems_yellow or problems_grey:
+                    level = "warning"
+                if problems_red:
+                    level = "error"
+                # banners at the bottom of the UI if there's a problem while streaming
+                # we can only show one at a time, so pick the worst problem
+                if bad_latency and bad_loss:
+                    inapp_banner("Unstable connection", "Can you move to get better signal?", level)
+                elif bad_latency:
+                    inapp_banner("Unstable connection (Latency)", "Can you move to get better signal?", level)
+                elif bad_loss:
+                    inapp_banner("Unstable connection (Loss)", "Can you move to get better signal?", level)
+                elif cpu > 90:
+                    inapp_banner("High CPU", "Consider closing some apps or tabs", level)
+                elif mempercent > 95:
+                    inapp_banner("Low Memory", "Consider closing some apps or tabs", level)
+
             else:
                 # just print the no streams onces
                 if not no_streams:
@@ -299,9 +320,6 @@ def main():
         except speedify.SpeedifyError as sapie:
             print("SpeedifyError " + str(sapie))
         time.sleep(delay)
-        times += 1
-
-
 
 if __name__ == '__main__':
     main()
