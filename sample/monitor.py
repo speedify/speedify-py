@@ -13,14 +13,25 @@ from speedify import State, SpeedifyError, Priority
 # and then uses the psutil package to watch for excessive load that might interfere
 # with steaming and shows hte users appropriate notifications.
 
-# Things that could interfere with streams:
-#  * High CPU - check
-#  * High Memory - check
+# The Notification code is Windows only.  Everything else should work on macOS
+# or Linux.  (but i haven't tried)
+
+# We decide how a stream is doing by comparing its current upload/download to
+# its average.  Falls generally mean an issue.  We how we think it's doing
+# to change the color of the icon next to the stream: Green,Yellow,Red or Grey.
+
+# if there's an issue we look for a possible cause in:
+# * latency
+# * loss
+# * Cpu
+# * Memory
+# And then we show an inapp message and possible an native notification.
+
+# Other things we don't look at, but might make some sense:
 #  * Busy GPU - i only see code/clil for checking NVIDIA GPUs even though task manager shows it for any GPU
 #  * Congestion - internet not fast enough for stream...  don't really see this in the cli output
 #  * Loss of internet during stream
 #  * Low Wifi signal strength
-#  * Increase in packet loss?
 #  * internet connections disconnecting?
 
 # Issues:
@@ -32,14 +43,11 @@ from speedify import State, SpeedifyError, Priority
 
 # If you don't see the notifications, it probably means you have Windows Focus Assist on.  Turn it off.
 
-delay = 1 # sampling interval information
+# delay between loops.  but the speedify.stats(1) takes more than a second so
+# the loop is much slower than this
+delay = 1
 
 toaster = ToastNotifier()
-
-low_memory = False
-busy_cpus = 0
-busy_cpus_now = False
-is_streaming = False
 
 
 # show a native notification
@@ -60,7 +68,7 @@ def notify(title, msg):
 def inapp_banner(title, subtitle, level="info"):
     print("text-banner: " + title + " / " + subtitle + " (" + level +")")
 
-
+# gets CPU and memory
 def get_cpu_info():
     ''' :return:
          memtotal: Total Memory
@@ -69,9 +77,6 @@ def get_cpu_info():
          mempercent: the proportion of memory used
          cpu: CPU usage of each accounting
     '''
-    global low_memory
-    global busy_cpus
-    global busy_cpus_now
 
     mem = psutil.virtual_memory()
 
@@ -83,27 +88,6 @@ def get_cpu_info():
     #print("Cpu: " + str(cpu))
 
 
-    if mempercent > 95:
-        if not low_memory:
-            notify("Low Memory","Memory used: " + str(mempercent) + "%.  Can you close some apps or tabs?")
-        low_memory = True
-    else:
-        low_memory = False
-
-    #busy_cpus_now = 0
-    total_cores = 0
-    if cpu > 90:
-            busy_cpus = busy_cpus + 1
-    else:
-        busy_cpus = 0
-        busy_cpus_now = False
-    if (busy_cpus > 1 and not busy_cpus_now):
-        # notify after 2 in a row
-        busy_cpus_now = True
-        notify("CPU Busy", "CPU " + str(cpu ) + "% busy. Can you close some apps or tabs?")
-    if (cpu < 40 and busy_cpus != busy_cpus_now):
-        notify("CPUs Recovered", "CPU less busy")
-
 
     # meh, load is in a future release of psutil that pip doesn't have yet
     #load = psutil.getloadavg()
@@ -114,7 +98,7 @@ def get_cpu_info():
  # Main function
 def main():
     no_streams = True
-    global is_streaming
+    is_streaming = False
     stream_name = None
     bad_latency = False
     bad_loss = False
@@ -125,6 +109,9 @@ def main():
     problems_yellow = False
     problems_red = False
     problems_grey = False
+    low_memory_notified = False
+    busy_cpus = 0
+    busy_cpus_notified = False
     while True:
         try:
             problems_yellow = False
@@ -286,9 +273,29 @@ def main():
                 no_streams = False
                 (mempercent, cpu) = get_cpu_info()
                 print ("")
-
                 # think this should be shown in our ui when someone is streaming
                 print ("|   CPU: " + str(cpu) + "% ,  Memory: " + str(mempercent) + "% |")
+                if mempercent > 95:
+                    if not low_memory_notified:
+                        notify("Low Memory","Memory used: " + str(mempercent) + "%.  Can you close some apps or tabs?")
+                    low_memory_notified = True
+                else:
+                    low_memory_notified = False
+
+
+                # notification on CPU while streaming
+                # should this only be done while there are problems?
+                if cpu > 90:
+                        busy_cpus = busy_cpus + 1
+                else:
+                    busy_cpus = 0
+                if (busy_cpus > 1 and not busy_cpus_notified):
+                    # notify after 2 in a row
+                    busy_cpus_notified = True
+                    notify("CPU Busy", "CPU " + str(cpu ) + "% busy. Can you close some apps or tabs?")
+                if (cpu < 40 and busy_cpus_notified):
+                    notify("CPUs Recovered", "CPU less busy")
+                    busy_cpus_notified = False
 
                 ### BANNERS!!!
                 # Inapp banners while streaming to show the user if there's an issue
