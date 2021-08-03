@@ -17,6 +17,14 @@ rtmp:{
     {name:"240p",resolution="426x240","protocol="tcp", up="700K", mss="178" },
 }
 }
+def runTestSuite(testType="rtmp"):
+    # go into speedtests, pull the array of levels
+
+    # and then what order do we run them?  naively one could run
+    # them all, but that means running a lot of unnecesary tests.
+    # * Start at highest resolution, see what speed it hits, and then move to the one closest to what it acheives
+    # * Binary search, start at center, move halfwayup or down based on success or failure
+    pass
 
 def runTest(testspec):
     protocol = testspec["protocol"]
@@ -33,8 +41,12 @@ def runTest(testspec):
     cmd = "iperf3 -c 10.202.0.1 -J -t 10 " + proto_flag + " " +mss + " -b " + bandwidth_up
     print("cmd:" + cmd)
 
-
-
+    # run iperf3, get json results
+    # the ranges in that list were actually roughly 2x ranges, And
+    # I just put the top value in the table above.
+    # maybe we run it at the top speed and if we see 80% of that
+    # in the actuals, we call it a success???
+    
 # source https://support.google.com/youtube/answer/2853702?hl=en#zippy=%2Ck-p-fps%2Cp-fps%2Cp
 # 4K / 2160p @60 fps
 # Resolution: 3840x2160p
