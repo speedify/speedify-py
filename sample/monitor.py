@@ -258,6 +258,8 @@ def main():
                             bad_latency = bad_latency_now
                             if not bad_loss and not bad_latency:
                                 bad_internet_count = bad_internet_count -1
+                                if bad_internet_count < 0:
+                                    bad_internet_count = 0
 
             if not bad_internet_notified and bad_internet_count > 3:
                 msg = ""
