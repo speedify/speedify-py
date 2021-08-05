@@ -104,6 +104,8 @@ def main():
                         bad_loss = json_dict["badLoss"]
                     if "badLatency" in json_dict:
                         bad_latency = json_dict["badLatency"]
+                        if bad_latency:
+                            print(str(stats))
                     if "badCpu" in json_dict:
                         # bools... trying to decide if this is nice
                         # and simple and nothing but actionable, or
@@ -112,7 +114,7 @@ def main():
                         # its good enough
                         bad_cpu = json_dict["badCpu"]
                     if "badMemory" in json_dict:
-                        bad_latency = json_dict["badMemory"]
+                        bad_memory = json_dict["badMemory"]
                     if bad_cpu or bad_loss or bad_latency or bad_memory:
                         print("    bad_cpu: " +str(bad_cpu) + " bad_memory: " + str(bad_memory) + " bad_latency: " + str(bad_latency) + " bad_loss: " + str(bad_loss))
 
@@ -191,7 +193,7 @@ def main():
                 # stream starts, and ends when last stream ends.  Because, for example,
                 # microsoft teams often shows up as 5 streams, and i don't want 5 of the
                 # same notifications during that call.
-                
+
                 if not bad_internet_notified and (bad_loss or bad_latency):
                     msg = ""
                     if bad_loss :
@@ -203,7 +205,7 @@ def main():
 
                 if bad_memory:
                     if not bad_memory_notified:
-                        notify("Low Memory","Memory used: " + str(mempercent) + "%.  Can you close some apps or tabs?")
+                        notify("Low Memory","Can you close some apps or tabs?")
                     bad_memory_notified = True
 
                 # notification on CPU while streaming
@@ -212,7 +214,7 @@ def main():
                     # i took out the count stuff, expect this to be too spastic,
                     # showing too many notifications.
                     bad_cpu_notified = True
-                    notify("CPU Busy", "CPU busy. Can you close some apps or tabs?")
+                    notify("CPU Busy", "Can you close some apps or tabs?")
 
                 ### BANNERS!!!
                 # Inapp banners while streaming to show the user if there's an issue
