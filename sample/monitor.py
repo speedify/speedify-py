@@ -104,8 +104,6 @@ def main():
                         bad_loss = json_dict["badLoss"]
                     if "badLatency" in json_dict:
                         bad_latency = json_dict["badLatency"]
-                        if bad_latency:
-                            print(str(stats))
                     if "badCpu" in json_dict:
                         # bools... trying to decide if this is nice
                         # and simple and nothing but actionable, or
