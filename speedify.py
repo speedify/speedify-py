@@ -660,20 +660,7 @@ def dnsleak(leak=False):
     resultjson = _run_speedify_cmd(args)
     return resultjson
 
-@exception_wrapper("Failed to set crashreports")
-def crashreports(report=True):
-    '''
-    crashreports(report=True)
-    sets crashreports on or off.
 
-    :param report: crashreports on or off
-    :type dnsleak: bool
-    :returns:  dict -- :ref:`JSON privacy response <privacy-crashreports>` from speedify
-    '''
-    args = ['privacy','crashreports']
-    args.append("on") if report else args.append("off")
-    resultjson = _run_speedify_cmd(args)
-    return resultjson
 
 @exception_wrapper("Failed to set startupconnect")
 def startupconnect(connect=True):

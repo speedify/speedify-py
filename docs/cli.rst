@@ -53,7 +53,6 @@ The CLI contains the following commands:
        mode <redundant|speed>
        overflow <speed in mbps>
        ports [port/proto] ...
-       privacy crashreports <on|off>
        privacy dnsleak <on|off>
        privacy killswitch <on|off>
        show <servers|settings|privacy|adapters|currentserver|user|directory|connectmethod>

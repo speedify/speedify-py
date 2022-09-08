@@ -21,7 +21,7 @@ class TestSpeedify(unittest.TestCase):
         speedify.encryption(True)
         speedify.transport("auto")
         speedify.jumbo(True)
-        speedify.crashreports(True)
+        #speedify.crashreports(True)
         speedify.packetaggregation(True)
         speedify.routedefault(True)
         speedify.connectmethod("closest")
@@ -165,12 +165,12 @@ class TestSpeedify(unittest.TestCase):
         self.assertTrue(goterror)
 
     def test_privacy(self):
-        speedify.crashreports(False)
-        privacy_settings = speedify.show_privacy()
-        self.assertFalse(privacy_settings["crashReports"])
-        speedify.crashreports(True)
-        privacy_settings = speedify.show_privacy()
-        self.assertTrue(privacy_settings["crashReports"])
+        #speedify.crashreports(False)
+        # privacy_settings = speedify.show_privacy()
+        #self.assertFalse(privacy_settings["crashReports"])
+        #speedify.crashreports(True)
+        #privacy_settings = speedify.show_privacy()
+        #self.assertTrue(privacy_settings["crashReports"])
         if os.name == 'nt':
             #the windows only calls
             speedify.killswitch(True)
