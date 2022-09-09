@@ -93,23 +93,36 @@ def exception_wrapper(argument):
 # Functions for controlling Speedify State
 
 @exception_wrapper("Failed to connect")
-def connect(server=""):
+def connect(method, country="us", city=None, num=None):
     '''
-    connect(server="")
-    Tell Speedify to connect. Returns serverInformation if success, raises Speedify if unsuccessful.
-    See show_servers() for the list of servers available.
+    connect(method, country="us", city=None, num=None)
+    Connect via one of these methods --
+        closest
+        public
+        private
+        p2p
+        last
+        country (in which case country is required)
 
-    :param server: Server to connect to.
-    :type server: str
+    :param method: The connect method.
+    :type method: str
+    :param country: 2 letter country code.
+    :type country: str
+    :param city: The (optional) city the server is located.
+    :type city: str
+    :param num: The (optional) server number.
+    :type num: int
     :returns:  dict -- :ref:`JSON currentserver <connect>` from speedify.
     '''
     args = ['connect']
-    if(server!= None and server != ""):
-        pieces = server.split("-")
-        for piece in pieces:
-            args.append(piece)
-        logger.debug('connecting to server = ' + server)
-
+    if(method == "country"):
+        args.append(country)
+        if(city != None):
+            args.append(city)
+            if (num != None):
+                args.append(num)
+    elif method:
+        args.append(method)
     resultjson = _run_speedify_cmd(args)
     return resultjson
 
@@ -168,7 +181,12 @@ def disconnect():
 def connectmethod(method, country="us", city=None, num=None):
     '''
     connectmethod(method, country="us", city=None, num=None)
-    Sets the default connectmethod of closest,p2p,private or country (in which case country is required)
+    Sets the default connectmethod of --
+        closest
+        public
+        private
+        p2p
+        country (in which case country is required)
 
     :param method: The connect method.
     :type method: str
@@ -182,7 +200,7 @@ def connectmethod(method, country="us", city=None, num=None):
     '''
     args = ['connectmethod']
     if method == "dedicated":
-        method = "private"
+        method = "private"  # deprecated?
     if(method == "country"):
         args.append(country)
         if(city != None):
@@ -238,7 +256,36 @@ def logout():
     jret = _run_speedify_cmd(['logout'])
     return find_state_for_string(jret["state"])
 
-### Getter functions ###
+
+def headercompression(is_on: bool = True):
+    '''
+    headercompression(is_on)
+    Turn header compression on or off.
+
+    :param is_on: Whether headercompression should be on... or not.
+    :type is_on: bool
+    '''
+    args = ['headercompression', is_on]
+    resultjson = _run_speedify_cmd(args)
+    return find_state_for_string(resultjson["state"])
+
+
+def daemon(method):
+    '''
+    daemon(method)
+    Call `method` on the daemon. Only "exit" is supported.
+
+    :param method: The method to call. Only "exit" is available.
+    '''
+    args = ['daemon', method]
+    resultjson = _run_speedify_cmd(args)
+    return find_state_for_string(resultjson["state"])
+
+
+#
+# Getter functions
+#
+
 
 @exception_wrapper("Failed to get server list")
 def show_servers():
