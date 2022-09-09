@@ -17,6 +17,7 @@ logger.setLevel(logging.INFO)
    :synopsis: Contains speedify cli wrapper functions
 """
 
+
 class State(Enum):
     """Enum of speedify states.
     """
@@ -30,30 +31,37 @@ class State(Enum):
     OVERLIMIT = 7
     UNKNOWN = 8
 
+
 class Priority(Enum):
     """Enum of speedify connection priorities.
     """
-    ALWAYS='always'
-    BACKUP='backup'
-    SECONDARY='secondary'
-    NEVER='never'
+    ALWAYS = "always"
+    BACKUP = "backup"
+    SECONDARY = "secondary"
+    NEVER = "never"
+
 
 class SpeedifyError(Exception):
     """Generic error thrown by library.
     """
-    def __init__(self,  message):
+
+    def __init__(self, message):
         self.message = message
+
 
 class SpeedifyAPIError(SpeedifyError):
     """Error thrown if speedify gave a bad json response.
     """
+
     def __init__(self, error_code, error_type, error_message):
         self.error_code = error_code
         self.error_type = error_type
         self.error_message = error_message
-        self.message =error_message
+        self.message = error_message
+
 
 _cli_path = None
+
 
 def set_cli(new_cli_path):
     """Change the path to the cli after importing the module.
@@ -65,17 +73,20 @@ def set_cli(new_cli_path):
     global _cli_path
     _cli_path = new_cli_path
 
+
 def get_cli():
     '''
     :returns:  str -- The full path to the speedify cli.
     '''
     global _cli_path
-    if ((_cli_path == None) or  (_cli_path == "")):
+    if ((_cli_path == None) or (_cli_path == "")):
         _cli_path = _find_cli()
     return _cli_path
 
+
 def find_state_for_string(mystate):
     return State[str(mystate).upper().strip()]
+
 
 def exception_wrapper(argument):
     def decorator(function):
@@ -90,7 +101,10 @@ def exception_wrapper(argument):
         return wrapper
     return decorator
 
+#
 # Functions for controlling Speedify State
+#
+
 
 @exception_wrapper("Failed to connect")
 def connect(method, country="us", city=None, num=None):
@@ -114,7 +128,7 @@ def connect(method, country="us", city=None, num=None):
     :type num: int
     :returns:  dict -- :ref:`JSON currentserver <connect>` from speedify.
     '''
-    args = ['connect']
+    args = ["connect"]
     if(method == "country"):
         args.append(country)
         if(city != None):
@@ -126,30 +140,39 @@ def connect(method, country="us", city=None, num=None):
     resultjson = _run_speedify_cmd(args)
     return resultjson
 
+
 def connect_closest():
     '''Connects to the closest server
 
     :returns:  dict -- :ref:`JSON currentserver <connect>` from speedify.
     '''
     return connect("closest")
+
+
 def connect_public():
     '''Connects to the closest public server
 
     :returns:  dict -- :ref:`JSON currentserver <connect>` from speedify.
     '''
     return connect("public")
+
+
 def connect_private():
     '''Connects to the closest private server
 
     :returns:  dict -- :ref:`JSON currentserver <connect>` from speedify.
     '''
     return connect("private")
+
+
 def connect_p2p():
     '''Connects to a server that allows p2p traffic
 
     :returns:  dict -- :ref:`JSON currentserver <connect>` from speedify.
     '''
     return connect("p2p")
+
+
 def connect_country(country="us"):
     '''Connects to a server via the 2 letter country code
     See show_servers() for the list of servers available.
@@ -159,12 +182,15 @@ def connect_country(country="us"):
     :returns:  dict -- :ref:`JSON currentserver <connect>` from speedify.
     '''
     return connect(country)
+
+
 def connect_last():
     '''Connects to the last server
 
     :returns:  dict -- :ref:`JSON currentserver <connect>` from speedify.
     '''
     return connect("last")
+
 
 @exception_wrapper("Disconnect failed")
 def disconnect():
@@ -176,6 +202,7 @@ def disconnect():
     '''
     _run_speedify_cmd(["disconnect"])
     return True
+
 
 @exception_wrapper("Failed to set connect method")
 def connectmethod(method, country="us", city=None, num=None):
@@ -198,7 +225,7 @@ def connectmethod(method, country="us", city=None, num=None):
     :type num: int
     :returns:  dict -- :ref:`JSON connectmethod <connectmethod>` from speedify.
     '''
-    args = ['connectmethod']
+    args = ["connectmethod"]
     if method == "dedicated":
         method = "private"  # deprecated?
     if(method == "country"):
@@ -212,6 +239,7 @@ def connectmethod(method, country="us", city=None, num=None):
     resultjson = _run_speedify_cmd(args)
     return resultjson
 
+
 def connectmethod_as_string(connectMethodObject, hypens=True):
     ''' takes the JSON returned by show_connectmethod and turns it into a string
     either with -s for places that want us-nova-2 type strings, or with spaces
@@ -221,13 +249,14 @@ def connectmethod_as_string(connectMethodObject, hypens=True):
     if hypens:
         sep = "-"
     ret = connectMethodObject["connectMethod"]
-    if  ret == "country":
+    if ret == "country":
         ret = str(connectMethodObject["country"])
         if connectMethodObject["city"]:
             ret = ret + sep + str(connectMethodObject["city"])
             if connectMethodObject["num"]:
                 ret = ret + sep + str(connectMethodObject["num"])
     return ret
+
 
 @exception_wrapper("Failed to login")
 def login(user, password):
@@ -241,9 +270,10 @@ def login(user, password):
     :type password: str
     :returns:  speedify.State -- The speedify state enum.
     '''
-    args = ['login', user, password]
+    args = ["login", user, password]
     resultjson = _run_speedify_cmd(args)
     return find_state_for_string(resultjson["state"])
+
 
 @exception_wrapper("Failed to logout")
 def logout():
@@ -253,7 +283,7 @@ def logout():
 
     :returns:  speedify.State -- The speedify state enum.
     '''
-    jret = _run_speedify_cmd(['logout'])
+    jret = _run_speedify_cmd(["logout"])
     return find_state_for_string(jret["state"])
 
 
@@ -265,7 +295,7 @@ def headercompression(is_on: bool = True):
     :param is_on: Whether headercompression should be on... or not.
     :type is_on: bool
     '''
-    args = ['headercompression', is_on]
+    args = ["headercompression", is_on]
     resultjson = _run_speedify_cmd(args)
     return find_state_for_string(resultjson["state"])
 
@@ -277,7 +307,7 @@ def daemon(method):
 
     :param method: The method to call. Only "exit" is available.
     '''
-    args = ['daemon', method]
+    args = ["daemon", method]
     resultjson = _run_speedify_cmd(args)
     return find_state_for_string(resultjson["state"])
 
@@ -295,7 +325,8 @@ def show_servers():
 
     :returns:  dict -- :ref:`JSON server list <show-servers>` from speedify.
     '''
-    return _run_speedify_cmd(['show', 'servers'])
+    return _run_speedify_cmd(["show", "servers"])
+
 
 @exception_wrapper("Failed to get privacy")
 def show_privacy():
@@ -305,7 +336,8 @@ def show_privacy():
 
     :returns:  dict -- dict -- :ref:`JSON privacy <show-privacy>` from speedify.
     '''
-    return _run_speedify_cmd(['show', 'privacy'])
+    return _run_speedify_cmd(["show", "privacy"])
+
 
 @exception_wrapper("Failed to get settings")
 def show_settings():
@@ -315,7 +347,8 @@ def show_settings():
 
     :returns:  dict -- dict -- :ref:`JSON settings <show-settings>` from speedify.
     '''
-    return _run_speedify_cmd(['show', 'settings'])
+    return _run_speedify_cmd(["show", "settings"])
+
 
 @exception_wrapper("Failed to get adapters")
 def show_adapters():
@@ -325,7 +358,8 @@ def show_adapters():
 
     :returns:  dict -- dict -- :ref:`JSON list of adapters <show-adapters>` from speedify.
     '''
-    return _run_speedify_cmd(['show', 'adapters'])
+    return _run_speedify_cmd(["show", "adapters"])
+
 
 @exception_wrapper("Failed to do captiveportal_check")
 def captiveportal_check():
@@ -335,10 +369,11 @@ def captiveportal_check():
 
     :returns:  dict -- dict -- :ref:`JSON list of adapters behind captive portal` from speedify.
     '''
-    return _run_speedify_cmd(['captiveportal', 'check'])
+    return _run_speedify_cmd(["captiveportal", "check"])
+
 
 @exception_wrapper("Failed to do captiveportal_login")
-def captiveportal_login(proxy=True, adapterID = None):
+def captiveportal_login(proxy=True, adapterID=None):
     '''
     captiveportal_login()
     Starts or stops the local proxy intercepting traffic on ports 52,80,433, for
@@ -354,7 +389,7 @@ def captiveportal_login(proxy=True, adapterID = None):
 
     :returns:  dict -- dict -- :ref:`JSON list of adapters behind captive portal` from speedify.
     '''
-    args = ['captiveportal', 'login']
+    args = ["captiveportal", "login"]
     startproxy = True
     if proxy == "on":
         args.append("on")
@@ -367,10 +402,10 @@ def captiveportal_login(proxy=True, adapterID = None):
         startproxy = False
         args.append("off")
 
-
     if adapterID and startproxy:
         args.append(adapterID)
     return _run_speedify_cmd(args)
+
 
 @exception_wrapper("Failed to get current server")
 def show_currentserver():
@@ -380,7 +415,8 @@ def show_currentserver():
 
     :returns:  dict -- :ref:`JSON currentserver <show-currentserver>` from speedify.
     '''
-    return _run_speedify_cmd(['show', 'currentserver'])
+    return _run_speedify_cmd(["show", "currentserver"])
+
 
 @exception_wrapper("Failed to get current user")
 def show_user():
@@ -390,7 +426,8 @@ def show_user():
 
     :returns:  dict -- :ref:`JSON response <show-user>` from speedify.
     '''
-    return _run_speedify_cmd(['show', 'user'])
+    return _run_speedify_cmd(["show", "user"])
+
 
 @exception_wrapper("Failed to show connect method")
 def show_connectmethod():
@@ -400,7 +437,8 @@ def show_connectmethod():
 
     :returns:  :ref:`JSON response <show-connectmethod>` from speedify.
     '''
-    return _run_speedify_cmd(['show', 'connectmethod'])
+    return _run_speedify_cmd(["show", "connectmethod"])
+
 
 @exception_wrapper("getting state")
 def show_state():
@@ -410,8 +448,9 @@ def show_state():
 
     :returns:  speedify.State -- The speedify state enum.
     '''
-    jret = _run_speedify_cmd(['state'])
+    jret = _run_speedify_cmd(["state"])
     return find_state_for_string(jret["state"])
+
 
 @exception_wrapper("Failed to get version")
 def show_version():
@@ -421,14 +460,20 @@ def show_version():
 
     :returns:  dict -- :ref:`JSON version <version>` from speedify.
     '''
-    return  _run_speedify_cmd(['version'])
+    return _run_speedify_cmd(["version"])
+
 
 @exception_wrapper("Failed to get stats")
 def safebrowsing_stats():
     args = ["safebrowsing", "stats"]
     return _run_speedify_cmd(args)
 
-### Setter functions ###
+
+#
+# Setter functions
+#
+
+
 @exception_wrapper("Failed to set adapter priority")
 def adapter_priority(adapterID, priority=Priority.ALWAYS):
     '''
@@ -441,11 +486,12 @@ def adapter_priority(adapterID, priority=Priority.ALWAYS):
     :type priority: speedify.Priority
     :returns:  dict -- :ref:`JSON adapter response <adapter-ratelimit>` from speedify.
     '''
-    args = ['adapter',"priority"]
+    args = ["adapter", "priority"]
     args.append(str(adapterID))
     args.append((str(priority.value)))
     resultjson = _run_speedify_cmd(args)
     return resultjson
+
 
 @exception_wrapper("Failed to set adapter encryption")
 def adapter_encryption(adapterID, encrypt):
@@ -461,7 +507,7 @@ def adapter_encryption(adapterID, encrypt):
     :type encrypt: boolean
     :returns:  dict -- :ref:`JSON adapter response <adapter-encryption>` from speedify.
     '''
-    args = ['adapter',"encryption"]
+    args = ["adapter", "encryption"]
     args.append(str(adapterID))
     if encrypt == "on":
         args.append("on")
@@ -473,6 +519,7 @@ def adapter_encryption(adapterID, encrypt):
         args.append("off")
     resultjson = _run_speedify_cmd(args)
     return resultjson
+
 
 @exception_wrapper("Failed to set adapter ratelimit")
 def adapter_ratelimit(adapterID, ratelimit=0):
@@ -487,14 +534,15 @@ def adapter_ratelimit(adapterID, ratelimit=0):
     :type ratelimit: int
     :returns:  dict -- :ref:`JSON adapter response <adapter-datalimit-daily>` from speedify.
     '''
-    args = ['adapter',"ratelimit"]
+    args = ["adapter", "ratelimit"]
     args.append(str(adapterID))
     args.append((str(ratelimit)))
     resultjson = _run_speedify_cmd(args)
     return resultjson
 
+
 @exception_wrapper("Failed to set adapter daily limit")
-def adapter_datalimit_daily( adapterID, limit=0):
+def adapter_datalimit_daily(adapterID, limit=0):
     '''
     adapter_datalimit_daily( adapterID, limit=0)
     Sets the daily usage limit in bytes on the adapter whose adapterID is provided
@@ -506,11 +554,12 @@ def adapter_datalimit_daily( adapterID, limit=0):
     :type limit: int
     :returns:  dict -- :ref:`JSON adapter response <adapter-datalimit-daily>` from speedify
     '''
-    args = ['adapter',"datalimit", "daily"]
+    args = ["adapter", "datalimit", "daily"]
     args.append(str(adapterID))
     args.append((str(limit)))
     resultjson = _run_speedify_cmd(args)
     return resultjson
+
 
 @exception_wrapper("Failed to set adapter monthly limit")
 def adapter_datalimit_monthly(adapterID, limit=0, reset_day=0):
@@ -527,13 +576,14 @@ def adapter_datalimit_monthly(adapterID, limit=0, reset_day=0):
     :type reset_Day: int
     :returns:  dict -- :ref:`JSON adapter response <adapter-datalimit-monthly>` from speedify.
     '''
-    args = ['adapter', "datalimit", "monthly"]
+    args = ["adapter", "datalimit", "monthly"]
     args.append(str(adapterID))
     args.append((str(limit)))
     args.append(str(reset_day))
 
     resultjson = _run_speedify_cmd(args)
     return resultjson
+
 
 @exception_wrapper("Failed to reset adapter usage")
 def adapter_resetusage(adapterID):
@@ -545,11 +595,12 @@ def adapter_resetusage(adapterID):
     :type adapterID: str
     :returns:  dict -- :ref:`JSON adapter response <adapter-resetusage>` from speedify.
     '''
-    args = ['adapter', "resetusage"]
+    args = ["adapter", "resetusage"]
     args.append(str(adapterID))
 
     resultjson = _run_speedify_cmd(args)
     return resultjson
+
 
 @exception_wrapper("Failed to set ports")
 def ports(tcpports=[], udpports=[]):
@@ -563,7 +614,7 @@ def ports(tcpports=[], udpports=[]):
     :type udpport: list
     :returns:  dict -- :ref:`JSON settings <ports>` from speedify
     '''
-    args = ['ports']
+    args = ["ports"]
     if tcpports is not None:
         for port in tcpports:
             args.append(str(port) + "/tcp")
@@ -573,6 +624,7 @@ def ports(tcpports=[], udpports=[]):
 
     resultjson = _run_speedify_cmd(args)
     return resultjson
+
 
 @exception_wrapper("Failed to change modes")
 def mode(mode="speed"):
@@ -584,9 +636,10 @@ def mode(mode="speed"):
     :type mode: str
     :returns:  dict -- :ref:`JSON settings <mode>` from speedify
     '''
-    args = ['mode',mode]
+    args = ["mode", mode]
     resultjson = _run_speedify_cmd(args)
     return resultjson
+
 
 @exception_wrapper("Failed to set encryption")
 def encryption(encrypt=True):
@@ -598,7 +651,7 @@ def encryption(encrypt=True):
     :type encrypt: bool
     :returns:  dict -- :ref:`JSON settings <encryption>` from speedify
     '''
-    args = ['encryption']
+    args = ["encryption"]
     if encrypt == "on":
         args.append("on")
     elif encrypt == "off":
@@ -610,6 +663,7 @@ def encryption(encrypt=True):
     resultjson = _run_speedify_cmd(args)
     return resultjson
 
+
 @exception_wrapper("Failed to set jumbo")
 def jumbo(mode=True):
     '''
@@ -620,21 +674,22 @@ def jumbo(mode=True):
     :type mode: bool
     :returns:  dict -- :ref:`JSON settings <jumbo>` from speedify
     '''
-    args = ['jumbo']
+    args = ["jumbo"]
     if mode == "on":
         args.append("on")
     elif mode == "off":
         args.append("off")
-    elif mode == True:
+    elif mode is True:
         args.append("on")
-    elif mode == False:
+    elif mode is False:
         args.append("off")
     else:
-        #probably invalid, but we'll let speedify tell us THAT
+        # probably invalid, but we'll let speedify tell us THAT
         args.append(mode)
 
     resultjson = _run_speedify_cmd(args)
     return resultjson
+
 
 @exception_wrapper("Failed to set packetaggregation")
 def packetaggregation(mode=True):
@@ -646,21 +701,22 @@ def packetaggregation(mode=True):
     :type mode: bool
     :returns:  dict -- :ref:`JSON settings <packetaggr>` from speedify
     '''
-    args = ['packetaggr']
+    args = ["packetaggr"]
     if mode == "on":
         args.append("on")
     elif mode == "off":
         args.append("off")
-    elif mode == True:
+    elif mode is True:
         args.append("on")
-    elif mode == False:
+    elif mode is False:
         args.append("off")
     else:
-        #probably invalid, but we'll let speedify tell us THAT
+        # probably invalid, but we'll let speedify tell us THAT
         args.append(mode)
 
     resultjson = _run_speedify_cmd(args)
     return resultjson
+
 
 @exception_wrapper("Failed to set killswitch")
 def killswitch(killswitch=False):
@@ -672,10 +728,11 @@ def killswitch(killswitch=False):
     :type killswitch: bool
     :returns:  dict -- :ref:`JSON privacy response <privacy-killswitch>` from speedify
     '''
-    args = ['privacy','killswitch']
+    args = ["privacy','killswitch"]
     args.append("on") if killswitch else args.append("off")
     resultjson = _run_speedify_cmd(args)
     return resultjson
+
 
 @exception_wrapper("Failed to set overflow")
 def overflow(speed_in_mbps=30.0):
@@ -687,26 +744,10 @@ def overflow(speed_in_mbps=30.0):
     :type speed_in_mbps: float
     :returns:  dict -- :ref:`JSON settings <overflow>` from speedify
     '''
-    args = ['overflow']
+    args = ["overflow"]
     args.append(str(speed_in_mbps))
     resultjson = _run_speedify_cmd(args)
     return resultjson
-
-@exception_wrapper("Failed to set dnsleak")
-def dnsleak(leak=False):
-    '''
-    dnsleak(leak=False)
-    sets dnsleak on or off. (Windows only)
-
-    :param dnsleak: dnsleak on or off
-    :type dnsleak: bool
-    :returns:  dict -- :ref:`JSON privacy response <privacy-dnsleak>` from speedify
-    '''
-    args = ['privacy','dnsleak']
-    args.append("on") if leak else args.append("off")
-    resultjson = _run_speedify_cmd(args)
-    return resultjson
-
 
 
 @exception_wrapper("Failed to set startupconnect")
@@ -719,10 +760,11 @@ def startupconnect(connect=True):
     :type connect: bool
     :returns:  dict -- :ref:`JSON settings <startupconnect>` from speedify
     '''
-    args = ['startupconnect']
+    args = ["startupconnect"]
     args.append("on") if connect else args.append("off")
     resultjson = _run_speedify_cmd(args)
     return resultjson
+
 
 @exception_wrapper("Failed to set routedefault")
 def routedefault(route=True):
@@ -736,10 +778,11 @@ def routedefault(route=True):
     :type connect: bool
     :returns:  dict -- :ref:`JSON settings <routedefault>` from speedify
     '''
-    args = ['route','default']
+    args = ["route", "default"]
     args.append("on") if route else args.append("off")
     resultjson = _run_speedify_cmd(args)
     return resultjson
+
 
 @exception_wrapper("Failed to run speedtest")
 def speedtest():
@@ -749,22 +792,24 @@ def speedtest():
 
     :returns:  dict -- :ref:`JSON speedtest <speedtest>` from speedify
     '''
-    jret = _run_speedify_cmd(['speedtest'], cmdtimeout=600)
+    jret = _run_speedify_cmd(["speedtest"], cmdtimeout=600)
     return jret
 
+
 @exception_wrapper("Failed to set transport")
-def transport(transport='auto'):
+def transport(transport="auto"):
     '''
-    transport(transport='auto')
+    transport(transport="auto")
     Sets the transport mode (auto/tcp/udp/https).
 
     :param transport: Sets the transport to "auto","udp","tcp" or "https"
     :type transport: str
     :returns:  dict -- :ref:`JSON settings <transport>` from speedify
     '''
-    args = ['transport',transport]
+    args = ["transport", transport]
     resultjson = _run_speedify_cmd(args)
     return resultjson
+
 
 @exception_wrapper("Failed getting stats")
 def stats(time=1):
@@ -777,20 +822,23 @@ def stats(time=1):
     :returns:  list -- list JSON stat responses from speedify.
     '''
     if time == 0:
-        logger.error('stats cannot be run with 0, would never return')
+        logger.error("stats cannot be run with 0, would never return")
         raise SpeedifyError("Stats cannot be run with 0")
     if time == 1:
         # fix for bug where passing in 1 returns nothing.
         time = 2
+
     class list_callback():
-        def __init__( self ):
-            self.result_list= list()
+        def __init__(self):
+            self.result_list = list()
+
         def __call__(self, input):
             self.result_list.append(input)
 
     list_callback = list_callback()
     stats_callback(time, list_callback)
     return list_callback.result_list
+
 
 def stats_callback(time, callback):
     '''
@@ -807,15 +855,18 @@ def stats_callback(time, callback):
 
     _run_long_command(cmd, callback)
 
+
 @exception_wrapper("Failed to initialize safe browsing")
 def safebrowsing_initialize(settings: str):
     args = ["safebrowsing", "initialize", settings]
     return _run_speedify_cmd(args)
 
+
 @exception_wrapper("Failed to configure safe browsing")
 def safebrowsing_configure(settings: str):
     args = ["safebrowsing", "config", settings]
     return _run_speedify_cmd(args)
+
 
 @exception_wrapper("Failed to enable safe browsing")
 def safebrowsing_enable(enable: bool):
@@ -823,14 +874,17 @@ def safebrowsing_enable(enable: bool):
     args.append("on") if enable else args.append("off")
     return _run_speedify_cmd(args)
 
+
 @exception_wrapper("Failed getting safebrowsing error")
 def safebrowsing_error(time=1):
     if time == 0:
         logger.error('safebrowsing error cannot be run with 0, would never return')
         raise SpeedifyError("safebrowsing error cannot be run with 0, would never return")
+
     class list_callback():
-        def __init__( self ):
-            self.result_list= list()
+        def __init__(self):
+            self.result_list = list()
+
         def __call__(self, input):
             self.result_list.append(input)
 
@@ -838,22 +892,28 @@ def safebrowsing_error(time=1):
     safebrowsing_error_callback(time, list_callback)
     return list_callback.result_list
 
+
 def safebrowsing_error_callback(time, callback):
     args = ["safebrowsing", "errors", str(time)]
     cmd = [get_cli()] + args
 
     _run_long_command(cmd, callback)
 
-### Internal functions ###
+
+#
+# Internal functions
+#
+
+
 def _run_speedify_cmd(args, cmdtimeout=60):
     "passes list of args to speedify command line returns the objects pulled from the json"
     resultstr = ""
     try:
         cmd = [get_cli()] + args
         result = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                                shell=use_shell(),check=True, timeout=cmdtimeout)
-        resultstr = result.stdout.decode('utf-8').strip()
-        sep = os.linesep*2
+                                shell=use_shell(), check=True, timeout=cmdtimeout)
+        resultstr = result.stdout.decode("utf-8").strip()
+        sep = os.linesep * 2
         records = resultstr.split(sep)
         reclen = len(records)
         if reclen > 0:
@@ -864,17 +924,17 @@ def _run_speedify_cmd(args, cmdtimeout=60):
         logger.error("Command timed out")
         raise SpeedifyError("Command timed out: " + args[0])
     except ValueError:
-        logger.error('Running cmd, bad json: (' + resultstr + ')')
+        logger.error("Running cmd, bad json: (" + resultstr + ")")
         raise SpeedifyError("Invalid output from CLI")
     except subprocess.CalledProcessError as cpe:
-        #TODO: errors can be json now
-        out = cpe.stderr.decode('utf-8').strip()
+        # TODO: errors can be json now
+        out = cpe.stderr.decode("utf-8").strip()
         if not out:
-            out=cpe.stdout.decode('utf-8').strip()
+            out = cpe.stdout.decode("utf-8").strip()
         returncode = cpe.returncode
         errorKind = "Unknown"
         if returncode == 1:
-            errorKind ="Speedify API"
+            errorKind = "Speedify API"
         elif returncode == 2:
             errorKind = "Invalid Parameter"
         elif returncode == 3:
@@ -885,19 +945,19 @@ def _run_speedify_cmd(args, cmdtimeout=60):
             raise SpeedifyError(errorKind)
 
         newerror = None
-        if (returncode ==1):
+        if (returncode == 1):
             try:
                 job = json.loads(out)
                 if("errorCode" in job):
-                    #json error! came from the speedify daemon
+                    # json error! came from the speedify daemon
                     newerror = SpeedifyAPIError(job["errorCode"], job["errorType"], job["errorMessage"])
             except ValueError:
                 logger.error("Could not parse Speedify API Error: " + out)
                 newerror = SpeedifyError(errorKind + ": Could not parse error message")
         else:
-            lastline = [ i for i in out.split("\n") if i][-1]
+            lastline = [i for i in out.split("\n") if i][-1]
             if lastline:
-                newerror = SpeedifyError( str(lastline))
+                newerror = SpeedifyError(str(lastline))
             else:
                 newerror = SpeedifyError(errorKind + ": " + str("Unknown error"))
 
@@ -908,10 +968,13 @@ def _run_speedify_cmd(args, cmdtimeout=60):
             logger.error("runSpeedifyCmd CPE : " + out)
             raise SpeedifyError(errorKind + ": " + str(": " + out))
 
+
 # CALLBACK VERSIONS
 # The normal _run_speedify_cmd runs the command and waits for the final output.
 # these versions keep running, calling you back as json objects are emitted. useful
 # for stats and for a verbose speedtest, otherwise, stick with the non-callback versions
+
+
 @exception_wrapper("SpeedifyError in longRunCommand")
 def _run_long_command(cmdarray, callback):
     "callback is a function you provide, passed parsed json objects"
@@ -919,18 +982,19 @@ def _run_long_command(cmdarray, callback):
 
     with subprocess.Popen(cmdarray, stdout=subprocess.PIPE) as proc:
         for line in proc.stdout:
-            line = line.decode('utf-8').strip()
-            if line :
-                outputbuffer+=(str(line))
+            line = line.decode("utf-8").strip()
+            if line:
+                outputbuffer += (str(line))
             else:
                 if outputbuffer:
-                    _do_callback(callback,outputbuffer)
+                    _do_callback(callback, outputbuffer)
                     outputbuffer = ""
                 else:
                     outputbuffer = ""
 
     if outputbuffer:
-        _do_callback(callback,outputbuffer)
+        _do_callback(callback, outputbuffer)
+
 
 def _do_callback(callback, message):
     "parsing string as json, calls callback function with result"
@@ -946,25 +1010,26 @@ def _do_callback(callback, message):
         except SpeedifyError as e:
             logger.warning("problem callback: " + str(e))
 
+
 # Default cli search locations
 def _find_cli():
     '''Finds the path for the CLI'''
-    if 'SPEEDIFY_CLI' in os.environ :
-        possible = (os.environ['SPEEDIFY_CLI'])
+    if "SPEEDIFY_CLI" in os.environ:
+        possible = (os.environ["SPEEDIFY_CLI"])
         if possible:
             if os.path.isfile(possible):
-                    logging.debug("Using cli from SPEEDIFY_CLI of (" + possible + ")")
-                    return possible
+                logging.debug("Using cli from SPEEDIFY_CLI of (" + possible + ")")
+                return possible
             else:
-                logging.warning("SPEEDIFY_CLI specified a nonexistant path to cli: \"" +possible + "\"")
+                logging.warning("SPEEDIFY_CLI specified a nonexistant path to cli: \"" + possible + "\"")
     possible_paths = ["/Applications/Speedify.app/Contents/Resources/speedify_cli",
-                      'c://program files (x86)//speedify//speedify_cli.exe',
-                      'c://program files//speedify//speedify_cli.exe',
+                      "c://program files (x86)//speedify//speedify_cli.exe",
+                      "c://program files//speedify//speedify_cli.exe",
                       "/usr/share/speedify/speedify_cli"]
     for pp in possible_paths:
-            if os.path.isfile(pp):
-                    logging.debug("Using cli of (" + pp + ")")
-                    return pp
+        if os.path.isfile(pp):
+            logging.debug("Using cli of (" + pp + ")")
+            return pp
 
     logging.error("Could not find speedify_cli!")
     raise SpeedifyError("Speedify CLI not found")
