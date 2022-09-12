@@ -55,14 +55,14 @@ class TestSpeedify(unittest.TestCase):
 
     def test_transport(self):
         mysettings = speedify.transport("https")
-        serverinfo = speedify.connect()
+        speedify.connect("streaming")
         mysettings = speedify.show_settings()
         self.assertEqual(mysettings["transportMode"], "https")
 
         # to make sure runtime changed, could check stats and look for connectionstats : connections[] : protocol
         mysettings = speedify.transport("tcp")
         self.assertEqual(mysettings["transportMode"], "tcp")
-        serverinfo = speedify.connect()
+        speedify.connect("streaming")
         mysettings = speedify.show_settings()
         self.assertEqual(mysettings["transportMode"], "tcp")
 
@@ -173,12 +173,12 @@ class TestSpeedify(unittest.TestCase):
         self.assertTrue(goterror)
 
     def test_privacy(self):
-        # speedify.crashreports(False)
-        # privacy_settings = speedify.show_privacy()
-        # self.assertFalse(privacy_settings["crashReports"])
-        # speedify.crashreports(True)
-        # privacy_settings = speedify.show_privacy()
-        # self.assertTrue(privacy_settings["crashReports"])
+        speedify.crashreports(False)
+        privacy_settings = speedify.show_privacy()
+        self.assertFalse(privacy_settings["crashReports"])
+        speedify.crashreports(True)
+        privacy_settings = speedify.show_privacy()
+        self.assertTrue(privacy_settings["crashReports"])
         if os.name == "nt":
             # the windows only calls
             speedify.killswitch(True)
@@ -195,7 +195,7 @@ class TestSpeedify(unittest.TestCase):
                 logging.disable(logging.NOTSET)
 
     def test_routedefault(self):
-        speedify.connect()
+        speedify.connect("streaming")
         if not speedifyutil.using_speedify():
             time.sleep(3)
             self.assertTrue(speedifyutil.using_speedify())
