@@ -55,14 +55,14 @@ class TestSpeedify(unittest.TestCase):
 
     def test_transport(self):
         mysettings = speedify.transport("https")
-        speedify.connect("streaming")
+        speedify.connect("closest")
         mysettings = speedify.show_settings()
         self.assertEqual(mysettings["transportMode"], "https")
 
         # to make sure runtime changed, could check stats and look for connectionstats : connections[] : protocol
         mysettings = speedify.transport("tcp")
         self.assertEqual(mysettings["transportMode"], "tcp")
-        speedify.connect("streaming")
+        speedify.connect("closest")
         mysettings = speedify.show_settings()
         self.assertEqual(mysettings["transportMode"], "tcp")
 
@@ -173,12 +173,6 @@ class TestSpeedify(unittest.TestCase):
         self.assertTrue(goterror)
 
     def test_privacy(self):
-        speedify.crashreports(False)
-        privacy_settings = speedify.show_privacy()
-        self.assertFalse(privacy_settings["crashReports"])
-        speedify.crashreports(True)
-        privacy_settings = speedify.show_privacy()
-        self.assertTrue(privacy_settings["crashReports"])
         if os.name == "nt":
             # the windows only calls
             speedify.killswitch(True)
@@ -195,7 +189,7 @@ class TestSpeedify(unittest.TestCase):
                 logging.disable(logging.NOTSET)
 
     def test_routedefault(self):
-        speedify.connect("streaming")
+        speedify.connect("closest")
         if not speedifyutil.using_speedify():
             time.sleep(3)
             self.assertTrue(speedifyutil.using_speedify())
@@ -226,9 +220,10 @@ class TestSpeedify(unittest.TestCase):
         self.assertIn("city", server_info)
         self.assertIn("num", server_info)
         self.assertFalse(server_info["isPrivate"])
-        connectstring = server_info["tag"]
-        new_server = speedify.connect(connectstring)
-        self.assertEqual(new_server["tag"], connectstring)
+        new_server = speedify.connect(
+            "country", server_info["country"], server_info["city"], server_info["num"]
+        )
+        self.assertEqual(server_info["tag"], new_server["tag"])
         self.assertEqual(server_info["country"], new_server["country"])
         self.assertEqual(server_info["city"], new_server["city"])
         self.assertEqual(server_info["num"], new_server["num"])

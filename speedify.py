@@ -105,7 +105,7 @@ def exception_wrapper(argument):
 # Functions for controlling Speedify State
 
 
-def connect(method, country="us", city=None, num=None):
+def connect(method: str = "closest", country: str = "us", city: str = None, num: int = None):
     """
     connect(method, country="us", city=None, num=None)
     Connect via one of these methods --
@@ -128,10 +128,10 @@ def connect(method, country="us", city=None, num=None):
     args = ["connect"]
     if method == "country":
         args.append(country)
-        if city != None:
+        if city is not None:
             args.append(city)
-            if num != None:
-                args.append(num)
+            if num is not None:
+                args.append(str(num))
     elif method:
         args.append(method)
     resultjson = _run_speedify_cmd(args)
@@ -170,7 +170,7 @@ def connect_p2p():
     return connect("p2p")
 
 
-def connect_country(country="us"):
+def connect_country(country: str = "us"):
     """Connects to a server via the 2 letter country code
     See show_servers() for the list of servers available.
 
@@ -178,7 +178,7 @@ def connect_country(country="us"):
     :type country: str
     :returns:  dict -- :ref:`JSON currentserver <connect>` from speedify.
     """
-    return connect(country)
+    return connect("country", country)
 
 
 def connect_last():
@@ -528,7 +528,7 @@ def show(item: str):
         "speedtest"
     ]
     if item not in valid_items:
-        raise ValueError("Invalid item: %s" % item)
+        raise ValueError("Invalid item: " + item)
     return _run_speedify_cmd(["show", item])
 
 
@@ -1089,30 +1089,20 @@ def jumbo(mode: bool = True):
 
 
 @exception_wrapper("Failed to set packetaggregation")
-def packetaggregation(mode: bool = True):
+def packetaggregation(is_on: bool = True):
     """
-    packetaggregation(mode = True)
+    packetaggregation(is_on = True)
     Sets packetaggregation mode on or off.
 
-    :param mode: packetaggregation on or off
-    :type mode: bool
+    :param is_on: Whether packet aggregation is on... or off.
+    :type is_on: bool
     :returns:  dict -- :ref:`JSON settings <packetaggr>` from speedify
     """
-    args = ["packetaggr"]
-    if mode == "on":
-        args.append("on")
-    elif mode == "off":
-        args.append("off")
-    elif mode is True:
-        args.append("on")
-    elif mode is False:
-        args.append("off")
-    else:
-        # probably invalid, but we'll let speedify tell us THAT
-        args.append(mode)
-
-    resultjson = _run_speedify_cmd(args)
-    return resultjson
+    if is_on is True:
+        is_on = "on"
+    elif is_on is False:
+        is_on = "off"
+    return _run_speedify_cmd(["packetaggr", is_on])
 
 
 @exception_wrapper("Failed to set killswitch")
