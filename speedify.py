@@ -315,6 +315,17 @@ def daemon(method):
 #
 
 
+@exception_wrapper("Failed to get version")
+def version():
+    """
+    version()
+    Returns speedify version
+
+    :returns:  dict -- :ref:`JSON version <version>` from speedify.
+    """
+    return _run_speedify_cmd(["version"])
+
+
 @exception_wrapper("Failed to get server list")
 def show_servers():
     """
@@ -472,6 +483,138 @@ def safebrowsing_stats():
 #
 
 
+@exception_wrapper("Failed to set streaming bypass")
+def streamingbypass_domains(operation: str, domains: str):
+    """
+    streamingbypass_domains(operation, domains)
+
+    Add, remove, or set the streaming bypass for some domains.
+
+    Example:
+        streamingbypass_domains("add", "example.com google.com")
+        streamingbypass_domains("rem", "example.com google.com")
+
+    :param operation: The operation to perform. One of:
+        "add"
+        "rem"
+        "set"
+    :type operation: str
+    :param domains: The domains to bypass.
+    :type domains: str
+    """
+    return _run_speedify_cmd(["streamingbypass", "domains", operation, domains])
+
+
+@exception_wrapper("Failed to set streaming bypass")
+def streamingbypass_ipv4(operation: str, ipv4_addrs: str):
+    """
+    streamingbypass_ipv4(operation, ipv4_addrs)
+
+    Add, remove, or set the streaming bypass for some ipv4 address.
+
+    Example:
+        streamingbypass_ipv4("add", "68.80.59.53 55.38.18.29")
+
+    :param operation: The operation to perform. One of:
+        "add"
+        "rem"
+        "set"
+    :type operation: str
+    :param ipv4_addrs: The ipv4 addresses to bypass. Example:
+        "68.80.59.53 55.38.18.29"
+        "68.80.59.53"
+    :type ipv4_addrs: str
+    """
+    return _run_speedify_cmd(["streamingbypass", "ipv4", operation, ipv4_addrs])
+
+
+@exception_wrapper("Failed to set streaming bypass")
+def streamingbypass_ipv6(operation: str, ipv6_addrs: str):
+    """
+    streamingbypass_ipv6(operation, ipv6_addrs)
+
+    Add, remove, or set the streaming bypass for some ipv6 address.
+
+    Example:
+        streamingbypass_ipv6(
+            "add",
+            "2001:db8:1234:ffff:ffff:ffff:ffff:0f0f 2001:db8:1234:ffff:ffff:ffff:ffff:ffff"
+        )
+
+    :param operation: The operation to perform. One of:
+        "add"
+        "rem"
+        "set"
+    :type operation: str
+    :param ipv6_addrs: The ipv6 address(es) to bypass. Example:
+        "2001:db8:1234:ffff:ffff:ffff:ffff:0f0f 2001:db8:1234:ffff:ffff:ffff:ffff:ffff"
+        "2001:db8:1234:ffff:ffff:ffff:ffff:ffff"
+    :type ipv6_addrs: str
+    """
+    return _run_speedify_cmd(["streamingbypass", "ipv6", operation, ipv6_addrs])
+
+
+@exception_wrapper("Failed to set streaming bypass")
+def streamingbypass_ports(operation: str, ports: str):
+    """
+    streamingbypass_ports(operation, ports)
+
+    Add, remove, or set the streaming bypass for some ports.
+
+    Example:
+        streamingbypass_ports("rem", "9999/tcp")
+
+    :param operation: The operation to perform. One of:
+        "add"
+        "rem"
+        "set"
+    :type operation: str
+    :param ports: The ports to bypass. Must be of one of these forms:
+        "<port>/<proto>"
+        "<port begin>-<port end>/<proto>"
+    :type ports: str
+    """
+    return _run_speedify_cmd(["streamingbypass", "ports", operation, ports])
+
+
+@exception_wrapper("Failed to set streaming bypass")
+def streamingbypass_service(service_name: str, is_on: bool):
+    """
+    streamingbypass_service(service_name, is_on)
+
+    Set the streaming bypass, on or off, for some pre-defined service.
+
+    Example:
+        streamingbypass_service("Netflix", True)
+
+    :param service_name: The service to modify. One of:
+        "Netflix"
+        "Disney+"
+        "HBO"
+        "Hulu"
+        "Peacock"
+        "Amazon Prime"
+        "Youtube TV"
+        "Ring"
+        "VoLTE"
+        "Reliance Jio"
+        "Microsoft Your Phone"
+        "Spectrum TV & Mobile"
+        "Showtime"
+        "Visual Voice Mail"
+        "Android Auto"
+        "Tubi"
+        "Hotstar"
+        "RCS Messaging"
+        "Ubisoft Connect"
+        "Apple Updates"
+    :type service_name: str
+    :param is_on: Whether to bypass the service... or not.
+    :type is_on: bool
+    """
+    return _run_speedify_cmd(["streamingbypass", "service", service_name, is_on])
+
+
 @exception_wrapper("Failed to set adapter priority")
 def adapter_priority(adapterID, priority=Priority.ALWAYS):
     """
@@ -601,6 +744,22 @@ def adapter_resetusage(adapterID):
 
 
 @exception_wrapper("Failed to set ports")
+def ports_v2(ports: str):
+    """
+    ports_v2(ports)
+    sets forwarded ports.
+    call with an empty string to unset all forwarded ports.
+
+    example: result = ports_v2("8080/tcp 8081/udp")
+
+    :param ports: a string of the form "<port>/<tcp|udp> ..."
+    :type ports: str
+    :returns:  dict -- :ref:`JSON settings <ports>` from speedify
+    """
+    return _run_speedify_cmd(ports)
+
+
+@exception_wrapper("Failed to set ports")
 def ports(tcpports=[], udpports=[]):
     """
     ports(tcpports=[], udpports=[])
@@ -677,9 +836,9 @@ def jumbo(mode=True):
         args.append("on")
     elif mode == "off":
         args.append("off")
-    elif mode == True:
+    elif mode is True:
         args.append("on")
-    elif mode == False:
+    elif mode is False:
         args.append("off")
     else:
         # probably invalid, but we'll let speedify tell us THAT
@@ -704,9 +863,9 @@ def packetaggregation(mode=True):
         args.append("on")
     elif mode == "off":
         args.append("off")
-    elif mode == True:
+    elif mode is True:
         args.append("on")
-    elif mode == False:
+    elif mode is False:
         args.append("off")
     else:
         # probably invalid, but we'll let speedify tell us THAT
@@ -814,9 +973,14 @@ def speedtest():
 def transport(transport="auto"):
     """
     transport(transport='auto')
-    Sets the transport mode (auto/tcp/udp/https).
+    Sets the transport mode (auto/tcp/multi-tcp/udp/https).
 
-    :param transport: Sets the transport to "auto","udp","tcp" or "https"
+    :param transport: Sets the transport to one of
+        "auto"
+        "udp"
+        "tcp"
+        "multi-tcp"
+        "https"
     :type transport: str
     :returns:  dict -- :ref:`JSON settings <transport>` from speedify
     """
@@ -916,7 +1080,11 @@ def safebrowsing_error_callback(time, callback):
     _run_long_command(cmd, callback)
 
 
-### Internal functions ###
+#
+# Internal functions
+#
+
+
 def _run_speedify_cmd(args, cmdtimeout=60):
     "passes list of args to speedify command line returns the objects pulled from the json"
     resultstr = ""
