@@ -314,17 +314,6 @@ def daemon(method):
 #
 
 
-@exception_wrapper("Failed to get version")
-def version():
-    """
-    version()
-    Returns speedify version
-
-    :returns:  dict -- :ref:`JSON version <version>` from speedify.
-    """
-    return _run_speedify_cmd(["version"])
-
-
 @exception_wrapper("Failed to get server list")
 def show_servers():
     """
@@ -480,6 +469,19 @@ def safebrowsing_stats():
 #
 # Setter functions
 #
+
+
+@exception_wrapper("Failed to set directory server")
+def directory(domain: str):
+    """
+    directory(domain)
+
+    Uses the given domain as the directory server.
+
+    :param domain: The domain of the directory server.
+    :type operation: str
+    """
+    return _run_speedify_cmd(["directory", domain])
 
 
 @exception_wrapper("Failed to set DNS")
@@ -667,9 +669,13 @@ def adapter_priority(adapterID: str, priority=Priority.ALWAYS):
 
 
 @exception_wrapper("Failed to set adapter encryption")
-def adapter_encryption_v2(adapterID: str, should_encrypt: bool):
+def adapter_encryption(adapterID: str, should_encrypt):
     """
     adapter_encryption(adapterID: str, should_encrypt)
+
+    Example:
+        adapter_encryption("something", True)
+        adapter_encryption("something", "off")
 
     Sets the encryption on the adapter whose adapterID is provided
     (show_adapters is where you find the adapterIDs).
@@ -680,41 +686,15 @@ def adapter_encryption_v2(adapterID: str, should_encrypt: bool):
     :param adapterID: The interface adapterID
     :type adapterID: str
     :param should_encrypt: Whether to encrypt
-    :type should_encrypt: bool
+    :type should_encrypt: bool | str
     :returns:  dict -- :ref:`JSON adapter response <adapter-encryption>` from speedify.
     """
+    if should_encrypt is True:
+        should_encrypt = "on"
+    elif should_encrypt is False:
+        should_encrypt = "off"
+    should_encrypt = str(should_encrypt)
     return _run_speedify_cmd(["adapter", "encryption", adapterID, should_encrypt])
-
-
-@exception_wrapper("Failed to set adapter encryption")
-def adapter_encryption(adapterID: str, encrypt):
-    """
-    adapter_encryption(adapterID: str, encrypt)
-
-    Sets the encryption on the adapter whose adapterID is provided
-    (show_adapters is where you find the adapterIDs).
-
-    Note that any time the main encryption() function is called,
-    all the per adapter encryption settings are immediately reset.
-
-    :param adapterID: The interface adapterID
-    :type adapterID: str
-    :param priority: Whether to encrypt
-    :type encrypt: boolean
-    :returns:  dict -- :ref:`JSON adapter response <adapter-encryption>` from speedify.
-    """
-    args = ["adapter", "encryption"]
-    args.append(str(adapterID))
-    if encrypt == "on":
-        args.append("on")
-    elif encrypt == "off":
-        args.append("off")
-    elif encrypt:
-        args.append("on")
-    else:
-        args.append("off")
-    resultjson = _run_speedify_cmd(args)
-    return resultjson
 
 
 @exception_wrapper("Failed to set adapter ratelimit")
@@ -730,11 +710,7 @@ def adapter_ratelimit(adapterID: str, ratelimit: int = 0):
     :type ratelimit: int
     :returns:  dict -- :ref:`JSON adapter response <adapter-datalimit-daily>` from speedify.
     """
-    args = ["adapter", "ratelimit"]
-    args.append(str(adapterID))
-    args.append((str(ratelimit)))
-    resultjson = _run_speedify_cmd(args)
-    return resultjson
+    return _run_speedify_cmd(["adapter", "ratelimit", adapterID, str(ratelimit)])
 
 
 @exception_wrapper("Failed to set adapter daily limit")
@@ -750,11 +726,7 @@ def adapter_datalimit_daily(adapterID: str, limit: int = 0):
     :type limit: int
     :returns:  dict -- :ref:`JSON adapter response <adapter-datalimit-daily>` from speedify
     """
-    args = ["adapter", "datalimit", "daily"]
-    args.append(str(adapterID))
-    args.append((str(limit)))
-    resultjson = _run_speedify_cmd(args)
-    return resultjson
+    return _run_speedify_cmd(["adapter", "datalimit", "daily", adapterID, str(limit)])
 
 
 @exception_wrapper("Failed to set adapter daily boost")
@@ -791,13 +763,8 @@ def adapter_datalimit_monthly(adapterID: str, limit: int = 0, reset_day: int = 0
     :type reset_Day: int
     :returns:  dict -- :ref:`JSON adapter response <adapter-datalimit-monthly>` from speedify.
     """
-    args = ["adapter", "datalimit", "monthly"]
-    args.append(str(adapterID))
-    args.append((str(limit)))
-    args.append(str(reset_day))
-
-    resultjson = _run_speedify_cmd(args)
-    return resultjson
+    args = ["adapter", "datalimit", "monthly", adapterID, str(limit), str(reset_day)]
+    return _run_speedify_cmd(args)
 
 
 @exception_wrapper("Failed to reset adapter usage")
@@ -810,31 +777,11 @@ def adapter_resetusage(adapterID: str):
     :type adapterID: str
     :returns:  dict -- :ref:`JSON adapter response <adapter-resetusage>` from speedify.
     """
-    args = ["adapter", "resetusage"]
-    args.append(str(adapterID))
-
-    resultjson = _run_speedify_cmd(args)
-    return resultjson
+    return _run_speedify_cmd(["adapter", "resetusage", adapterID])
 
 
-@exception_wrapper("Failed to set ports")
-def ports_v2(ports: str):
-    """
-    ports_v2(ports)
-    sets forwarded ports.
-    call with an empty string to unset all forwarded ports.
-
-    example: result = ports_v2("8080/tcp 8081/udp")
-
-    :param ports: a string of the form "<port>/<tcp|udp> ..."
-    :type ports: str
-    :returns:  dict -- :ref:`JSON settings <ports>` from speedify
-    """
-    return _run_speedify_cmd(ports)
-
-
-@exception_wrapper("Failed to set ports")
-def ports(tcpports=[], udpports=[]):
+@exception_wrapper("Failed to set forwarded ports")
+def ports(tcpports: list = [], udpports: list = []):
     """
     ports(tcpports=[], udpports=[])
     sets port forwarding. call with no arguments to unset all port forwarding
@@ -858,10 +805,11 @@ def ports(tcpports=[], udpports=[]):
 
 
 @exception_wrapper("Failed to change modes")
-def mode(mode: str = "speed"):
+def mode(mode: str):
     """
     mode(mode="speed")
-    Set 'redundant', 'speed' or 'streaming' operation modes
+
+    Uses one of 'redundant', 'speed' or 'streaming' operation modes.
 
     :param mode: One of:
         "redundant"
@@ -874,7 +822,7 @@ def mode(mode: str = "speed"):
 
 
 @exception_wrapper("Failed to set encryption")
-def encryption(encrypt: bool = True):
+def encryption(should_encrypt=True):
     """
     encryption(encrypt = True)
     Sets encryption on or off.
@@ -883,16 +831,11 @@ def encryption(encrypt: bool = True):
     :type encrypt: bool
     :returns:  dict -- :ref:`JSON settings <encryption>` from speedify
     """
-    args = ["encryption"]
-    if encrypt == "on":
-        args.append("on")
-    elif encrypt == "off":
-        args.append("off")
-    elif encrypt:
-        args.append("on")
-    else:
-        args.append("off")
-    resultjson = _run_speedify_cmd(args)
+    if should_encrypt is True:
+        should_encrypt = "on"
+    elif should_encrypt is False:
+        should_encrypt = "off"
+    resultjson = _run_speedify_cmd(["encryption", should_encrypt])
     return resultjson
 
 
