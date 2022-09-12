@@ -1217,10 +1217,15 @@ def _run_speedify_cmd(args, cmdtimeout: int = 60):
             raise SpeedifyError(errorKind + ": " + str(": " + out))
 
 
-# CALLBACK VERSIONS
+#
+# Callbacks
+#
 # The normal _run_speedify_cmd runs the command and waits for the final output.
 # these versions keep running, calling you back as json objects are emitted. useful
 # for stats and for a verbose speedtest, otherwise, stick with the non-callback versions
+#
+
+
 @exception_wrapper("SpeedifyError in longRunCommand")
 def _run_long_command(cmdarray, callback):
     "callback is a function you provide, passed parsed json objects"
