@@ -312,6 +312,30 @@ def logout():
     return find_state_for_string(jret["state"])
 
 
+def privacy(category: str, is_on: bool):
+    """
+    privacy(category, is_on)
+
+    Configures certain privacy setting via `category` and `is_on`.
+    Currently, only one setting is supported:
+        "requestToDisableDoh":
+            Windows-only.
+            Attempt to turn DoH (DNS-over-HTTPs) functionality on or off.
+
+    :param category: The privacy category. Currently, only "requestToDisableDoh" is supported.
+    :type category: str
+    :param is_on: Whether to `request` should be on... or not.
+    :type is_on: bool
+    """
+    if is_on is True:
+        is_on = "on"
+    elif is_on is False:
+        is_on = "off"
+    else:
+        raise ValueError("is_on neither True nor False")
+    return _run_speedify_cmd(["privacy", category, is_on])
+
+
 def esni(is_on: bool = True):
     """
     esni(is_on)
@@ -324,6 +348,8 @@ def esni(is_on: bool = True):
         is_on = "on"
     elif is_on is False:
         is_on = "off"
+    else:
+        raise ValueError("is_on neither True nor False")
     return _run_speedify_cmd(["esni", is_on])
 
 
@@ -339,6 +365,8 @@ def headercompression(is_on: bool = True):
         is_on = "on"
     elif is_on is False:
         is_on = "off"
+    else:
+        raise ValueError("is_on neither True nor False")
     return _run_speedify_cmd(["headercompression", is_on])
 
 
@@ -425,7 +453,7 @@ def captiveportal_check():
 
 
 @exception_wrapper("Failed to do captiveportal_login")
-def captiveportal_login(proxy=True, adapterID=None):
+def captiveportal_login(proxy: bool = True, adapterID: str = None):
     """
     captiveportal_login()
     Starts or stops the local proxy intercepting traffic on ports 52,80,433, for
@@ -457,6 +485,51 @@ def captiveportal_login(proxy=True, adapterID=None):
     if adapterID and startproxy:
         args.append(adapterID)
     return _run_speedify_cmd(args)
+
+
+def show(item: str):
+    """
+    show(item)
+
+    Returns the result, in json, of querying for `item`.
+
+    Example:
+        show("user")
+        show("servers")
+        show("currentserver")
+
+    :param item: The item to query for. One of:
+        "servers"
+        "settings"
+        "privacy"
+        "adapters"
+        "currentserver"
+        "user"
+        "directory"
+        "connectmethod"
+        "streamingbypass"
+        "disconnect"
+        "streaming"
+        "speedtest"
+    :type item: str
+    """
+    valid_items = [
+        "servers"
+        "settings"
+        "privacy"
+        "adapters"
+        "currentserver"
+        "user"
+        "directory"
+        "connectmethod"
+        "streamingbypass"
+        "disconnect"
+        "streaming"
+        "speedtest"
+    ]
+    if item not in valid_items:
+        raise ValueError("Invalid item: %s" % item)
+    return _run_speedify_cmd(["show", item])
 
 
 @exception_wrapper("Failed to get current server")
@@ -1091,25 +1164,29 @@ def dnsleak(leak: bool = False):
 
 
 @exception_wrapper("Failed to set startupconnect")
-def startupconnect(connect: bool = True):
+def startupconnect(is_on: bool = True):
     """
-    startupconnect(connect=True)
-    sets whether to automatically connect on login.
+    startupconnect(is_on)
 
-    :param connect: Sets connect on startup on/off
-    :type connect: bool
+    Sets whether or not to automatically connect on login.
+
+    :param is_on: Sets connect on startup on/off
+    :type is_on: bool
     :returns:  dict -- :ref:`JSON settings <startupconnect>` from speedify
     """
-    args = ["startupconnect"]
-    args.append("on") if connect else args.append("off")
-    resultjson = _run_speedify_cmd(args)
-    return resultjson
+    if is_on is True:
+        is_on = "on"
+    elif is_on is False:
+        is_on = "off"
+    else:
+        raise ValueError("is_on neither True nor False")
+    return _run_speedify_cmd(["startupconnect", is_on])
 
 
-@exception_wrapper("Failed to set routedefault")
-def routedefault(route: bool = True):
+@exception_wrapper("Failed to set route default")
+def routedefault(is_default: bool = True):
     """
-    routedefault(route=True)
+    routedefault(is_default=True)
     sets whether Speedify should take the default route to the internet.
     defaults to True, only make it False if you're planning to set up
     routing rules, like IP Tables, yourself..
@@ -1118,17 +1195,37 @@ def routedefault(route: bool = True):
     :type connect: bool
     :returns:  dict -- :ref:`JSON settings <routedefault>` from speedify
     """
-    args = ["route", "default"]
-    args.append("on") if route else args.append("off")
-    resultjson = _run_speedify_cmd(args)
-    return resultjson
+    if is_default is True:
+        is_default = "on"
+    elif is_default is False:
+        is_default = "off"
+    else:
+        raise ValueError("is_on neither True nor False")
+    return _run_speedify_cmd(["route", "default", is_default])
+
+
+@exception_wrapper("Failed to run streamtest")
+def streamtest():
+    """
+    streamtest()
+
+    Runs stream test.
+    Returns final results.
+    Will take around 30 seconds.
+
+    :returns:  dict -- :ref:`JSON streamtest <speedtest>` from speedify
+    """
+    return _run_speedify_cmd(["speedtest"], cmdtimeout=600)
 
 
 @exception_wrapper("Failed to run speedtest")
 def speedtest():
     """
     speedtest()
-    Returns runs speed test returns final results. Will take around 30 seconds.
+
+    Runs speed test.
+    Returns final results.
+    Will take around 30 seconds.
 
     :returns:  dict -- :ref:`JSON speedtest <speedtest>` from speedify
     """
