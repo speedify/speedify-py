@@ -1,21 +1,19 @@
 import os
 import sys
 
-os.chdir(os.path.dirname(os.path.abspath(__file__)))
-sys.path.append('../')
-
+sys.path.append("../")
 import speedify
+from speedify import State, Priority, SpeedifyError, SpeedifyAPIError
 import speedifysettings
 import speedifyutil
 import logging
 import unittest
 import time
 
-
 logging.basicConfig(
-    handlers=[logging.FileHandler('test.log'), logging.StreamHandler(sys.stdout)],
-    format='%(asctime)s\t%(levelname)s\t%(module)s\t%(message)s',
-    level=logging.INFO
+    handlers=[logging.FileHandler("test.log"), logging.StreamHandler(sys.stdout)],
+    format="%(asctime)s\t%(levelname)s\t%(module)s\t%(message)s",
+    level=logging.INFO,
 )
 
 # Test the speedify library
@@ -38,7 +36,7 @@ class TestSpeedify(unittest.TestCase):
     def test_connect(self):
         serverinfo = speedify.connect_closest()
         state = speedify.show_state()
-        self.assertEqual(state, speedify.State.CONNECTED)
+        self.assertEqual(state, State.CONNECTED)
         self.assertIn("tag", serverinfo)
         self.assertIn("country", serverinfo)
 
@@ -46,7 +44,7 @@ class TestSpeedify(unittest.TestCase):
         serverinfo = speedify.connect_country("sg")
         state = speedify.show_state()
 
-        self.assertEqual(state, speedify.State.CONNECTED)
+        self.assertEqual(state, State.CONNECTED)
         self.assertIn("tag", serverinfo)
         self.assertIn("country", serverinfo)
         self.assertEqual(serverinfo["country"], "sg")
@@ -55,14 +53,14 @@ class TestSpeedify(unittest.TestCase):
 
     def test_transport(self):
         mysettings = speedify.transport("https")
-        # serverinfo = speedify.connect()
+        serverinfo = speedify.connect()
         mysettings = speedify.show_settings()
         self.assertEqual(mysettings["transportMode"], "https")
 
         # to make sure runtime changed, could check stats and look for connectionstats : connections[] : protocol
         mysettings = speedify.transport("tcp")
         self.assertEqual(mysettings["transportMode"], "tcp")
-        # serverinfo = speedify.connect()
+        serverinfo = speedify.connect()
         mysettings = speedify.show_settings()
         self.assertEqual(mysettings["transportMode"], "tcp")
 
@@ -70,20 +68,20 @@ class TestSpeedify(unittest.TestCase):
         # logging.disable(logging.ERROR);
         logging.info("Testing error handling, ignore next few errors")
         state = speedify.show_state()
-        self.assertEqual(state, speedify.State.LOGGED_IN)
+        self.assertEqual(state, State.LOGGED_IN)
         logging.debug("connecting to bad country")
-        with self.assertRaises(speedify.SpeedifyAPIError):
+        with self.assertRaises(SpeedifyAPIError):
             speedify.connect_country("pp")
         logging.debug("after connecting to bad country")
         state = speedify.show_state()
-        self.assertEqual(state, speedify.State.LOGGED_IN)
+        self.assertEqual(state, State.LOGGED_IN)
         logging.info("Done testing error handling")
         # logging.disable(logging.NOTSET)
 
     def test_disconnect(self):
         speedify.connect_closest()
         state = speedify.show_state()
-        self.assertEqual(state, speedify.State.CONNECTED)
+        self.assertEqual(state, State.CONNECTED)
         speedify.disconnect()
         state = speedify.show_state()
         self.assertEqual(state, speedify.State.LOGGED_IN)
@@ -179,7 +177,7 @@ class TestSpeedify(unittest.TestCase):
         # speedify.crashreports(True)
         # privacy_settings = speedify.show_privacy()
         # self.assertTrue(privacy_settings["crashReports"])
-        if os.name == 'nt':
+        if os.name == "nt":
             # the windows only calls
             speedify.killswitch(True)
             privacy_settings = speedify.show_privacy()
@@ -189,7 +187,7 @@ class TestSpeedify(unittest.TestCase):
             self.assertFalse(privacy_settings["killswitch"])
         else:
             # shouldn't be there if we're not windows
-            with self.assertRaises(speedify.SpeedifyError):
+            with self.assertRaises(SpeedifyError):
                 logging.disable(logging.ERROR)
                 speedify.killswitch(True)
                 logging.disable(logging.NOTSET)
@@ -243,15 +241,15 @@ class TestSpeedify(unittest.TestCase):
     def test_adapters(self):
         adapters = speedify.show_adapters()
         self.assertTrue(adapters)
-        adapterIDs = [adapter['adapterID'] for adapter in adapters]
-        self._set_and_test_adapter_list(adapterIDs, speedify.Priority.BACKUP, 10000000)
-        self._set_and_test_adapter_list(adapterIDs, speedify.Priority.ALWAYS, 0)
+        adapterIDs = [adapter["adapterID"] for adapter in adapters]
+        self._set_and_test_adapter_list(adapterIDs, Priority.BACKUP, 10000000)
+        self._set_and_test_adapter_list(adapterIDs, Priority.ALWAYS, 0)
 
     def test_encryption(self):
         adapters = speedify.show_adapters()
         self.assertTrue(adapters)
         # just grab first adapter for testing
-        adapterID = [adapter['adapterID'] for adapter in adapters][0]
+        adapterID = [adapter["adapterID"] for adapter in adapters][0]
         speedify.adapter_encryption(adapterID, False)
         mysettings = speedify.show_settings()
         perConnectionEncryptionEnabled = mysettings["perConnectionEncryptionEnabled"]
@@ -263,6 +261,7 @@ class TestSpeedify(unittest.TestCase):
         self.assertEqual(firstadapter["encrypted"], False)
         # main thing should still be encrypted just not our one adapter
         self.assertTrue(encrypted)
+
         speedify.encryption(False)
         # this should both turn off encryption and wipe the custom settings
         mysettings = speedify.show_settings()
@@ -296,20 +295,26 @@ class TestSpeedify(unittest.TestCase):
             speedify.adapter_datalimit_daily(adapterID, limit)
             speedify.adapter_datalimit_monthly(adapterID, limit, 0)
         updated_adapters = speedify.show_adapters()
-        priorities = [adapter['priority'] for adapter in updated_adapters]
-        rate_limits = [adapter['rateLimit'] for adapter in updated_adapters]
-        daily_limits = [adapter['dataUsage']['usageDailyLimit'] for adapter in updated_adapters]
-        monthly_limits = [adapter['dataUsage']['usageMonthlyLimit'] for adapter in updated_adapters]
-        for set_priority, rate_limit, daily_limit, monthly_limit in zip(priorities, rate_limits, daily_limits, monthly_limits):
+        priorities = [adapter["priority"] for adapter in updated_adapters]
+        rate_limits = [adapter["rateLimit"] for adapter in updated_adapters]
+        daily_limits = [
+            adapter["dataUsage"]["usageDailyLimit"] for adapter in updated_adapters
+        ]
+        monthly_limits = [
+            adapter["dataUsage"]["usageMonthlyLimit"] for adapter in updated_adapters
+        ]
+        for set_priority, rate_limit, daily_limit, monthly_limit in zip(
+            priorities, rate_limits, daily_limits, monthly_limits
+        ):
             # Disconnected adapters speedify is aware of will have an unchangable priority never
-            if (set_priority != speedify.Priority.NEVER.value):
+            if set_priority != Priority.NEVER.value:
                 self.assertEqual(set_priority, priority.value)
             self.assertEqual(rate_limit, limit)
             self.assertEqual(daily_limit, limit)
             self.assertEqual(monthly_limit, limit)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     speedifysettings.apply_speedify_settings(speedifysettings.speedify_defaults)
     unittest.main()
     speedifysettings.apply_speedify_settings(speedifysettings.speedify_defaults)
