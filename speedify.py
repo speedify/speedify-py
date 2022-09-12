@@ -615,10 +615,27 @@ def streamingbypass_service(service_name: str, is_on: bool):
     return _run_speedify_cmd(["streamingbypass", "service", service_name, is_on])
 
 
-@exception_wrapper("Failed to set adapter priority")
-def adapter_priority(adapterID, priority=Priority.ALWAYS):
+@exception_wrapper("Failed to set adapter encryption")
+def adapter_overratelimit(adapterID: str, bps: int):
     """
-    adapter_priority(adapterID, priority=Priority.ALWAYS)
+    adapter_overratelimit(adapterID: str, bps)
+
+    Sets the rate limit, in bps, on adapterID.
+    (show_adapters is where you find the adapterIDs).
+
+    :param adapterID: The interface adapterID
+    :type adapterID: str
+    :param bps: Speed, in bps, to limit the adapter to.
+    :type bps: int
+    :returns:  dict -- :ref:`JSON adapter response <adapter-encryption>` from speedify.
+    """
+    return _run_speedify_cmd(["adapter", "overratelimit", adapterID, str(bps)])
+
+
+@exception_wrapper("Failed to set adapter priority")
+def adapter_priority(adapterID: str, priority=Priority.ALWAYS):
+    """
+    adapter_priority(adapterID: str, priority=Priority.ALWAYS)
     Sets the priority on the adapter whose adapterID is provided (show_adapters is where you find the adapterIDs)
 
     :param adapterID: The interface adapterID
@@ -635,12 +652,35 @@ def adapter_priority(adapterID, priority=Priority.ALWAYS):
 
 
 @exception_wrapper("Failed to set adapter encryption")
-def adapter_encryption(adapterID, encrypt):
+def adapter_encryption_v2(adapterID: str, should_encrypt: bool):
     """
-    adapter_encryption(adapterID, encrypt)
-    Sets the encryption on the adapter whose adapterID is provided (show_adapters is where you find the adapterIDs).
+    adapter_encryption(adapterID: str, should_encrypt)
 
-    Note that any time the main encryption() function is called, all the per adapter encryption settings are immeidately reset.
+    Sets the encryption on the adapter whose adapterID is provided
+    (show_adapters is where you find the adapterIDs).
+
+    Note that any time the main encryption() function is called,
+    all the per adapter encryption settings are immediately reset.
+
+    :param adapterID: The interface adapterID
+    :type adapterID: str
+    :param should_encrypt: Whether to encrypt
+    :type should_encrypt: bool
+    :returns:  dict -- :ref:`JSON adapter response <adapter-encryption>` from speedify.
+    """
+    return _run_speedify_cmd(["adapter", "encryption", adapterID, should_encrypt])
+
+
+@exception_wrapper("Failed to set adapter encryption")
+def adapter_encryption(adapterID: str, encrypt):
+    """
+    adapter_encryption(adapterID: str, encrypt)
+
+    Sets the encryption on the adapter whose adapterID is provided
+    (show_adapters is where you find the adapterIDs).
+
+    Note that any time the main encryption() function is called,
+    all the per adapter encryption settings are immediately reset.
 
     :param adapterID: The interface adapterID
     :type adapterID: str
@@ -663,9 +703,9 @@ def adapter_encryption(adapterID, encrypt):
 
 
 @exception_wrapper("Failed to set adapter ratelimit")
-def adapter_ratelimit(adapterID, ratelimit=0):
+def adapter_ratelimit(adapterID: str, ratelimit: int = 0):
     """
-    adapter_ratelimit(adapterID, ratelimit=0)
+    adapter_ratelimit(adapterID: str, ratelimit: int = 0)
     Sets the ratelimit in bps on the adapter whose adapterID is provided
     (show_adapters is where you find the adapterIDs)
 
@@ -683,9 +723,9 @@ def adapter_ratelimit(adapterID, ratelimit=0):
 
 
 @exception_wrapper("Failed to set adapter daily limit")
-def adapter_datalimit_daily(adapterID, limit=0):
+def adapter_datalimit_daily(adapterID: str, limit: int = 0):
     """
-    adapter_datalimit_daily( adapterID, limit=0)
+    adapter_datalimit_daily(adapterID, limit: int = 0)
     Sets the daily usage limit in bytes on the adapter whose adapterID is provided
     (show_adapters is where you find the adapterIDs)
 
@@ -702,10 +742,29 @@ def adapter_datalimit_daily(adapterID, limit=0):
     return resultjson
 
 
-@exception_wrapper("Failed to set adapter monthly limit")
-def adapter_datalimit_monthly(adapterID, limit=0, reset_day=0):
+@exception_wrapper("Failed to set adapter daily boost")
+def adapter_datalimit_dailyboost(adapterID: str, boost: int = 0):
     """
-    adapter_datalimit_monthly(adapterID, limit=0, reset_day=0)
+    adapter_datalimit_dailyboost(adapterID, boost: int = 0)
+
+    Gives some additional daily data, in bytes,
+    to the adapter whose adapterID is provided.
+
+    Show_adapters is where you find the adapterIDs.
+
+    :param adapterID: The interface adapterID
+    :type adapterID: str
+    :param boost: Some additional bytes to give to the daily limit.
+    :type boost: int
+    :returns:  dict -- :ref:`JSON adapter response <adapter-datalimit-daily>` from speedify
+    """
+    return _run_speedify_cmd(["adapter", "datalimit", "dailyboost", str(boost)])
+
+
+@exception_wrapper("Failed to set adapter monthly limit")
+def adapter_datalimit_monthly(adapterID: str, limit: int = 0, reset_day: int = 0):
+    """
+    adapter_datalimit_monthly(adapterID: str, limit: int = 0, reset_day: int = 0)
     Sets the monthly usage limit in bytes on the adapter whose adapterID is provided
     (show_adapters is where you find the adapterIDs)
 
@@ -727,7 +786,7 @@ def adapter_datalimit_monthly(adapterID, limit=0, reset_day=0):
 
 
 @exception_wrapper("Failed to reset adapter usage")
-def adapter_resetusage(adapterID):
+def adapter_resetusage(adapterID: str):
     """
     adapter_resetusage(adapterID)
     Resets all the stats on this adapter back to 0.  Starts both daily and monthly limits over, if set.
