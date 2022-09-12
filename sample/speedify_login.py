@@ -1,19 +1,20 @@
 import sys
-sys.path.append('../')
+
+sys.path.append("../")
 import speedify
 from speedify import State, SpeedifyError, Priority
 
-'''
+"""
 This sample connects to the closest server and configures some speedify settings
-'''
+"""
 
-if(len(sys.argv) > 2):
+if len(sys.argv) > 2:
     user = sys.argv[1]
     password = sys.argv[2]
 
 state = speedify.show_state()
 print("Speedify's state is " + str(state))
-if (state == State.LOGGED_OUT):
+if state == State.LOGGED_OUT:
     try:
         speedify.login(user, password)
     except Exception:
@@ -21,7 +22,7 @@ if (state == State.LOGGED_OUT):
         sys.exit(1)
 
 try:
-    if(speedify.show_state() != State.LOGGED_IN):
+    if speedify.show_state() != State.LOGGED_IN:
         # get to LOGGED_IN state
         speedify.disconnect()
     state = speedify.show_state()
@@ -46,14 +47,14 @@ except SpeedifyError as se:
 try:
     print("connecting to the closest server")
     serverInfo = speedify.connect_closest()
-    print("Server country: " +serverInfo["country"])
-    print("Server city: " +serverInfo["city"])
-    print("Server num: " +str(serverInfo["num"]))
+    print("Server country: " + serverInfo["country"])
+    print("Server city: " + serverInfo["city"])
+    print("Server num: " + str(serverInfo["num"]))
     print("connected!")
 
     adapters = speedify.show_adapters()
     for adapter in adapters:
-        if(adapter["type"] == "Wi-Fi"):
+        if adapter["type"] == "Wi-Fi":
             print("Found a Wi-Fi card: " + str(adapter["description"]))
             guid = adapter["adapterID"]
             print("adapterID: " + str(guid))

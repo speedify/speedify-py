@@ -33,7 +33,7 @@ Apply multiple settings at once, and print current settings:
 from speedifysettings import apply_speedify_settings, get_speedify_settings
 
 speedify_settings = '''{"connectmethod" : "closest","encryption" : true, "jumbo" : true,
-    "mode" : "speed", "privacy_killswitch":false, "privacy_dnsleak": true, "privacy_crashreports": true,
+    "mode" : "speed", "privacy_killswitch":false, "privacy_dnsleak": true, 
     "startupconnect": true,    "transport":"auto","overflow_threshold": 30.0,
     "adapter_priority_ethernet" : "always","adapter_priority_wifi" : "always",
     "adapter_priority_cellular" : "secondary", "adapter_datalimit_daily_all" : 0,

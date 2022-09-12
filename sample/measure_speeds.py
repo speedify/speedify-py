@@ -1,5 +1,6 @@
 import sys
-sys.path.append('../')
+
+sys.path.append("../")
 import speedify
 from speedify import State
 from speedifysettings import apply_setting
@@ -10,19 +11,23 @@ import json
 import logging
 
 # what properties do we want to test:
-possible_attributes = ["jumbo", "transport", "encryption", "privacy_killswitch","mode"]
+possible_attributes = ["jumbo", "transport", "encryption", "privacy_killswitch", "mode"]
 
-'''
+"""
 find and apply the best set of speedify settings for you, by trying
 every possible combination, and test speed on each and every combo.
 
 The settings in possible attributes are available to be tested by passing the
 setting through the command line
 ex: python measure_speeds.py jumbo transport
-'''
+"""
 
-logging.basicConfig(handlers=[logging.FileHandler('test.log'),logging.StreamHandler(sys.stdout)],
-                              format='%(asctime)s\t%(levelname)s\t%(module)s\t%(message)s',  level=logging.DEBUG)
+logging.basicConfig(
+    handlers=[logging.FileHandler("test.log"), logging.StreamHandler(sys.stdout)],
+    format="%(asctime)s\t%(levelname)s\t%(module)s\t%(message)s",
+    level=logging.DEBUG,
+)
+
 
 def apply_value(name, value):
     if name == "transport":
@@ -34,6 +39,7 @@ def apply_value(name, value):
     else:
         apply_setting(name, value)
 
+
 def print_all_attr(attrlist, attrvalues):
     # should turn into json and dump
     settingsmap = {}
@@ -43,9 +49,10 @@ def print_all_attr(attrlist, attrvalues):
         elif str(att) == "redundant":
             attval = "redundant" if value else "speed"
         else:
-            attval =  value
+            attval = value
         settingsmap[att] = attval
     logging.info(json.dumps(settingsmap))
+
 
 def print_attr(attribute, value):
     if str(attribute) == "transport":
@@ -53,28 +60,30 @@ def print_attr(attribute, value):
     elif str(attribute) == "redundant":
         attval = "redundant" if value else "speed"
     else:
-        attval =  value
-    logging.info(str(attribute) + " = " + str(attval) )
+        attval = value
+    logging.info(str(attribute) + " = " + str(attval))
 
 
 def set_all_attr(attrlist, attrvalues):
     for att, value in zip(attrlist, attrvalues):
         apply_value(att, value)
 
-def sizeof_fmt(num, suffix='B'):
-    for unit in ['','K','M','G','T','P','E','Z']:
+
+def sizeof_fmt(num, suffix="B"):
+    for unit in ["", "K", "M", "G", "T", "P", "E", "Z"]:
         if abs(num) < 1000.0:
             return "%3.1f%s%s" % (num, unit, suffix)
         num /= 1000.0
-    return "%.1f%s%s" % (num, 'Yi', suffix)
+    return "%.1f%s%s" % (num, "Yi", suffix)
+
 
 def main():
     if len(sys.argv) > 1:
-        #arguments specified on command line
+        # arguments specified on command line
         attributes = []
         for arg in sys.argv:
             if arg in possible_attributes:
-                attributes.append( arg )
+                attributes.append(arg)
     else:
         logging.info("Need to pass in list of attributes to test")
         logging.info("Possible attributes: " + str(possible_attributes))
@@ -101,29 +110,29 @@ def main():
 
     i = 0
     logging.info("== START ==")
-    while i < rounds :
-        logging.info ("Loop: " + str(i))
+    while i < rounds:
+        logging.info("Loop: " + str(i))
         attributecount = 0
         atval = False
         # list of True|Falses same length as the list of attributes to be tested
         current_attributes = []
         # builds a logical table, first attribute alternates, second switches every
         # two, third attribute, every 4, so that every possible combination gets tried and tested
-        for x in attributes :
+        for x in attributes:
             attributecount = attributecount + 1
-            demonin = math.pow(2,attributecount)
+            demonin = math.pow(2, attributecount)
             atval = True if i % demonin < (demonin / 2) else False
             current_attributes.append(atval)
         set_all_attr(attributes, current_attributes)
-        print_all_attr(attributes,current_attributes)
+        print_all_attr(attributes, current_attributes)
         i = i + 1
         speedify.connect(server)
         state = speedify.show_state()
         if state != State.CONNECTED:
-                time.time()
-                logging.error("Did not connect!")
-                failed = True;
-                break
+            time.time()
+            logging.error("Did not connect!")
+            failed = True
+            break
         trcattempts = 0
         trc = False
         while trcattempts < 30:
@@ -136,14 +145,14 @@ def main():
                     break
             except FileNotFoundError:
                 sys.exit(1)
-            trcattempts = trcattempts +1
+            trcattempts = trcattempts + 1
             # internet can take a bit, give it some time
             time.sleep(0.2)
         if not trc:
             logging.warning("Speedify not providing internet!")
             continue
         speedresult = speedify.speedtest()
-        if (speedresult["status"] != "complete"):
+        if speedresult["status"] != "complete":
             logging.warning("Speedtest did not complete!")
         else:
             for result in speedresult["connectionResults"]:
@@ -166,15 +175,16 @@ def main():
     if not failed:
         logging.info("== DONE ==")
         logging.info("best download : " + str(sizeof_fmt(best_download)) + "bps")
-        print_all_attr(attributes,best_download_attributes)
+        print_all_attr(attributes, best_download_attributes)
         logging.info("best upload   : " + str(sizeof_fmt(best_upload)) + "bps")
-        print_all_attr(attributes,best_upload_attributes)
+        print_all_attr(attributes, best_upload_attributes)
 
         logging.info("Applying best download values")
-        set_all_attr(attributes,best_download_attributes )
+        set_all_attr(attributes, best_download_attributes)
     else:
         logging.error("== FAILED ==")
         sys.exit(1)
+
 
 if __name__ == "__main__":
     main()
