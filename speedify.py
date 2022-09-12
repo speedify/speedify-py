@@ -259,7 +259,7 @@ def connectmethod_as_string(connectMethodObject, hypens=True):
 def login(user, password):
     """
     login(user, password)
-    Login.  Returns a State.  returns the state if succesful
+    Login. Returns a State. Indication succes category.
 
     :param user: username
     :type user: str
@@ -269,6 +269,34 @@ def login(user, password):
     """
     args = ["login", user, password]
     resultjson = _run_speedify_cmd(args)
+    return find_state_for_string(resultjson["state"])
+
+
+@exception_wrapper("Failed to login")
+def login_auto():
+    """
+    login()
+    Attempt to login automatically.
+    Returns a state indicating success category.
+
+    :returns:  speedify.State -- The speedify state enum.
+    """
+    resultjson = _run_speedify_cmd("login", "auto")
+    return find_state_for_string(resultjson["state"])
+
+
+@exception_wrapper("Failed to login")
+def login_oauth(token: str):
+    """
+    login()
+    Attempt to login via an oauth token.
+    Returns a state indicating success category.
+
+    :param token: The oauth token.
+    :tyope token: str
+    :returns:  speedify.State -- The speedify state enum.
+    """
+    resultjson = _run_speedify_cmd("login", "oauth", token)
     return find_state_for_string(resultjson["state"])
 
 
@@ -284,6 +312,21 @@ def logout():
     return find_state_for_string(jret["state"])
 
 
+def esni(is_on: bool = True):
+    """
+    esni(is_on)
+    Turn esni functionality on or off.
+
+    :param is_on: Whether esni should be on... or not.
+    :type is_on: bool
+    """
+    if is_on is True:
+        is_on = "on"
+    elif is_on is False:
+        is_on = "off"
+    return _run_speedify_cmd(["esni", is_on])
+
+
 def headercompression(is_on: bool = True):
     """
     headercompression(is_on)
@@ -292,21 +335,33 @@ def headercompression(is_on: bool = True):
     :param is_on: Whether headercompression should be on... or not.
     :type is_on: bool
     """
-    args = ["headercompression", is_on]
-    resultjson = _run_speedify_cmd(args)
-    return find_state_for_string(resultjson["state"])
+    if is_on is True:
+        is_on = "on"
+    elif is_on is False:
+        is_on = "off"
+    return _run_speedify_cmd(["headercompression", is_on])
 
 
-def daemon(method):
+def gateway(uri: str):
+    """
+    gateway(uri)
+
+    Set the gateway uri.
+
+    :param uri: The gateway uri.
+    :type uri: str
+    """
+    return _run_speedify_cmd(["gateway", uri])
+
+
+def daemon(method: str):
     """
     daemon(method)
     Call `method` on the daemon. Only "exit" is supported.
 
     :param method: The method to call. Only "exit" is available.
     """
-    args = ["daemon", method]
-    resultjson = _run_speedify_cmd(args)
-    return find_state_for_string(resultjson["state"])
+    return _run_speedify_cmd(["daemon", method])
 
 
 #
@@ -498,6 +553,100 @@ def dns(ip_addr: str):
     :type operation: str
     """
     return _run_speedify_cmd(["dns", ip_addr])
+
+
+@exception_wrapper("Failed to set streaming bypass")
+def streaming_domains(operation: str, domains: str):
+    """
+    streaming_domains(operation, domains)
+
+    Add, remove, or set the streaming hint for some domains.
+
+    Example:
+        streaming_domains("add", "example.com google.com")
+        streaming_domains("rem", "example.com google.com")
+
+    :param operation: The operation to perform. One of:
+        "add"
+        "rem"
+        "set"
+    :type operation: str
+    :param domains: The domains to .
+    :type domains: str
+    """
+    return _run_speedify_cmd(["streaming", "domains", operation, domains])
+
+
+@exception_wrapper("Failed to set streaming ")
+def streaming_ipv4(operation: str, ipv4_addrs: str):
+    """
+    streaming_ipv4(operation, ipv4_addrs)
+
+    Add, remove, or set the streaming hint for some ipv4 address.
+
+    Example:
+        streaming_ipv4("add", "68.80.59.53 55.38.18.29")
+
+    :param operation: The operation to perform. One of:
+        "add"
+        "rem"
+        "set"
+    :type operation: str
+    :param ipv4_addrs: The ipv4 addresses to . Example:
+        "68.80.59.53 55.38.18.29"
+        "68.80.59.53"
+    :type ipv4_addrs: str
+    """
+    return _run_speedify_cmd(["streaming", "ipv4", operation, ipv4_addrs])
+
+
+@exception_wrapper("Failed to set streaming ")
+def streaming_ipv6(operation: str, ipv6_addrs: str):
+    """
+    streaming_ipv6(operation, ipv6_addrs)
+
+    Add, remove, or set the streaming hint for some ipv6 address.
+
+    Example:
+        streaming_ipv6(
+            "add",
+            "2001:db8:1234:ffff:ffff:ffff:ffff:0f0f 2001:db8:1234:ffff:ffff:ffff:ffff:ffff"
+        )
+
+    :param operation: The operation to perform. One of:
+        "add"
+        "rem"
+        "set"
+    :type operation: str
+    :param ipv6_addrs: The ipv6 address(es) to bypass. Example:
+        "2001:db8:1234:ffff:ffff:ffff:ffff:0f0f 2001:db8:1234:ffff:ffff:ffff:ffff:ffff"
+        "2001:db8:1234:ffff:ffff:ffff:ffff:ffff"
+    :type ipv6_addrs: str
+    """
+    return _run_speedify_cmd(["streamingbypass", "ipv6", operation, ipv6_addrs])
+
+
+@exception_wrapper("Failed to set streaming ")
+def streaming_ports(operation: str, ports: str):
+    """
+    streaming_ports(operation, ports)
+
+    Add, remove, or set the streaming hint for some ports.
+
+    Example:
+        streaming_ports("rem", "9999/tcp")
+
+    :param operation: The operation to perform. One of:
+        "add"
+        "rem"
+        "set"
+    :type operation: str
+    :param ports: The ports to . Must be of one of these forms:
+        "<port>/<proto>"
+        "<port begin>-<port end>/<proto>"
+    :type ports: str
+    """
+    return _run_speedify_cmd(["streaming", "ports", operation, ports])
 
 
 @exception_wrapper("Failed to set streaming bypass")
