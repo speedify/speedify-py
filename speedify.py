@@ -843,18 +843,19 @@ def ports(tcpports=[], udpports=[]):
 
 
 @exception_wrapper("Failed to change modes")
-def mode(mode="speed"):
+def mode(mode: str = "speed"):
     """
     mode(mode="speed")
-    Set 'redundant' or 'speed' operation modes
+    Set 'redundant', 'speed' or 'streaming' operation modes
 
-    :param mode: "redundant" or "speed"
+    :param mode: One of:
+        "redundant"
+        "speed"
+        "streaming"
     :type mode: str
     :returns:  dict -- :ref:`JSON settings <mode>` from speedify
     """
-    args = ["mode", mode]
-    resultjson = _run_speedify_cmd(args)
-    return resultjson
+    return _run_speedify_cmd(["mode", mode])
 
 
 @exception_wrapper("Failed to set encryption")
