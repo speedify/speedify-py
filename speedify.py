@@ -7,7 +7,6 @@ import subprocess
 import os
 from enum import Enum
 from functools import wraps
-
 from utils import use_shell
 
 logger = logging.getLogger(__name__)
@@ -481,6 +480,22 @@ def safebrowsing_stats():
 #
 # Setter functions
 #
+
+
+@exception_wrapper("Failed to set DNS")
+def dns(ip_addr: str):
+    """
+    dns(ip_addr)
+
+    Uses the given IP address for as the DNS server.
+
+    Example:
+        dns("8.8.8.8")
+
+    :param ip_addr: The IP address of the DNS server.
+    :type operation: str
+    """
+    return _run_speedify_cmd(["dns", ip_addr])
 
 
 @exception_wrapper("Failed to set streaming bypass")
