@@ -859,9 +859,9 @@ def mode(mode: str = "speed"):
 
 
 @exception_wrapper("Failed to set encryption")
-def encryption(encrypt=True):
+def encryption(encrypt: bool = True):
     """
-    encryption(encrypt=True)
+    encryption(encrypt = True)
     Sets encryption on or off.
 
     :param encrypt: Encrypted on or off
@@ -882,9 +882,9 @@ def encryption(encrypt=True):
 
 
 @exception_wrapper("Failed to set jumbo")
-def jumbo(mode=True):
+def jumbo(mode: bool = True):
     """
-    jumbo(mode=True)
+    jumbo(mode = True)
     Sets jumbo MTU mode on or off.
 
     :param mode: Jumbo MTU on or off
@@ -909,9 +909,9 @@ def jumbo(mode=True):
 
 
 @exception_wrapper("Failed to set packetaggregation")
-def packetaggregation(mode=True):
+def packetaggregation(mode: bool = True):
     """
-    packetaggregation(mode=True)
+    packetaggregation(mode = True)
     Sets packetaggregation mode on or off.
 
     :param mode: packetaggregation on or off
@@ -936,9 +936,9 @@ def packetaggregation(mode=True):
 
 
 @exception_wrapper("Failed to set killswitch")
-def killswitch(killswitch=False):
+def killswitch(killswitch: bool = False):
     """
-    killswitch(killswitch=False)
+    killswitch(killswitch = False)
     sets killswitch on or off. (Windows only)
 
     :param killswitch: killswitch on or off
@@ -952,9 +952,9 @@ def killswitch(killswitch=False):
 
 
 @exception_wrapper("Failed to set overflow")
-def overflow(speed_in_mbps=30.0):
+def overflow(speed_in_mbps: float = 30.0):
     """
-    overflow(speed_in_mbps=30.0)
+    overflow(speed_in_mbps = 30.0)
     sets overflow threshold.
 
     :param speed_in_mbps: Overflow threshold in mbps
@@ -968,9 +968,9 @@ def overflow(speed_in_mbps=30.0):
 
 
 @exception_wrapper("Failed to set dnsleak")
-def dnsleak(leak=False):
+def dnsleak(leak: bool = False):
     """
-    dnsleak(leak=False)
+    dnsleak(leak = False)
     sets dnsleak on or off. (Windows only)
 
     :param dnsleak: dnsleak on or off
@@ -984,7 +984,7 @@ def dnsleak(leak=False):
 
 
 @exception_wrapper("Failed to set startupconnect")
-def startupconnect(connect=True):
+def startupconnect(connect: bool = True):
     """
     startupconnect(connect=True)
     sets whether to automatically connect on login.
@@ -1000,7 +1000,7 @@ def startupconnect(connect=True):
 
 
 @exception_wrapper("Failed to set routedefault")
-def routedefault(route=True):
+def routedefault(route: bool = True):
     """
     routedefault(route=True)
     sets whether Speedify should take the default route to the internet.
@@ -1030,7 +1030,7 @@ def speedtest():
 
 
 @exception_wrapper("Failed to set transport")
-def transport(transport="auto"):
+def transport(transport: str = "auto"):
     """
     transport(transport='auto')
     Sets the transport mode (auto/tcp/multi-tcp/udp/https).
@@ -1050,7 +1050,7 @@ def transport(transport="auto"):
 
 
 @exception_wrapper("Failed getting stats")
-def stats(time=1):
+def stats(time: int = 1):
     """
     stats(time=1)
     calls stats returns a list of all the parsed json objects it gets back
@@ -1078,7 +1078,7 @@ def stats(time=1):
     return list_callback.result_list
 
 
-def stats_callback(time, callback):
+def stats_callback(time: int, callback):
     """
     stats_callback(time, callback)
     calls stats, and callback supplied function with each line of output. 0 is forever
@@ -1114,7 +1114,7 @@ def safebrowsing_enable(enable: bool):
 
 
 @exception_wrapper("Failed getting safebrowsing error")
-def safebrowsing_error(time=1):
+def safebrowsing_error(time: int = 1):
     if time == 0:
         logger.error("safebrowsing error cannot be run with 0, would never return")
         raise SpeedifyError(
@@ -1133,7 +1133,7 @@ def safebrowsing_error(time=1):
     return list_callback.result_list
 
 
-def safebrowsing_error_callback(time, callback):
+def safebrowsing_error_callback(time: int, callback):
     args = ["safebrowsing", "errors", str(time)]
     cmd = [get_cli()] + args
 
@@ -1145,7 +1145,7 @@ def safebrowsing_error_callback(time, callback):
 #
 
 
-def _run_speedify_cmd(args, cmdtimeout=60):
+def _run_speedify_cmd(args, cmdtimeout: int = 60):
     "passes list of args to speedify command line returns the objects pulled from the json"
     resultstr = ""
     try:
