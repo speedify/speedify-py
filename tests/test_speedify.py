@@ -67,8 +67,7 @@ class TestSpeedify(unittest.TestCase):
         self.assertEqual(mysettings["transportMode"], "tcp")
 
     def test_bad_country(self):
-        # logging.disable(logging.ERROR);
-        logging.info("Testing error handling, ignore next few errors")
+        logging.debug("Testing error handling, ignore next few errors")
         state = speedify.show_state()
         self.assertEqual(state, State.LOGGED_IN)
         logging.debug("connecting to bad country")
@@ -77,8 +76,7 @@ class TestSpeedify(unittest.TestCase):
         logging.debug("after connecting to bad country")
         state = speedify.show_state()
         self.assertEqual(state, State.LOGGED_IN)
-        logging.info("Done testing error handling")
-        # logging.disable(logging.NOTSET)
+        logging.debug("Done testing error handling")
 
     def test_disconnect(self):
         speedify.connect_closest()

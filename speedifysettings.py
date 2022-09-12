@@ -14,14 +14,24 @@ from speedify import SpeedifyError
    :synopsis: Contains speedify cli convenience functions
 """
 
+
 # for convenience, here's a JSON that resets everything to normal
-speedify_defaults = """{"connectmethod" : "closest","encryption" : true, "jumbo" : true,
-    "mode" : "speed", "privacy_killswitch":false, "privacy_dnsleak": true, 
+speedify_defaults = (
+    """{"connectmethod" : "closest","encryption" : true, "jumbo" : true,
+    "mode" : "speed",
     "startupconnect": true,  "packet_aggregation": true,  "transport":"auto","overflow_threshold": 30.0,
     "adapter_priority_ethernet" : "always","adapter_priority_wifi" : "always",
     "adapter_priority_cellular" : "secondary", "adapter_datalimit_daily_all" : 0,
     "adapter_datalimit_monthly_all" : 0, "adapter_ratelimit_all" : 0, "route_default": true
+    """
+    + (
+        ', "privacy_killswitch":false, "privacy_dnsleak": true,'
+        if os.name == "nt"
+        else ""
+    )
+    + """
     }"""
+)
 
 
 def apply_setting(setting, value):
