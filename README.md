@@ -7,9 +7,9 @@ This library exposes all of the functionality from the [Speedify CLI](https://su
 
 Tested on Windows, macOS, Ubuntu, Raspbian.
 
-Automatically looks for speedify_cli in a number of standard locations.  
+Automatically looks for `speedify_cli` in a number of standard locations.  
 
-You can force it to use a particular location by either setting the environment variable SPEEDIFY_CLI or by calling speedify.set_cli().  In either case it takes the full path of the speedify_cli executable.
+You can force it to use a particular location by either setting the environment variable `SPEEDIFY_CLI` or by calling `speedify.set_cli()`.  In either case it takes the full path of the `speedify_cli` executable.
 
 ## Usage
 
@@ -47,3 +47,34 @@ print(get_speedify_settings())
 ```
 
 For the full list of settings, build the sphinx documentation by running make html in the docs/ folder.
+
+## Changelog
+
+### Release 12.5.x
+
+Added
+  - `dns(str)`
+  - `streamtest()`
+  - `directory(str)`
+  - `show(str)`
+  - `gateway(str)`
+  - `esni(bool)`
+  - `headercompression(bool)`
+  - `privacy(str, bool)`
+  - `daemon(str)`
+  - `login_auto()`
+  - `login_oauth(token)`
+  - `streamingbypass_domains(str, str)`
+  - `streamingbypass_ports(str, str)`
+  - `streamingbypass_ipv4(str, str)`
+  - `streamingbypass_ipv6(str, str)`
+  - `streamingbypass_service(str, bool)`
+  - `adapter_overratelimit(str, int)`
+  - `adapter_dailylimit_boost(str, int)`
+
+Changed
+  - `connect(str) -> connect(str, str = "us", str = None, str = None)`
+  - `adapter_encryption(str, str) -> adapter_encryption(str, str | bool)`
+  - `encryption(str) -> encryption(str | bool)`
+  - `mode(str = "speed") -> mode(str)`
+
