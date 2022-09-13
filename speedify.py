@@ -105,7 +105,9 @@ def exception_wrapper(argument):
 # Functions for controlling Speedify State
 
 
-def connect(method: str = "closest", country: str = "us", city: str = None, num: int = None):
+def connect(
+    method: str = "closest", country: str = "us", city: str = None, num: int = None
+):
     """
     connect(method, country="us", city=None, num=None)
     Connect via one of these methods --
@@ -282,7 +284,7 @@ def login_auto():
     :returns:  speedify.State -- The speedify state enum.
     """
     resultjson = _run_speedify_cmd("login", "auto")
-    return resultjson# find_state_for_string(resultjson["state"])
+    return resultjson  # find_state_for_string(resultjson["state"])
 
 
 @exception_wrapper("Failed to login")

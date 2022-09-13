@@ -39,20 +39,17 @@ class TestSpeedify(unittest.TestCase):
         logging.info("Testing dns...")
         dnsip = "8.8.8.8"
         result = speedify.dns(dnsip)
-        self.assertEqual(result['dnsAddresses'], [dnsip])
-
+        self.assertEqual(result["dnsAddresses"], [dnsip])
 
     def test_streamtest(self):
         logging.info("Running streamtest...")
         if speedify.show_state() is not State.CONNECTED:
             speedify.connect("closest")
-        self.assertEqual(speedify.streamtest()[0]['isError'], False)
-
+        self.assertEqual(speedify.streamtest()[0]["isError"], False)
 
     def test_directory(self):
         logging.info("Testing directory settings...")
-        self.assertEqual(speedify.directory()['domain'], "")
-
+        self.assertEqual(speedify.directory()["domain"], "")
 
     def test_show(self):
         logging.info("Testing show keys...")
@@ -71,23 +68,20 @@ class TestSpeedify(unittest.TestCase):
             "speedtest",
         ]
         for key in valid_show_keys:
-            self.assertTrue(speedify.show(key) != '' and not None)
-
+            self.assertTrue(speedify.show(key) != "" and not None)
 
     # Not sure how to test this one
     # def test_gateway(self):
     #     logging.info("Testing gateway settings...")
     #     speedify.gateway(str)
 
-
     def test_esni(self):
         logging.info("Testing esni settings...")
         self.assertTrue(speedify.esni(True)["enableEsni"])
 
-
     def test_headercompression(self):
         logging.info("Testing header compression settings...")
-        self.assertTrue(speedify.headercompression(True)['headerCompression'])
+        self.assertTrue(speedify.headercompression(True)["headerCompression"])
 
     # Not sure how to test this one
     # def test_daemon():
