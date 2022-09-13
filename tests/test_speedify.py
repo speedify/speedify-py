@@ -40,7 +40,7 @@ class TestSpeedify(unittest.TestCase):
         ips = ["8.8.8.8", ""]
         for ip in ips:
             self.assertEqual(
-                speedify.dns(ip)["dnsAddresses"], [ip if ip != "" else None]
+                speedify.dns(ip)["dnsAddresses"], [ip] if ip != "" else []
             )
 
     def test_streamtest(self):
@@ -79,11 +79,13 @@ class TestSpeedify(unittest.TestCase):
 
     def test_esni(self):
         logging.debug("Testing esni settings...")
-        self.assertTrue(speedify.esni(True)["enableEsni"])
+        for b in [False, True]:
+            self.assertEqual(speedify.esni(b)["enableEsni"], b)
 
     def test_headercompression(self):
         logging.debug("Testing header compression settings...")
-        self.assertTrue(speedify.headercompression(True)["headerCompression"])
+        for b in [False, True]:
+            self.assertEqual(speedify.headercompression(b)["headerCompression"], b)
 
     # Not sure how to test this one
     # def test_daemon():
@@ -105,27 +107,30 @@ class TestSpeedify(unittest.TestCase):
     def test_streamingbypass_domains(self):
         logging.debug("Testing streaming bypass for domains...")
         ip = "11.11.11.11"
-        self.assertTrue(ip in speedify.streamingbypass_domains("add", ip)["domains"])
-        self.assertFalse(ip in speedify.streamingbypass_domains("rem", ip)["domains"])
-        speedify.streamingbypass_domains(str, str)
+        mode = {"on_add": {"op": "add", "val": True}, "on_rem": {"op": "rem", "val": False}}
+        for m in mode.keys():
+            self.assertEqual(ip in speedify.streamingbypass_domains(mode[m]["op"], ip)["domains"], mode[m]["val"])
 
     def test_streamingbypass_ports(self):
         logging.debug("Testing streaming bypass for ports...")
         pp = "9999"
-        self.assertTrue(pp in streamingbypass_ports("add", pp)["ports"])
-        self.assertFalse(pp in streamingbypass_ports("rem", pp)["ports"])
+        mode = {"on_add": {"op": "add", "val": True}, "on_rem": {"op": "rem", "val": False}}
+        for m in mode.keys():
+            self.asserEqual(pp in streamingbypass_ports(mode[m]["op"], pp)["ports"], mode[m]["val"])
 
     def test_streamingbypass_ipv4(self):
         logging.debug("Testing streaming bypass for ipv4 addresses...")
         ip = "68.80.59.53"
-        self.assertTrue(ip in speedify.streamingbypass_ipv4("add", ip)["ipv4"])
-        self.assertFalse(ip in speedify.streamingbypass_ipv4("rem", ip)["ipv4"])
+        mode = {"on_add": {"op": "add", "val": True}, "on_rem": {"op": "rem", "val": False}}
+        for m in mode.keys():
+            self.assertEqual(ip in speedify.streamingbypass_ipv4(mode[m]["op"], ip)["ipv4"], mode[m]["val"])
 
     def test_streamingbypass_ipv6(self):
         logging.debug("Testing streaming bypass for ipv6 addresses...")
-        ip = "2001:db8:1234:ffff:ffff:ffff:ffff:0f0f"
-        self.assertTrue(ip in speedify.streamingbypass_ipv6("add", ip)["ipv6"])
-        self.assertFalse(ip in speedify.streamingbypass_ipv6("rem", ip)["ipv6"])
+        ip = "2001:db8:1234:ffff:ffff:ffff:ffff:f0f"
+        mode = {"on_add": {"op": "add", "val": True}, "on_rem": {"op": "rem", "val": False}}
+        for m in mode.keys():
+            self.asserEqual(ip in speedify.streamingbypass_ipv6(mode[m]["op"], ip)["ipv6"], mode[m]["val"])
 
     def test_streamingbypass_service(self):
         logging.debug("Testing streaming bypass for services...")
