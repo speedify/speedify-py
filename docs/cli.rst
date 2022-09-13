@@ -746,6 +746,41 @@ forward requests.
         "overflowThreshold":    10
     }
 
+privacy dnsleak <on\|off>
+-------------------------
+
+A Windows-only setting to ensure DNS cannot go around the tunnel. This
+could make certain LAN based printers and shared drivers inaccessible.
+
+.. code:: text
+
+    $ speedify_cli privacy dnsleak off
+    {
+        "crashReports": true,
+        "killswitch":   false,
+        "dnsleak":  false,
+        "dnsAddreses":  ["8.8.8.8"]
+    }
+
+.. _privacy-killswitch:
+
+privacy killswitch <on\|off>
+----------------------------
+
+A Windows-only setting that configures firewall rules to make it
+impossible to access the internet when Speedify is not connected.
+
+.. code:: text
+
+    $ speedify_cli privacy killswitch off
+    {
+        "crashReports": true,
+        "killswitch":   false,
+        "dnsleak":  false,
+        "dnsAddreses":  ["8.8.8.8"]
+    }
+
+
 .. _show-servers:
 
 show servers
