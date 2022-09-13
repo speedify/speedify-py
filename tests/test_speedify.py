@@ -117,7 +117,7 @@ class TestSpeedify(unittest.TestCase):
         pp = "9999"
         mode = {"on_add": {"op": "add", "val": True}, "on_rem": {"op": "rem", "val": False}}
         for m in mode.keys():
-            self.assertEqual(pp in streamingbypass_ports(mode[m]["op"], pp)["ports"], mode[m]["val"])
+            self.assertEqual(int(pp) in streamingbypass_ports(mode[m]["op"], pp + "/tcp")["ports"][0]["port"], mode[m]["val"])
 
     def test_streamingbypass_ipv4(self):
         logging.debug("Testing streaming bypass for ipv4 addresses...")
