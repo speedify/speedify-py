@@ -1053,6 +1053,7 @@ def adapter_datalimit_monthly(adapterID: str, limit: int = 0, reset_day: int = 0
     return _run_speedify_cmd(args)
 
 
+
 @exception_wrapper("Failed to reset adapter usage")
 def adapter_resetusage(adapterID: str):
     """
@@ -1478,6 +1479,8 @@ def _run_speedify_cmd(args, cmdtimeout: int = 60):
 #
 # Callbacks
 #
+
+
 # The normal _run_speedify_cmd runs the command and waits for the final output.
 # these versions keep running, calling you back as json objects are emitted. useful
 # for stats and for a verbose speedtest, otherwise, stick with the non-callback versions
