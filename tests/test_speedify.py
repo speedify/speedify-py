@@ -70,11 +70,6 @@ class TestSpeedify(unittest.TestCase):
         for key in valid_show_keys:
             self.assertTrue(speedify.show(key) != "" and not None)
 
-    # Not sure how to test this one
-    # def test_gateway(self):
-    #     logging.debug("Testing gateway settings...")
-    #     speedify.gateway(str)
-
     def test_esni(self):
         logging.debug("Testing esni settings...")
         for b in [False, True]:
@@ -84,24 +79,6 @@ class TestSpeedify(unittest.TestCase):
         logging.debug("Testing header compression settings...")
         for b in [False, True]:
             self.assertEqual(speedify.headercompression(b)["headerCompression"], b)
-
-    # Not sure how to test this one
-    # def test_daemon():
-    #     logging.debug("Testing daemon commands (only exit)...")
-    #     speedify.daemon("exit")
-
-    # Will not work on linux
-    # def test_login_auto(self):
-    #     logging.debug("Testing auto login...")
-    #     self.assertTrue(
-    #         speedify.login_auto() is speedify.State.CONNECTED
-    #         or speedify.State.LOGGED_IN
-    #     )
-
-    # Not sure how to test this one
-    # def test_login_oauth():
-    #     logging.info("")
-    #     speedify.login_oauth(token)
 
     def test_streamingbypass_domains(self):
         logging.debug("Testing streaming bypass for domains...")
