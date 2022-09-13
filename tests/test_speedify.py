@@ -118,6 +118,10 @@ class TestSpeedify(unittest.TestCase):
 
     def test_streamingbypass_ports(self):
         logging.debug("Testing streaming bypass for ports...")
+
+        def is_bypass_port(d):
+            return d["ports"][0]["port"]
+
         pp = "9999"
         mode = {
             "on_add": {"op": "add", "val": True},
@@ -126,9 +130,9 @@ class TestSpeedify(unittest.TestCase):
         for m in mode.keys():
             self.assertEqual(
                 int(pp)
-                in speedify.streamingbypass_ports(mode[m]["op"], pp + "/tcp")["ports"][
-                    0
-                ]["port"],
+                in is_bypass_port(
+                    speedify.streamingbypass_ports(mode[m]["op"], pp + "/tcp")
+                ),
                 mode[m]["val"],
             )
 
