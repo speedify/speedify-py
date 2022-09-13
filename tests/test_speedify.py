@@ -34,7 +34,65 @@ class TestSpeedify(unittest.TestCase):
         speedify.connectmethod("closest")
         speedify.disconnect()
 
+    def test_dns(self):
+        # @TODO is there a way to grab the current dns ip?
+        logging.info("Testing dns...")
+        dnsip = "8.8.8.8"
+        result = speedify.dns(dnsip)
+        self.assertEqual(result['dnsAddresses'], [dnsip])
 
+
+    def test_streamtest(self):
+        logging.info("Running streamtest...")
+        if speedify.show_state() is not State.CONNECTED:
+            speedify.connect("closest")
+        self.assertEqual(speedify.streamtest()[0]['isError'], False)
+
+
+    def test_directory(self):
+        logging.info("Testing directory settings...")
+        self.assertEqual(speedify.directory()['domain'], "")
+
+
+    def test_show(self):
+        logging.info("Testing show keys...")
+        valid_show_keys = [
+            "servers",
+            "settings",
+            "privacy",
+            "adapters",
+            "currentserver",
+            "user",
+            "directory",
+            "connectmethod",
+            "streamingbypass",
+            "disconnect",
+            "streaming",
+            "speedtest",
+        ]
+        for key in valid_show_keys:
+            self.assertTrue(speedify.show(key) != '' and not None)
+
+
+    # Not sure how to test this one
+    # def test_gateway(self):
+    #     logging.info("Testing gateway settings...")
+    #     speedify.gateway(str)
+
+
+    def test_esni(self):
+        logging.info("Testing esni settings...")
+        self.assertTrue(speedify.esni(True)["enableEsni"])
+
+
+    def test_headercompression(self):
+        logging.info("Testing header compression settings...")
+        self.assertTrue(speedify.headercompression(True)['headerCompression'])
+
+    # Not sure how to test this one
+    # def test_daemon():
+    #     logging.info("Testing daemon commands (only exit)...")
+    #     speedify.daemon("exit")
 
     def test_connect(self):
         serverinfo = speedify.connect_closest()
@@ -46,7 +104,6 @@ class TestSpeedify(unittest.TestCase):
     def test_connect_country(self):
         serverinfo = speedify.connect_country("sg")
         state = speedify.show_state()
-
         self.assertEqual(state, State.CONNECTED)
         self.assertIn("tag", serverinfo)
         self.assertIn("country", serverinfo)
@@ -59,7 +116,6 @@ class TestSpeedify(unittest.TestCase):
         speedify.connect("closest")
         mysettings = speedify.show_settings()
         self.assertEqual(mysettings["transportMode"], "https")
-
         # to make sure runtime changed, could check stats and look for connectionstats : connections[] : protocol
         mysettings = speedify.transport("tcp")
         self.assertEqual(mysettings["transportMode"], "tcp")
@@ -92,7 +148,6 @@ class TestSpeedify(unittest.TestCase):
         speedify.connectmethod("private", "jp")
         # pull settings from speedify to be sure they really set
         cm_settings = speedify.show_connectmethod()
-
         self.assertEqual(cm_settings["connectMethod"], "private")
         # country is ignored on
         self.assertEqual(cm_settings["country"], "")
@@ -108,7 +163,6 @@ class TestSpeedify(unittest.TestCase):
         cm_settings = speedify.show_connectmethod()
         self.assertEqual(cm_settings["connectMethod"], "country")
         self.assertEqual(cm_settings["country"], "sg")
-
         # the settings were returned by the actual connectmethod call,
         # and should be exactly the same
         self.assertEqual(cm_settings["connectMethod"], retval["connectMethod"])
@@ -257,7 +311,6 @@ class TestSpeedify(unittest.TestCase):
         self.assertEqual(firstadapter["encrypted"], False)
         # main thing should still be encrypted just not our one adapter
         self.assertTrue(encrypted)
-
         speedify.encryption(False)
         # this should both turn off encryption and wipe the custom settings
         mysettings = speedify.show_settings()
@@ -275,7 +328,6 @@ class TestSpeedify(unittest.TestCase):
         firstadapter = perConnectionEncryptionSettings[0]
         self.assertEqual(firstadapter["adapterID"], adapterID)
         self.assertEqual(firstadapter["encrypted"], True)
-
         speedify.encryption(True)
         # this should both turn on encryption and wipe the custom settings
         mysettings = speedify.show_settings()

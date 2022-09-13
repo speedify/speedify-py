@@ -282,7 +282,7 @@ def login_auto():
     :returns:  speedify.State -- The speedify state enum.
     """
     resultjson = _run_speedify_cmd("login", "auto")
-    return find_state_for_string(resultjson["state"])
+    return resultjson# find_state_for_string(resultjson["state"])
 
 
 @exception_wrapper("Failed to login")
@@ -614,7 +614,7 @@ def directory(domain: str = ""):
 
 
 @exception_wrapper("Failed to set DNS")
-def dns(ip_addr: str):
+def dns(ip_addr: str = ""):
     """
     dns(ip_addr)
 
