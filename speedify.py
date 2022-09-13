@@ -601,7 +601,7 @@ def safebrowsing_stats():
 
 
 @exception_wrapper("Failed to set directory server")
-def directory(domain: str):
+def directory(domain: str = ""):
     """
     directory(domain)
 
