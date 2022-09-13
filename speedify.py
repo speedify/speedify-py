@@ -105,7 +105,9 @@ def exception_wrapper(argument):
 # Functions for controlling Speedify State
 
 
-def connect(method: str = "closest", country: str = "us", city: str = None, num: int = None):
+def connect(
+    method: str = "closest", country: str = "us", city: str = None, num: int = None
+):
     """
     connect(method, country="us", city=None, num=None)
     Connect via one of these methods --

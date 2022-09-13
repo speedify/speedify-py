@@ -39,7 +39,9 @@ class TestSpeedify(unittest.TestCase):
         logging.debug("Testing dns...")
         ips = ["8.8.8.8", ""]
         for ip in ips:
-            self.assertEqual(speedify.dns(ip)["dnsAddresses"], [ip if ip != "" else None])
+            self.assertEqual(
+                speedify.dns(ip)["dnsAddresses"], [ip if ip != "" else None]
+            )
 
     def test_streamtest(self):
         logging.info("Running streamtest...")
@@ -90,43 +92,40 @@ class TestSpeedify(unittest.TestCase):
 
     def test_login_auto(self):
         logging.debug("Testing auto login...")
-        self.assertTrue(speedify.login_auto() is speedify.State.CONNECTED or speedify.State.LOGGED_IN)
-
+        self.assertTrue(
+            speedify.login_auto() is speedify.State.CONNECTED
+            or speedify.State.LOGGED_IN
+        )
 
     # Not sure how to test this one
     # def test_login_oauth():
     #     logging.info("")
     #     speedify.login_oauth(token)
 
-
     def test_streamingbypass_domains(self):
         logging.debug("Testing streaming bypass for domains...")
         ip = "11.11.11.11"
-        self.assertTrue(ip in speedify.streamingbypass_domains("add", ip)['domains'])
-        self.assertFalse(ip in speedify.streamingbypass_domains("rem", ip)['domains'])
+        self.assertTrue(ip in speedify.streamingbypass_domains("add", ip)["domains"])
+        self.assertFalse(ip in speedify.streamingbypass_domains("rem", ip)["domains"])
         speedify.streamingbypass_domains(str, str)
-
 
     def test_streamingbypass_ports(self):
         logging.debug("Testing streaming bypass for ports...")
         pp = "9999"
-        self.assertTrue(pp in streamingbypass_ports("add", pp)['ports'])
-        self.assertFalse(pp in streamingbypass_ports("rem", pp)['ports'])
-        
+        self.assertTrue(pp in streamingbypass_ports("add", pp)["ports"])
+        self.assertFalse(pp in streamingbypass_ports("rem", pp)["ports"])
 
     def test_streamingbypass_ipv4(self):
         logging.debug("Testing streaming bypass for ipv4 addresses...")
         ip = "68.80.59.53"
-        self.assertTrue(ip in speedify.streamingbypass_ipv4("add", ip)['ipv4'])
-        self.assertFalse(ip in speedify.streamingbypass_ipv4("rem", ip)['ipv4'])
-
+        self.assertTrue(ip in speedify.streamingbypass_ipv4("add", ip)["ipv4"])
+        self.assertFalse(ip in speedify.streamingbypass_ipv4("rem", ip)["ipv4"])
 
     def test_streamingbypass_ipv6(self):
         logging.debug("Testing streaming bypass for ipv6 addresses...")
         ip = "2001:db8:1234:ffff:ffff:ffff:ffff:0f0f"
-        self.assertTrue(ip in speedify.streamingbypass_ipv6("add", ip)['ipv6'])
-        self.assertFalse(ip in speedify.streamingbypass_ipv6("rem", ip)['ipv6'])
-
+        self.assertTrue(ip in speedify.streamingbypass_ipv6("add", ip)["ipv6"])
+        self.assertFalse(ip in speedify.streamingbypass_ipv6("rem", ip)["ipv6"])
 
     def test_streamingbypass_service(self):
         logging.debug("Testing streaming bypass for services...")
@@ -154,9 +153,9 @@ class TestSpeedify(unittest.TestCase):
         ]
         for s in valid_service_names:
             for b in [False, True]:
-                for i in speedify.streamingbypass_service(s, b)['services']:
-                    if i['title'] == s:
-                        self.assertTrue(i['enabled'] is b)
+                for i in speedify.streamingbypass_service(s, b)["services"]:
+                    if i["title"] == s:
+                        self.assertTrue(i["enabled"] is b)
 
     def test_connect(self):
         serverinfo = speedify.connect_closest()
