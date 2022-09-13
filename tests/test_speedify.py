@@ -39,9 +39,7 @@ class TestSpeedify(unittest.TestCase):
         logging.debug("Testing dns...")
         ips = ["8.8.8.8", ""]
         for ip in ips:
-            self.assertEqual(
-                speedify.dns(ip)["dnsAddresses"], [ip] if ip != "" else []
-            )
+            self.assertEqual(speedify.dns(ip)["dnsAddresses"], [ip] if ip != "" else [])
 
     def test_streamtest(self):
         logging.info("Running streamtest...")
@@ -108,30 +106,57 @@ class TestSpeedify(unittest.TestCase):
     def test_streamingbypass_domains(self):
         logging.debug("Testing streaming bypass for domains...")
         ip = "11.11.11.11"
-        mode = {"on_add": {"op": "add", "val": True}, "on_rem": {"op": "rem", "val": False}}
+        mode = {
+            "on_add": {"op": "add", "val": True},
+            "on_rem": {"op": "rem", "val": False},
+        }
         for m in mode.keys():
-            self.assertEqual(ip in speedify.streamingbypass_domains(mode[m]["op"], ip)["domains"], mode[m]["val"])
+            self.assertEqual(
+                ip in speedify.streamingbypass_domains(mode[m]["op"], ip)["domains"],
+                mode[m]["val"],
+            )
 
     def test_streamingbypass_ports(self):
         logging.debug("Testing streaming bypass for ports...")
         pp = "9999"
-        mode = {"on_add": {"op": "add", "val": True}, "on_rem": {"op": "rem", "val": False}}
+        mode = {
+            "on_add": {"op": "add", "val": True},
+            "on_rem": {"op": "rem", "val": False},
+        }
         for m in mode.keys():
-            self.assertEqual(int(pp) in speedify.streamingbypass_ports(mode[m]["op"], pp + "/tcp")["ports"][0]["port"], mode[m]["val"])
+            self.assertEqual(
+                int(pp)
+                in speedify.streamingbypass_ports(mode[m]["op"], pp + "/tcp")["ports"][
+                    0
+                ]["port"],
+                mode[m]["val"],
+            )
 
     def test_streamingbypass_ipv4(self):
         logging.debug("Testing streaming bypass for ipv4 addresses...")
         ip = "68.80.59.53"
-        mode = {"on_add": {"op": "add", "val": True}, "on_rem": {"op": "rem", "val": False}}
+        mode = {
+            "on_add": {"op": "add", "val": True},
+            "on_rem": {"op": "rem", "val": False},
+        }
         for m in mode.keys():
-            self.assertEqual(ip in speedify.streamingbypass_ipv4(mode[m]["op"], ip)["ipv4"], mode[m]["val"])
+            self.assertEqual(
+                ip in speedify.streamingbypass_ipv4(mode[m]["op"], ip)["ipv4"],
+                mode[m]["val"],
+            )
 
     def test_streamingbypass_ipv6(self):
         logging.debug("Testing streaming bypass for ipv6 addresses...")
         ip = "2001:db8:1234:ffff:ffff:ffff:ffff:f0f"
-        mode = {"on_add": {"op": "add", "val": True}, "on_rem": {"op": "rem", "val": False}}
+        mode = {
+            "on_add": {"op": "add", "val": True},
+            "on_rem": {"op": "rem", "val": False},
+        }
         for m in mode.keys():
-            self.assertEqual(ip in speedify.streamingbypass_ipv6(mode[m]["op"], ip)["ipv6"], mode[m]["val"])
+            self.assertEqual(
+                ip in speedify.streamingbypass_ipv6(mode[m]["op"], ip)["ipv6"],
+                mode[m]["val"],
+            )
 
     def test_streamingbypass_service(self):
         logging.debug("Testing streaming bypass for services...")
@@ -165,10 +190,19 @@ class TestSpeedify(unittest.TestCase):
 
     def test_adapter_overratelimit(self):
         logging.info("")
+
         def getrl(d):
-            return d[0]['dataUsage']['overlimitRatelimit']
+            return d[0]["dataUsage"]["overlimitRatelimit"]
+
         for l in [getrl(speedify.show_adapters()), 2000000]:
-            self.assertEqual(getrl(speedify.adapter_overratelimit(speedify.show_adapters()[0]['adapterID'], l)), l)
+            self.assertEqual(
+                getrl(
+                    speedify.adapter_overratelimit(
+                        speedify.show_adapters()[0]["adapterID"], l
+                    )
+                ),
+                l,
+            )
 
     def test_connect(self):
         serverinfo = speedify.connect_closest()
