@@ -88,7 +88,7 @@ class TestSpeedify(unittest.TestCase):
     #     logging.debug("Testing daemon commands (only exit)...")
     #     speedify.daemon("exit")
 
-    def test_login_auto():
+    def test_login_auto(self):
         logging.debug("Testing auto login...")
         self.assertTrue(speedify.login_auto() is speedify.State.CONNECTED or speedify.State.LOGGED_IN)
 
@@ -99,7 +99,7 @@ class TestSpeedify(unittest.TestCase):
     #     speedify.login_oauth(token)
 
 
-    def test_streamingbypass_domains():
+    def test_streamingbypass_domains(self):
         logging.debug("Testing streaming bypass for domains...")
         ip = "11.11.11.11"
         self.assertTrue(ip in speedify.streamingbypass_domains("add", ip)['domains'])
@@ -107,28 +107,28 @@ class TestSpeedify(unittest.TestCase):
         speedify.streamingbypass_domains(str, str)
 
 
-    def test_streamingbypass_ports():
+    def test_streamingbypass_ports(self):
         logging.debug("Testing streaming bypass for ports...")
         pp = "9999"
         self.assertTrue(ip in streamingbypass_ports("add", pp)['ports'])
         self.assertFalse(ip in streamingbypass_ports("rem", pp)['ports'])
         
 
-    def test_streamingbypass_ipv4():
+    def test_streamingbypass_ipv4(self):
         logging.debug("Testing streaming bypass for ipv4 addresses...")
         ip = "68.80.59.53"
         self.assertTrue(ip in speedify.streamingbypass_ipv4("add", ip)['ipv4'])
         self.assertFalse(ip in speedify.streamingbypass_ipv4("rem", ip)['ipv4'])
 
 
-    def test_streamingbypass_ipv6():
+    def test_streamingbypass_ipv6(self):
         logging.debug("Testing streaming bypass for ipv6 addresses...")
         ip = "2001:db8:1234:ffff:ffff:ffff:ffff:0f0f"
         self.assertTrue(ip in speedify.streamingbypass_ipv6("add", ip)['ipv6'])
         self.assertFalse(ip in speedify.streamingbypass_ipv6("rem", ip)['ipv6'])
 
 
-    def test_streamingbypass_service():
+    def test_streamingbypass_service(self):
         logging.debug("Testing streaming bypass for services...")
         s = "Netflix"
         for i in speedify.streamingbypass_service(s, False)['services']:
