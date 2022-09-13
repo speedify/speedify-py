@@ -932,7 +932,7 @@ def adapter_overratelimit(adapterID: str, bps: int):
     :type bps: int
     :returns:  dict -- :ref:`JSON adapter response <adapter-encryption>` from speedify.
     """
-    return _run_speedify_cmd(["adapter", "overratelimit", adapterID, str(bps)])
+    return _run_speedify_cmd(["adapter", "overlimitratelimit", adapterID, str(bps)])
 
 
 @exception_wrapper("Failed to set adapter priority")

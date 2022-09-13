@@ -165,8 +165,10 @@ class TestSpeedify(unittest.TestCase):
 
     def test_adapter_overratelimit(self):
         logging.info("")
-        for l in [speedify.show_adapters()[0]['dataUsage']['overlimitRatelimit'], 2000000]:
-            self.assertEqual(speedify.adapter_overratelimit(speedify.show_adapters()[0]['adapterID'], l), l)
+        def getrl(d):
+            return d[0]['dataUsage']['overlimitRatelimit']
+        for l in [getrl(speedify.show_adapters()), 2000000]:
+            self.assertEqual(getrl(speedify.adapter_overratelimit(speedify.show_adapters()[0]['adapterID'], l)), l)
 
     def test_connect(self):
         serverinfo = speedify.connect_closest()
