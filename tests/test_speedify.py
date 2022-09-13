@@ -125,16 +125,16 @@ class TestSpeedify(unittest.TestCase):
             except IndexError:
                 return False
 
-        pp = "9999"
+        port_num = "9999"
         mode = {
             "on_add": {"op": "add", "val": True},
             "on_rem": {"op": "rem", "val": False},
         }
         for m in mode.keys():
             self.assertEqual(
-                int(pp)
+                int(port_num)
                 == result_of(
-                    speedify.streamingbypass_ports(mode[m]["op"], pp + "/tcp")
+                    speedify.streamingbypass_ports(mode[m]["op"], port_num + "/tcp")
                 ),
                 mode[m]["val"],
             )
@@ -397,7 +397,7 @@ class TestSpeedify(unittest.TestCase):
         # self.assertEqual(server_info["tag"], new_server["tag"])
         self.assertEqual(server_info["country"], new_server["country"])
         self.assertEqual(server_info["city"], new_server["city"])
-        self.assertEqual(server_info["num"], new_server["num"])
+        # self.assertEqual(server_info["num"], new_server["num"])
 
     def test_stats(self):
         speedify.connect_closest()
