@@ -913,7 +913,7 @@ def streamingbypass_service(service_name: str, is_on: bool):
             is_on = "off"
         return _run_speedify_cmd(["streamingbypass", "service", service_name, is_on])
     else:
-        raise ValueError("Invalid service name: " + service_name)
+        raise ValueError("Invalid service name: " + str(service_name))
 
 
 @exception_wrapper("Failed to set adapter encryption")

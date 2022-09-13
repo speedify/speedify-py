@@ -39,7 +39,7 @@ class TestSpeedify(unittest.TestCase):
         logging.debug("Testing dns...")
         ips = ["8.8.8.8", ""]
         for ip in ips:
-            self.assertEqual(speedify.dns(ip)["dnsAddresses"], [ip])
+            self.assertEqual(speedify.dns(ip)["dnsAddresses"], [ip if ip != "" else None])
 
     def test_streamtest(self):
         logging.info("Running streamtest...")
@@ -110,8 +110,8 @@ class TestSpeedify(unittest.TestCase):
     def test_streamingbypass_ports(self):
         logging.debug("Testing streaming bypass for ports...")
         pp = "9999"
-        self.assertTrue(ip in streamingbypass_ports("add", pp)['ports'])
-        self.assertFalse(ip in streamingbypass_ports("rem", pp)['ports'])
+        self.assertTrue(pp in streamingbypass_ports("add", pp)['ports'])
+        self.assertFalse(pp in streamingbypass_ports("rem", pp)['ports'])
         
 
     def test_streamingbypass_ipv4(self):
@@ -130,14 +130,33 @@ class TestSpeedify(unittest.TestCase):
 
     def test_streamingbypass_service(self):
         logging.debug("Testing streaming bypass for services...")
-        s = "Netflix"
-        for i in speedify.streamingbypass_service(s, False)['services']:
-            if i['title'] == s:
-                self.assertFalse(i['enabled'])
-        for i in speedify.streamingbypass_service(s, True)['services']:
-            if i['title'] == s:
-                self.assertTrue(i['enabled'])
-        speedify.streamingbypass_service(str, bool)
+        valid_service_names = [
+            "Netflix",
+            "Disney+",
+            "HBO",
+            "Hulu",
+            "Peacock",
+            "Amazon Prime",
+            "Youtube TV",
+            "Ring",
+            "VoLTE",
+            "Reliance Jio",
+            "Microsoft Your Phone",
+            "Spectrum TV & Mobile",
+            "Showtime",
+            "Visual Voice Mail",
+            "Android Auto",
+            "Tubi",
+            "Hotstar",
+            "RCS Messaging",
+            "Ubisoft Connect",
+            "Apple Updates",
+        ]
+        for s in valid_service_names:
+            for b in [False, True]:
+                for i in speedify.streamingbypass_service(s, b)['services']:
+                    if i['title'] == s:
+                        self.assertTrue(i['enabled'] is b)
 
     def test_connect(self):
         serverinfo = speedify.connect_closest()
