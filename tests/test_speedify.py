@@ -117,7 +117,7 @@ class TestSpeedify(unittest.TestCase):
         pp = "9999"
         mode = {"on_add": {"op": "add", "val": True}, "on_rem": {"op": "rem", "val": False}}
         for m in mode.keys():
-            self.assertEqual(int(pp) in streamingbypass_ports(mode[m]["op"], pp + "/tcp")["ports"][0]["port"], mode[m]["val"])
+            self.assertEqual(int(pp) in speedify.streamingbypass_ports(mode[m]["op"], pp + "/tcp")["ports"][0]["port"], mode[m]["val"])
 
     def test_streamingbypass_ipv4(self):
         logging.debug("Testing streaming bypass for ipv4 addresses...")
@@ -162,6 +162,11 @@ class TestSpeedify(unittest.TestCase):
                 for i in speedify.streamingbypass_service(s, b)["services"]:
                     if i["title"] == s:
                         self.assertTrue(i["enabled"] is b)
+
+    def test_adapter_overratelimit(self):
+        logging.info("")
+        for l in [speedify.show_adapters()[0]['dataUsage']['overlimitRatelimit'], 2000000]:
+            self.assertEqual(speedify.adapter_overratelimit(speedify.show_adapters()[0]['adapterID'], l), l)
 
     def test_connect(self):
         serverinfo = speedify.connect_closest()
