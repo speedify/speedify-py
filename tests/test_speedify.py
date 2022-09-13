@@ -36,10 +36,10 @@ class TestSpeedify(unittest.TestCase):
 
     def test_dns(self):
         # @TODO is there a way to grab the current dns ip?
-        logging.info("Testing dns...")
-        dnsip = "8.8.8.8"
-        result = speedify.dns(dnsip)
-        self.assertEqual(result["dnsAddresses"], [dnsip])
+        logging.debug("Testing dns...")
+        ips = ["8.8.8.8", ""]
+        for ip in ips:
+            self.assertEqual(speedify.dns(ip)["dnsAddresses"], [ip])
 
     def test_streamtest(self):
         logging.info("Running streamtest...")
@@ -48,11 +48,11 @@ class TestSpeedify(unittest.TestCase):
         self.assertEqual(speedify.streamtest()[0]["isError"], False)
 
     def test_directory(self):
-        logging.info("Testing directory settings...")
+        logging.debug("Testing directory settings...")
         self.assertEqual(speedify.directory()["domain"], "")
 
     def test_show(self):
-        logging.info("Testing show keys...")
+        logging.debug("Testing show keys...")
         valid_show_keys = [
             "servers",
             "settings",
@@ -72,21 +72,72 @@ class TestSpeedify(unittest.TestCase):
 
     # Not sure how to test this one
     # def test_gateway(self):
-    #     logging.info("Testing gateway settings...")
+    #     logging.debug("Testing gateway settings...")
     #     speedify.gateway(str)
 
     def test_esni(self):
-        logging.info("Testing esni settings...")
+        logging.debug("Testing esni settings...")
         self.assertTrue(speedify.esni(True)["enableEsni"])
 
     def test_headercompression(self):
-        logging.info("Testing header compression settings...")
+        logging.debug("Testing header compression settings...")
         self.assertTrue(speedify.headercompression(True)["headerCompression"])
 
     # Not sure how to test this one
     # def test_daemon():
-    #     logging.info("Testing daemon commands (only exit)...")
+    #     logging.debug("Testing daemon commands (only exit)...")
     #     speedify.daemon("exit")
+
+    def test_login_auto():
+        logging.debug("Testing auto login...")
+        self.assertTrue(speedify.login_auto() is speedify.State.CONNECTED or speedify.State.LOGGED_IN)
+
+
+    # Not sure how to test this one
+    # def test_login_oauth():
+    #     logging.info("")
+    #     speedify.login_oauth(token)
+
+
+    def test_streamingbypass_domains():
+        logging.debug("Testing streaming bypass for domains...")
+        ip = "11.11.11.11"
+        self.assertTrue(ip in speedify.streamingbypass_domains("add", ip)['domains'])
+        self.assertFalse(ip in speedify.streamingbypass_domains("rem", ip)['domains'])
+        speedify.streamingbypass_domains(str, str)
+
+
+    def test_streamingbypass_ports():
+        logging.debug("Testing streaming bypass for ports...")
+        pp = "9999"
+        self.assertTrue(ip in streamingbypass_ports("add", pp)['ports'])
+        self.assertFalse(ip in streamingbypass_ports("rem", pp)['ports'])
+        
+
+    def test_streamingbypass_ipv4():
+        logging.debug("Testing streaming bypass for ipv4 addresses...")
+        ip = "68.80.59.53"
+        self.assertTrue(ip in speedify.streamingbypass_ipv4("add", ip)['ipv4'])
+        self.assertFalse(ip in speedify.streamingbypass_ipv4("rem", ip)['ipv4'])
+
+
+    def test_streamingbypass_ipv6():
+        logging.debug("Testing streaming bypass for ipv6 addresses...")
+        ip = "2001:db8:1234:ffff:ffff:ffff:ffff:0f0f"
+        self.assertTrue(ip in speedify.streamingbypass_ipv6("add", ip)['ipv6'])
+        self.assertFalse(ip in speedify.streamingbypass_ipv6("rem", ip)['ipv6'])
+
+
+    def test_streamingbypass_service():
+        logging.debug("Testing streaming bypass for services...")
+        s = "Netflix"
+        for i in speedify.streamingbypass_service(s, False)['services']:
+            if i['title'] == s:
+                self.assertFalse(i['enabled'])
+        for i in speedify.streamingbypass_service(s, True)['services']:
+            if i['title'] == s:
+                self.assertTrue(i['enabled'])
+        speedify.streamingbypass_service(str, bool)
 
     def test_connect(self):
         serverinfo = speedify.connect_closest()
