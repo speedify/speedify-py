@@ -92,12 +92,13 @@ class TestSpeedify(unittest.TestCase):
     #     logging.debug("Testing daemon commands (only exit)...")
     #     speedify.daemon("exit")
 
-    def test_login_auto(self):
-        logging.debug("Testing auto login...")
-        self.assertTrue(
-            speedify.login_auto() is speedify.State.CONNECTED
-            or speedify.State.LOGGED_IN
-        )
+    # Will not work on linux
+    # def test_login_auto(self):
+    #     logging.debug("Testing auto login...")
+    #     self.assertTrue(
+    #         speedify.login_auto() is speedify.State.CONNECTED
+    #         or speedify.State.LOGGED_IN
+    #     )
 
     # Not sure how to test this one
     # def test_login_oauth():
