@@ -35,7 +35,6 @@ class TestSpeedify(unittest.TestCase):
         speedify.disconnect()
 
     def test_dns(self):
-        # @TODO is there a way to grab the current dns ip?
         logging.debug("Testing dns...")
         ips = ["8.8.8.8", ""]
         for ip in ips:
@@ -370,11 +369,10 @@ class TestSpeedify(unittest.TestCase):
         new_server = speedify.connect(
             "country", server_info["country"], server_info["city"], server_info["num"]
         )
-        # @TODO uncomment this
-        # self.assertEqual(server_info["tag"], new_server["tag"])
+        self.assertEqual(server_info["tag"], new_server["tag"])
         self.assertEqual(server_info["country"], new_server["country"])
         self.assertEqual(server_info["city"], new_server["city"])
-        # self.assertEqual(server_info["num"], new_server["num"])
+        self.assertEqual(server_info["num"], new_server["num"])
 
     def test_stats(self):
         speedify.connect_closest()
