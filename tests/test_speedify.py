@@ -29,11 +29,12 @@ class TestSpeedify(unittest.TestCase):
         speedify.encryption(True)
         speedify.transport("auto")
         speedify.jumbo(True)
-        # speedify.crashreports(True)
         speedify.packetaggregation(True)
         speedify.routedefault(True)
         speedify.connectmethod("closest")
         speedify.disconnect()
+
+
 
     def test_connect(self):
         serverinfo = speedify.connect_closest()

@@ -514,22 +514,23 @@ def show(item: str):
     :type item: str
     """
     valid_items = [
-        "servers"
-        "settings"
-        "privacy"
-        "adapters"
-        "currentserver"
-        "user"
-        "directory"
-        "connectmethod"
-        "streamingbypass"
-        "disconnect"
-        "streaming"
-        "speedtest"
+        "servers",
+        "settings",
+        "privacy",
+        "adapters",
+        "currentserver",
+        "user",
+        "directory",
+        "connectmethod",
+        "streamingbypass",
+        "disconnect",
+        "streaming",
+        "speedtest",
     ]
-    if item not in valid_items:
+    if item in valid_items:
+        return _run_speedify_cmd(["show", item])
+    else:
         raise ValueError("Invalid item: " + item)
-    return _run_speedify_cmd(["show", item])
 
 
 @exception_wrapper("Failed to get current server")
@@ -573,8 +574,8 @@ def show_state():
 
     :returns:  speedify.State -- The speedify state enum.
     """
-    jret = _run_speedify_cmd(["state"])
-    return find_state_for_string(jret["state"])
+    resultjson = _run_speedify_cmd(["state"])
+    return find_state_for_string(resultjson["state"])
 
 
 @exception_wrapper("Failed to get version")
@@ -647,7 +648,11 @@ def streaming_domains(operation: str, domains: str):
     :param domains: The domains to .
     :type domains: str
     """
-    return _run_speedify_cmd(["streaming", "domains", operation, domains])
+    valid_operations = ["add", "rem", "set"]
+    if operation in valid_operations:
+        return _run_speedify_cmd(["streaming", "domains", operation, domains])
+    else:
+        raise ValueError("Invalid operation: " + operation)
 
 
 @exception_wrapper("Failed to set streaming ")
@@ -670,7 +675,11 @@ def streaming_ipv4(operation: str, ipv4_addrs: str):
         "68.80.59.53"
     :type ipv4_addrs: str
     """
-    return _run_speedify_cmd(["streaming", "ipv4", operation, ipv4_addrs])
+    valid_operations = ["add", "rem", "set"]
+    if operation in valid_operations:
+        return _run_speedify_cmd(["streaming", "ipv4", operation, ipv4_addrs])
+    else:
+        raise ValueError("Invalid operation: " + operation)
 
 
 @exception_wrapper("Failed to set streaming ")
@@ -696,7 +705,11 @@ def streaming_ipv6(operation: str, ipv6_addrs: str):
         "2001:db8:1234:ffff:ffff:ffff:ffff:ffff"
     :type ipv6_addrs: str
     """
-    return _run_speedify_cmd(["streamingbypass", "ipv6", operation, ipv6_addrs])
+    valid_operations = ["add", "rem", "set"]
+    if operation in valid_operations:
+        return _run_speedify_cmd(["streamingbypass", "ipv6", operation, ipv6_addrs])
+    else:
+        raise ValueError("Invalid operation: " + operation)
 
 
 @exception_wrapper("Failed to set streaming ")
@@ -719,7 +732,11 @@ def streaming_ports(operation: str, ports: str):
         "<port begin>-<port end>/<proto>"
     :type ports: str
     """
-    return _run_speedify_cmd(["streaming", "ports", operation, ports])
+    valid_operations = ["add", "rem", "set"]
+    if operation in valid_operations:
+        return _run_speedify_cmd(["streaming", "ports", operation, ports])
+    else:
+        raise ValueError("Invalid operation: " + operation)
 
 
 @exception_wrapper("Failed to set streaming bypass")
@@ -741,7 +758,11 @@ def streamingbypass_domains(operation: str, domains: str):
     :param domains: The domains to bypass.
     :type domains: str
     """
-    return _run_speedify_cmd(["streamingbypass", "domains", operation, domains])
+    valid_operations = ["add", "rem", "set"]
+    if operation in valid_operations:
+        return _run_speedify_cmd(["streamingbypass", "domains", operation, domains])
+    else:
+        raise ValueError("Invalid operation: " + operation)
 
 
 @exception_wrapper("Failed to set streaming bypass")
@@ -764,7 +785,11 @@ def streamingbypass_ipv4(operation: str, ipv4_addrs: str):
         "68.80.59.53"
     :type ipv4_addrs: str
     """
-    return _run_speedify_cmd(["streamingbypass", "ipv4", operation, ipv4_addrs])
+    valid_operations = ["add", "rem", "set"]
+    if operation in valid_operations:
+        return _run_speedify_cmd(["streamingbypass", "ipv4", operation, ipv4_addrs])
+    else:
+        raise ValueError("Invalid operation: " + operation)
 
 
 @exception_wrapper("Failed to set streaming bypass")
@@ -790,7 +815,11 @@ def streamingbypass_ipv6(operation: str, ipv6_addrs: str):
         "2001:db8:1234:ffff:ffff:ffff:ffff:ffff"
     :type ipv6_addrs: str
     """
-    return _run_speedify_cmd(["streamingbypass", "ipv6", operation, ipv6_addrs])
+    valid_operations = ["add", "rem", "set"]
+    if operation in valid_operations:
+        return _run_speedify_cmd(["streamingbypass", "ipv6", operation, ipv6_addrs])
+    else:
+        raise ValueError("Invalid operation: " + operation)
 
 
 @exception_wrapper("Failed to set streaming bypass")
@@ -813,7 +842,11 @@ def streamingbypass_ports(operation: str, ports: str):
         "<port begin>-<port end>/<proto>"
     :type ports: str
     """
-    return _run_speedify_cmd(["streamingbypass", "ports", operation, ports])
+    valid_operations = ["add", "rem", "set"]
+    if operation in valid_operations:
+        return _run_speedify_cmd(["streamingbypass", "ports", operation, ports])
+    else:
+        raise ValueError("Invalid operation: " + operation)
 
 
 @exception_wrapper("Failed to set streaming bypass")
@@ -851,7 +884,32 @@ def streamingbypass_service(service_name: str, is_on: bool):
     :param is_on: Whether to bypass the service... or not.
     :type is_on: bool
     """
-    return _run_speedify_cmd(["streamingbypass", "service", service_name, is_on])
+    valid_service_names = [
+        "Netflix",
+        "Disney+",
+        "HBO",
+        "Hulu",
+        "Peacock",
+        "Amazon Prime",
+        "Youtube TV",
+        "Ring",
+        "VoLTE",
+        "Reliance Jio",
+        "Microsoft Your Phone",
+        "Spectrum TV & Mobile",
+        "Showtime",
+        "Visual Voice Mail",
+        "Android Auto",
+        "Tubi",
+        "Hotstar",
+        "RCS Messaging",
+        "Ubisoft Connect",
+        "Apple Updates",
+    ]
+    if service_name in valid_service_names:
+        return _run_speedify_cmd(["streamingbypass", "service", service_name, is_on])
+    else:
+        raise ValueError("Invalid service name: " + service_name)
 
 
 @exception_wrapper("Failed to set adapter encryption")
