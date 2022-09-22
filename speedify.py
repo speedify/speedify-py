@@ -248,7 +248,8 @@ def connectmethod_as_string(connectMethodObject, hypens=True):
 def login(user, password):
     """
     login(user, password)
-    Login. Returns a State. Indication succes category.
+    Login. Returns a State. State object will hold
+    information on the success of this command.
 
     :param user: username
     :type user: str
@@ -502,7 +503,7 @@ def show_streamingbypass():
 def show_disconnect():
     """
     show_disconnect()
-    Returns the current state of the 'disconnect' setting.
+    Returns the last reason for a disconnection.
 
     :returns dict -- :ref:`JSON disconnect <show-disconnect>`.
     """
@@ -524,7 +525,7 @@ def show_streaming():
 def show_speedtest():
     """
     show_speedtest()
-    Returns the current state of the 'speedtest' setting.
+    Returns the current results of 'speedtest'.
 
     :returns dict -- :ref:`JSON speedtest <show-speedtest>`.
     """
