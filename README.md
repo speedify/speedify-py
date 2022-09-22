@@ -56,7 +56,6 @@ Added
   - `dns(str)`
   - `streamtest()`
   - `directory(str)`
-  - `show(str)`
   - `gateway(str)`
   - `esni(bool)`
   - `headercompression(bool)`
@@ -73,7 +72,6 @@ Added
   - `adapter_dailylimit_boost(str, int)`
 
 Changed
-  - `connect(str) -> connect(str, str = "us", str = None, str = None)`
   - `adapter_encryption(str, str) -> adapter_encryption(str, str | bool)`
   - `encryption(str) -> encryption(str | bool)`
   - `mode(str = "speed") -> mode(str)`
