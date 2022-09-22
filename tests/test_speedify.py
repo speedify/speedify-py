@@ -29,11 +29,163 @@ class TestSpeedify(unittest.TestCase):
         speedify.encryption(True)
         speedify.transport("auto")
         speedify.jumbo(True)
-        # speedify.crashreports(True)
         speedify.packetaggregation(True)
         speedify.routedefault(True)
         speedify.connectmethod("closest")
         speedify.disconnect()
+
+    def test_dns(self):
+        logging.debug("Testing dns...")
+        ips = ["8.8.8.8", ""]
+        for ip in ips:
+            self.assertEqual(speedify.dns(ip)["dnsAddresses"], [ip] if ip != "" else [])
+
+    def test_streamtest(self):
+        logging.info("Running streamtest...")
+        if speedify.show_state() is not State.CONNECTED:
+            speedify.connect("closest")
+        self.assertEqual(speedify.streamtest()[0]["isError"], False)
+
+    def test_directory(self):
+        logging.debug("Testing directory settings...")
+        self.assertEqual(speedify.directory()["domain"], "")
+
+    def test_show(self):
+        logging.debug("Testing show keys...")
+        valid_show_keys = [
+            "servers",
+            "settings",
+            "privacy",
+            "adapters",
+            "currentserver",
+            "user",
+            "directory",
+            "connectmethod",
+            "streamingbypass",
+            "disconnect",
+            "streaming",
+            "speedtest",
+        ]
+        for key in valid_show_keys:
+            self.assertTrue(speedify.show(key) != "" and not None)
+
+    def test_esni(self):
+        logging.debug("Testing esni settings...")
+        for b in [False, True]:
+            self.assertEqual(speedify.esni(b)["enableEsni"], b)
+
+    def test_headercompression(self):
+        logging.debug("Testing header compression settings...")
+        for b in [False, True]:
+            self.assertEqual(speedify.headercompression(b)["headerCompression"], b)
+
+    def test_streamingbypass_domains(self):
+        logging.debug("Testing streaming bypass for domains...")
+        ip = "11.11.11.11"
+        mode = {
+            "on_add": {"op": "add", "val": True},
+            "on_rem": {"op": "rem", "val": False},
+        }
+        for m in mode.keys():
+            self.assertEqual(
+                ip in speedify.streamingbypass_domains(mode[m]["op"], ip)["domains"],
+                mode[m]["val"],
+            )
+
+    def test_streamingbypass_ports(self):
+        logging.debug("Testing streaming bypass for ports...")
+
+        def result_of(d):
+            try:
+                return d["ports"][0]["port"]
+            except IndexError:
+                return False
+
+        port_num = "9999"
+        mode = {
+            "on_add": {"op": "add", "val": True},
+            "on_rem": {"op": "rem", "val": False},
+        }
+        for m in mode.keys():
+            self.assertEqual(
+                int(port_num)
+                == result_of(
+                    speedify.streamingbypass_ports(mode[m]["op"], port_num + "/tcp")
+                ),
+                mode[m]["val"],
+            )
+
+    def test_streamingbypass_ipv4(self):
+        logging.debug("Testing streaming bypass for ipv4 addresses...")
+        ip = "68.80.59.53"
+        mode = {
+            "on_add": {"op": "add", "val": True},
+            "on_rem": {"op": "rem", "val": False},
+        }
+        for m in mode.keys():
+            self.assertEqual(
+                ip in speedify.streamingbypass_ipv4(mode[m]["op"], ip)["ipv4"],
+                mode[m]["val"],
+            )
+
+    def test_streamingbypass_ipv6(self):
+        logging.debug("Testing streaming bypass for ipv6 addresses...")
+        ip = "2001:db8:1234:ffff:ffff:ffff:ffff:f0f"
+        mode = {
+            "on_add": {"op": "add", "val": True},
+            "on_rem": {"op": "rem", "val": False},
+        }
+        for m in mode.keys():
+            self.assertEqual(
+                ip in speedify.streamingbypass_ipv6(mode[m]["op"], ip)["ipv6"],
+                mode[m]["val"],
+            )
+
+    def test_streamingbypass_service(self):
+        logging.debug("Testing streaming bypass for services...")
+        valid_service_names = [
+            "Netflix",
+            "Disney+",
+            "HBO",
+            "Hulu",
+            "Peacock",
+            "Amazon Prime",
+            "Youtube TV",
+            "Ring",
+            "VoLTE",
+            "Reliance Jio",
+            "Microsoft Your Phone",
+            "Spectrum TV & Mobile",
+            "Showtime",
+            "Visual Voice Mail",
+            "Android Auto",
+            "Tubi",
+            "Hotstar",
+            "RCS Messaging",
+            "Ubisoft Connect",
+            "Apple Updates",
+        ]
+        for s in valid_service_names:
+            for b in [False, True]:
+                for i in speedify.streamingbypass_service(s, b)["services"]:
+                    if i["title"] == s:
+                        self.assertTrue(i["enabled"] is b)
+
+    def test_adapter_overratelimit(self):
+        logging.info("")
+
+        def getrl(d):
+            return d[0]["dataUsage"]["overlimitRatelimit"]
+
+        for l in [getrl(speedify.show_adapters()), 2000000]:
+            self.assertEqual(
+                getrl(
+                    speedify.adapter_overratelimit(
+                        speedify.show_adapters()[0]["adapterID"], l
+                    )
+                ),
+                l,
+            )
 
     def test_connect(self):
         serverinfo = speedify.connect_closest()
@@ -45,7 +197,6 @@ class TestSpeedify(unittest.TestCase):
     def test_connect_country(self):
         serverinfo = speedify.connect_country("sg")
         state = speedify.show_state()
-
         self.assertEqual(state, State.CONNECTED)
         self.assertIn("tag", serverinfo)
         self.assertIn("country", serverinfo)
@@ -58,7 +209,6 @@ class TestSpeedify(unittest.TestCase):
         speedify.connect()
         mysettings = speedify.show_settings()
         self.assertEqual(mysettings["transportMode"], "https")
-
         # to make sure runtime changed, could check stats and look for connectionstats : connections[] : protocol
         mysettings = speedify.transport("tcp")
         self.assertEqual(mysettings["transportMode"], "tcp")
@@ -91,7 +241,6 @@ class TestSpeedify(unittest.TestCase):
         speedify.connectmethod("private", "jp")
         # pull settings from speedify to be sure they really set
         cm_settings = speedify.show_connectmethod()
-
         self.assertEqual(cm_settings["connectMethod"], "private")
         # country is ignored on
         self.assertEqual(cm_settings["country"], "")
@@ -107,7 +256,6 @@ class TestSpeedify(unittest.TestCase):
         cm_settings = speedify.show_connectmethod()
         self.assertEqual(cm_settings["connectMethod"], "country")
         self.assertEqual(cm_settings["country"], "sg")
-
         # the settings were returned by the actual connectmethod call,
         # and should be exactly the same
         self.assertEqual(cm_settings["connectMethod"], retval["connectMethod"])
@@ -259,7 +407,6 @@ class TestSpeedify(unittest.TestCase):
         self.assertEqual(firstadapter["encrypted"], False)
         # main thing should still be encrypted just not our one adapter
         self.assertTrue(encrypted)
-
         speedify.encryption(False)
         # this should both turn off encryption and wipe the custom settings
         mysettings = speedify.show_settings()
@@ -277,7 +424,6 @@ class TestSpeedify(unittest.TestCase):
         firstadapter = perConnectionEncryptionSettings[0]
         self.assertEqual(firstadapter["adapterID"], adapterID)
         self.assertEqual(firstadapter["encrypted"], True)
-
         speedify.encryption(True)
         # this should both turn on encryption and wipe the custom settings
         mysettings = speedify.show_settings()
