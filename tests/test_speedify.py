@@ -55,14 +55,14 @@ class TestSpeedify(unittest.TestCase):
 
     def test_transport(self):
         mysettings = speedify.transport("https")
-        speedify.connect("closest")
+        speedify.connect()
         mysettings = speedify.show_settings()
         self.assertEqual(mysettings["transportMode"], "https")
 
         # to make sure runtime changed, could check stats and look for connectionstats : connections[] : protocol
         mysettings = speedify.transport("tcp")
         self.assertEqual(mysettings["transportMode"], "tcp")
-        speedify.connect("closest")
+        speedify.connect()
         mysettings = speedify.show_settings()
         self.assertEqual(mysettings["transportMode"], "tcp")
 
@@ -187,7 +187,7 @@ class TestSpeedify(unittest.TestCase):
                 logging.disable(logging.NOTSET)
 
     def test_routedefault(self):
-        speedify.connect("closest")
+        speedify.connect()
         if not speedifyutil.using_speedify():
             time.sleep(3)
             self.assertTrue(speedifyutil.using_speedify())
@@ -219,7 +219,10 @@ class TestSpeedify(unittest.TestCase):
         self.assertIn("num", server_info)
         self.assertFalse(server_info["isPrivate"])
         new_server = speedify.connect(
-            "country", server_info["country"], server_info["city"], server_info["num"]
+            "country"
+            + server_info["country"]
+            + server_info["city"]
+            + str(server_info["num"])
         )
         self.assertEqual(server_info["tag"], new_server["tag"])
         self.assertEqual(server_info["country"], new_server["country"])

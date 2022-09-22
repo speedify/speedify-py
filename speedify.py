@@ -105,35 +105,24 @@ def exception_wrapper(argument):
 # Functions for controlling Speedify State
 
 
-def connect(method: str = "closest", country: str = "us", city: str = None, num: int = None):
+@exception_wrapper("Failed to connect")
+def connect(server=""):
     """
-    connect(method, country="us", city=None, num=None)
-    Connect via one of these methods --
-        closest
-        public
-        private
-        p2p
-        last
-        country (in which case country is required)
+    connect(server="")
+    Tell Speedify to connect. Returns serverInformation if success, raises Speedify if unsuccessful.
+    See show_servers() for the list of servers available.
 
-    :param method: The connect method.
-    :type method: str
-    :param country: 2 letter country code.
-    :type country: str
-    :param city: The (optional) city the server is located.
-    :type city: str
-    :param num: The (optional) server number.
-    :type num: int
+    :param server: Server to connect to.
+    :type server: str
+    :returns:  dict -- :ref:`JSON currentserver <connect>` from speedify.
     """
     args = ["connect"]
-    if method == "country":
-        args.append(country)
-        if city is not None:
-            args.append(city)
-            if num is not None:
-                args.append(str(num))
-    elif method:
-        args.append(method)
+    if server != None and server != "":
+        pieces = server.split("-")
+        for piece in pieces:
+            args.append(piece)
+        logger.debug("connecting to server = " + server)
+
     resultjson = _run_speedify_cmd(args)
     return resultjson
 
@@ -178,7 +167,7 @@ def connect_country(country: str = "us"):
     :type country: str
     :returns:  dict -- :ref:`JSON currentserver <connect>` from speedify.
     """
-    return connect("country", country)
+    return connect("country " + country)
 
 
 def connect_last():
@@ -487,49 +476,59 @@ def captiveportal_login(proxy: bool = True, adapterID: str = None):
     return _run_speedify_cmd(args)
 
 
-def show(item: str):
+@exception_wrapper("Failed to show connectmethod")
+def show_connectmethod():
     """
-    show(item)
+    show_connectmethod()
+    Returns the current state of the 'connectmethod' setting.
 
-    Returns the result, in json, of querying for `item`.
-
-    Example:
-        show("user")
-        show("servers")
-        show("currentserver")
-
-    :param item: The item to query for. One of:
-        "servers"
-        "settings"
-        "privacy"
-        "adapters"
-        "currentserver"
-        "user"
-        "directory"
-        "connectmethod"
-        "streamingbypass"
-        "disconnect"
-        "streaming"
-        "speedtest"
-    :type item: str
+    :returns dict -- :ref:`JSON connectmethod <show-connectmethod>`.
     """
-    valid_items = [
-        "servers"
-        "settings"
-        "privacy"
-        "adapters"
-        "currentserver"
-        "user"
-        "directory"
-        "connectmethod"
-        "streamingbypass"
-        "disconnect"
-        "streaming"
-        "speedtest"
-    ]
-    if item not in valid_items:
-        raise ValueError("Invalid item: " + item)
-    return _run_speedify_cmd(["show", item])
+    return _run_speedify_cmd(["show", "connectmethod"])
+
+
+@exception_wrapper("Failed to show streamingbypass")
+def show_streamingbypass():
+    """
+    show_streamingbypass()
+    Returns the current state of the 'streamingbypass' setting.
+
+    :returns dict -- :ref:`JSON streamingbypass <show-streamingbypass>`.
+    """
+    return _run_speedify_cmd(["show", "streamingbypass"])
+
+
+@exception_wrapper("Failed to show disconnect")
+def show_disconnect():
+    """
+    show_disconnect()
+    Returns the current state of the 'disconnect' setting.
+
+    :returns dict -- :ref:`JSON disconnect <show-disconnect>`.
+    """
+    return _run_speedify_cmd(["show", "disconnect"])
+
+
+@exception_wrapper("Failed to show streaming")
+def show_streaming():
+    """
+    show_streaming()
+    Returns the current state of the 'streaming' setting.
+
+    :returns dict -- :ref:`JSON streaming <show-streaming>`.
+    """
+    return _run_speedify_cmd(["show", "streaming"])
+
+
+@exception_wrapper("Failed to show speedtest")
+def show_speedtest():
+    """
+    show_speedtest()
+    Returns the current state of the 'speedtest' setting.
+
+    :returns dict -- :ref:`JSON speedtest <show-speedtest>`.
+    """
+    return _run_speedify_cmd(["show", "speedtest"])
 
 
 @exception_wrapper("Failed to get current server")
