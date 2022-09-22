@@ -167,7 +167,7 @@ def connect_country(country: str = "us"):
     :type country: str
     :returns:  dict -- :ref:`JSON currentserver <connect>` from speedify.
     """
-    return connect("country " + country)
+    return connect(country)
 
 
 def connect_last():
@@ -484,7 +484,6 @@ def show_connectmethod():
 
     :returns dict -- :ref:`JSON connectmethod <show-connectmethod>`.
     """
-<<<<<<< HEAD
     return _run_speedify_cmd(["show", "connectmethod"])
 
 
