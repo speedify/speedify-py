@@ -302,30 +302,6 @@ def logout():
     return find_state_for_string(jret["state"])
 
 
-def privacy(category: str, is_on: bool):
-    """
-    privacy(category, is_on)
-
-    Configures certain privacy setting via `category` and `is_on`.
-    Currently, only one setting is supported:
-        "requestToDisableDoh":
-            Windows-only.
-            Attempt to turn DoH (DNS-over-HTTPs) functionality on or off.
-
-    :param category: The privacy category. Currently, only "requestToDisableDoh" is supported.
-    :type category: str
-    :param is_on: Whether to `request` should be on... or not.
-    :type is_on: bool
-    """
-    if is_on is True:
-        is_on = "on"
-    elif is_on is False:
-        is_on = "off"
-    else:
-        raise ValueError("is_on neither True nor False")
-    return _run_speedify_cmd(["privacy", category, is_on])
-
-
 def esni(is_on: bool = True):
     """
     esni(is_on)
@@ -858,61 +834,16 @@ def streamingbypass_service(service_name: str, is_on: bool):
     Example:
         streamingbypass_service("Netflix", True)
 
-    :param service_name: The service to modify. One of:
-        "Netflix"
-        "Disney+"
-        "HBO"
-        "Hulu"
-        "Peacock"
-        "Amazon Prime"
-        "Youtube TV"
-        "Ring"
-        "VoLTE"
-        "Reliance Jio"
-        "Microsoft Your Phone"
-        "Spectrum TV & Mobile"
-        "Showtime"
-        "Visual Voice Mail"
-        "Android Auto"
-        "Tubi"
-        "Hotstar"
-        "RCS Messaging"
-        "Ubisoft Connect"
-        "Apple Updates"
+    :param service_name: The service to modify.
     :type service_name: str
     :param is_on: Whether to bypass the service... or not.
     :type is_on: bool
     """
-    valid_service_names = [
-        "Netflix",
-        "Disney+",
-        "HBO",
-        "Hulu",
-        "Peacock",
-        "Amazon Prime",
-        "Youtube TV",
-        "Ring",
-        "VoLTE",
-        "Reliance Jio",
-        "Microsoft Your Phone",
-        "Spectrum TV & Mobile",
-        "Showtime",
-        "Visual Voice Mail",
-        "Android Auto",
-        "Tubi",
-        "Hotstar",
-        "RCS Messaging",
-        "Ubisoft Connect",
-        "Apple Updates",
-    ]
-    if service_name in valid_service_names:
-        if is_on is True:
-            is_on = "on"
-        elif is_on is False:
-            is_on = "off"
-        return _run_speedify_cmd(["streamingbypass", "service", service_name, is_on])
-    else:
-        raise ValueError("Invalid service name: " + str(service_name))
+    if is_on is True:
+        is_on = "on"
+    elif is_on is False:
+        is_on = "off"
+    return _run_speedify_cmd(["streamingbypass", "service", service_name, is_on])
 
 
 @exception_wrapper("Failed to set adapter encryption")

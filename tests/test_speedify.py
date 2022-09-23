@@ -143,6 +143,9 @@ class TestSpeedify(unittest.TestCase):
 
     def test_streamingbypass_service(self):
         logging.debug("Testing streaming bypass for services...")
+        # I think these are still ok to test with.
+        # If the get out of date:
+        # speedify_cli show streamingbypass | grep title | sed -E 's/.*: (.*)/\1,/g'
         valid_service_names = [
             "Netflix",
             "Disney+",
