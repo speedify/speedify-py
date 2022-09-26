@@ -604,224 +604,496 @@ def dns(ip_addr: str = ""):
     return _run_speedify_cmd(["dns", ip_addr])
 
 
-@exception_wrapper("Failed to set streaming bypass")
-def streaming_domains(operation: str, domains: str):
+@exception_wrapper("Failed to add streaming bypass")
+def streaming_domains_add(domains: str):
     """
-    streaming_domains(operation, domains)
+    streaming_domains_add(domains)
 
-    Add, remove, or set the streaming hint for some domains.
+    Add the streaming hint for some domains.
 
     Example:
-        streaming_domains("add", "example.com google.com")
-        streaming_domains("rem", "example.com google.com")
+        streaming_domains_add("example.com google.com")
 
-    :param operation: The operation to perform. One of:
-        "add"
-        "rem"
-        "set"
-    :type operation: str
-    :param domains: The domains to .
+    :param domains: The domains to add the streaming hint for.
     :type domains: str
     """
-    valid_operations = ["add", "rem", "set"]
-    if operation in valid_operations:
-        return _run_speedify_cmd(["streaming", "domains", operation, domains])
-    else:
-        raise ValueError("Invalid operation: " + operation)
+    return _run_speedify_cmd(["streaming", "domains", "add", domains])
 
 
-@exception_wrapper("Failed to set streaming ")
-def streaming_ipv4(operation: str, ipv4_addrs: str):
+@exception_wrapper("Failed to remove streaming bypass")
+def streaming_domains_rem(domains: str):
     """
-    streaming_ipv4(operation, ipv4_addrs)
+    streaming_domains_rem(domains)
 
-    Add, remove, or set the streaming hint for some ipv4 address.
+    Remove the streaming hint for some domains.
 
     Example:
-        streaming_ipv4("add", "68.80.59.53 55.38.18.29")
+        streaming_domains_rem("example.com google.com")
 
-    :param operation: The operation to perform. One of:
-        "add"
-        "rem"
-        "set"
-    :type operation: str
-    :param ipv4_addrs: The ipv4 addresses to . Example:
-        "68.80.59.53 55.38.18.29"
-        "68.80.59.53"
+    :param domains: The domains to remove the streaming hint from.
+    :type domains: str
+    """
+    return _run_speedify_cmd(["streaming", "domains", "rem", domains])
+
+
+@exception_wrapper("Failed to set streaming bypass")
+def streaming_domains_set(domains: str):
+    """
+    streaming_domains_set(domains)
+
+    Set the streaming hint for some domains.
+
+    Example:
+        streaming_domains_set("example.com google.com")
+
+    :param domains: The domains to set the streaming hint on.
+    :type domains: str
+    """
+    return _run_speedify_cmd(["streaming", "domains", "set", domains])
+
+
+@exception_wrapper("Failed to add streaming flag")
+def streaming_ipv4_add(ipv4_addrs: str):
+    """
+    streaming_ipv4_add(ipv4_addrs)
+
+    Add the streaming flag for some ipv4 address(es).
+
+    Example:
+        streaming_ipv4_add(
+            "68.80.59.53 55.38.18.29"
+        )
+
+    :param ipv4: The ipv4 adress(es) to add the streaming flag to.
+        Example:
+            "68.80.59.53 55.38.18.29"
+            "68.80.59.53"
     :type ipv4_addrs: str
     """
-    valid_operations = ["add", "rem", "set"]
-    if operation in valid_operations:
-        return _run_speedify_cmd(["streaming", "ipv4", operation, ipv4_addrs])
-    else:
-        raise ValueError("Invalid operation: " + operation)
+    return _run_speedify_cmd(["streaming", "ipv4", "add", ipv4_addrs])
 
 
-@exception_wrapper("Failed to set streaming ")
-def streaming_ipv6(operation: str, ipv6_addrs: str):
+@exception_wrapper("Failed to remove streaming flag")
+def streaming_ipv4_rem(ipv4_addrs: str):
     """
-    streaming_ipv6(operation, ipv6_addrs)
+    streaming_ipv4_rem(ipv4_addrs)
 
-    Add, remove, or set the streaming hint for some ipv6 address.
+    Remove the streaming flag from some ipv4 adress(es).
 
     Example:
-        streaming_ipv6(
-            "add",
+        streaming_ipv4_rem(
+            "68.80.59.53 55.38.18.29"
+        )
+
+    :param ipv4: The ipv4 adress(es) to remove the streaming flag from.
+        Example:
+            "68.80.59.53 55.38.18.29"
+            "68.80.59.53"
+    :type ipv4_addrs: str
+    """
+    return _run_speedify_cmd(["streaming", "ipv4", "rem", ipv4_addrs])
+
+
+@exception_wrapper("Failed to set streaming flag")
+def streaming_ipv4_set(ipv4_addrs: str):
+    """
+    streaming_ipv4_set(ipv4_addrs)
+
+    Set the streaming flag on some ipv4 adress(es).
+
+    Example:
+        streaming_ipv4_set(
+            "68.80.59.53 55.38.18.29"
+        )
+
+    :param ipv4: The ipv4 adress(es) to set the streaming flag on.
+        Example:
+            "68.80.59.53 55.38.18.29"
+            "68.80.59.53"
+    :type ipv4_addrs: str
+    """
+    return _run_speedify_cmd(["streaming", "ipv4", "set", ipv4_addrs])
+
+
+@exception_wrapper("Failed to add streaming flag")
+def streaming_ipv6_add(ipv6_addrs: str):
+    """
+    streaming_ipv6_add(ipv6_addrs)
+
+    Add the streaming flag for some ipv6 address(es).
+
+    Example:
+        streaming_ipv6_add(
             "2001:db8:1234:ffff:ffff:ffff:ffff:0f0f 2001:db8:1234:ffff:ffff:ffff:ffff:ffff"
         )
 
-    :param operation: The operation to perform. One of:
-        "add"
-        "rem"
-        "set"
-    :type operation: str
-    :param ipv6_addrs: The ipv6 address(es) to bypass. Example:
-        "2001:db8:1234:ffff:ffff:ffff:ffff:0f0f 2001:db8:1234:ffff:ffff:ffff:ffff:ffff"
-        "2001:db8:1234:ffff:ffff:ffff:ffff:ffff"
+    :param ipv6: The ipv6 adress(es) to add the streaming flag to.
+        Example:
+            "2001:db8:1234:ffff:ffff:ffff:ffff:0f0f 2001:db8:1234:ffff:ffff:ffff:ffff:ffff"
+            "2001:db8:1234:ffff:ffff:ffff:ffff:ffff"
     :type ipv6_addrs: str
     """
-    valid_operations = ["add", "rem", "set"]
-    if operation in valid_operations:
-        return _run_speedify_cmd(["streamingbypass", "ipv6", operation, ipv6_addrs])
-    else:
-        raise ValueError("Invalid operation: " + operation)
+    return _run_speedify_cmd(["streaming", "ipv6", "add", ipv6_addrs])
 
 
-@exception_wrapper("Failed to set streaming ")
-def streaming_ports(operation: str, ports: str):
+@exception_wrapper("Failed to remove streaming flag")
+def streaming_ipv6_rem(ipv6_addrs: str):
     """
-    streaming_ports(operation, ports)
+    streaming_ipv6_rem(ipv6_addrs)
 
-    Add, remove, or set the streaming hint for some ports.
+    Remove the streaming flag from some ipv6 adress(es).
 
     Example:
-        streaming_ports("rem", "9999/tcp")
-
-    :param operation: The operation to perform. One of:
-        "add"
-        "rem"
-        "set"
-    :type operation: str
-    :param ports: The ports to . Must be of one of these forms:
-        "<port>/<proto>"
-        "<port begin>-<port end>/<proto>"
-    :type ports: str
-    """
-    valid_operations = ["add", "rem", "set"]
-    if operation in valid_operations:
-        return _run_speedify_cmd(["streaming", "ports", operation, ports])
-    else:
-        raise ValueError("Invalid operation: " + operation)
-
-
-@exception_wrapper("Failed to set streaming bypass")
-def streamingbypass_domains(operation: str, domains: str):
-    """
-    streamingbypass_domains(operation, domains)
-
-    Add, remove, or set the streaming bypass for some domains.
-
-    Example:
-        streamingbypass_domains("add", "example.com google.com")
-        streamingbypass_domains("rem", "example.com google.com")
-
-    :param operation: The operation to perform. One of:
-        "add"
-        "rem"
-        "set"
-    :type operation: str
-    :param domains: The domains to bypass.
-    :type domains: str
-    """
-    valid_operations = ["add", "rem", "set"]
-    if operation in valid_operations:
-        return _run_speedify_cmd(["streamingbypass", "domains", operation, domains])
-    else:
-        raise ValueError("Invalid operation: " + operation)
-
-
-@exception_wrapper("Failed to set streaming bypass")
-def streamingbypass_ipv4(operation: str, ipv4_addrs: str):
-    """
-    streamingbypass_ipv4(operation, ipv4_addrs)
-
-    Add, remove, or set the streaming bypass for some ipv4 address.
-
-    Example:
-        streamingbypass_ipv4("add", "68.80.59.53 55.38.18.29")
-
-    :param operation: The operation to perform. One of:
-        "add"
-        "rem"
-        "set"
-    :type operation: str
-    :param ipv4_addrs: The ipv4 addresses to bypass. Example:
-        "68.80.59.53 55.38.18.29"
-        "68.80.59.53"
-    :type ipv4_addrs: str
-    """
-    valid_operations = ["add", "rem", "set"]
-    if operation in valid_operations:
-        return _run_speedify_cmd(["streamingbypass", "ipv4", operation, ipv4_addrs])
-    else:
-        raise ValueError("Invalid operation: " + operation)
-
-
-@exception_wrapper("Failed to set streaming bypass")
-def streamingbypass_ipv6(operation: str, ipv6_addrs: str):
-    """
-    streamingbypass_ipv6(operation, ipv6_addrs)
-
-    Add, remove, or set the streaming bypass for some ipv6 address.
-
-    Example:
-        streamingbypass_ipv6(
-            "add",
+        streaming_ipv6_rem(
             "2001:db8:1234:ffff:ffff:ffff:ffff:0f0f 2001:db8:1234:ffff:ffff:ffff:ffff:ffff"
         )
 
-    :param operation: The operation to perform. One of:
-        "add"
-        "rem"
-        "set"
-    :type operation: str
-    :param ipv6_addrs: The ipv6 address(es) to bypass. Example:
-        "2001:db8:1234:ffff:ffff:ffff:ffff:0f0f 2001:db8:1234:ffff:ffff:ffff:ffff:ffff"
-        "2001:db8:1234:ffff:ffff:ffff:ffff:ffff"
+    :param ipv6: The ipv6 adress(es) to remove the streaming flag from.
+        Example:
+            "2001:db8:1234:ffff:ffff:ffff:ffff:0f0f 2001:db8:1234:ffff:ffff:ffff:ffff:ffff"
+            "2001:db8:1234:ffff:ffff:ffff:ffff:ffff"
     :type ipv6_addrs: str
     """
-    valid_operations = ["add", "rem", "set"]
-    if operation in valid_operations:
-        return _run_speedify_cmd(["streamingbypass", "ipv6", operation, ipv6_addrs])
-    else:
-        raise ValueError("Invalid operation: " + operation)
+    return _run_speedify_cmd(["streaming", "ipv6", "rem", ipv6_addrs])
+
+
+@exception_wrapper("Failed to set streaming flag")
+def streaming_ipv6_set(ipv6_addrs: str):
+    """
+    streaming_ipv6_set(ipv6_addrs)
+
+    Set the streaming flag on some ipv6 adress(es).
+
+    Example:
+        streaming_ipv6_set(
+            "2001:db8:1234:ffff:ffff:ffff:ffff:0f0f 2001:db8:1234:ffff:ffff:ffff:ffff:ffff"
+        )
+
+    :param ipv6: The ipv6 adress(es) to set the streaming flag on.
+        Example:
+            "2001:db8:1234:ffff:ffff:ffff:ffff:0f0f 2001:db8:1234:ffff:ffff:ffff:ffff:ffff"
+            "2001:db8:1234:ffff:ffff:ffff:ffff:ffff"
+    :type ipv6_addrs: str
+    """
+    return _run_speedify_cmd(["streaming", "ipv6", "set", ipv6_addrs])
+
+
+@exception_wrapper("Failed to add streaming flag")
+def streaming_ports_add(ports: str):
+    """
+    streaming_ports_add(ports)
+
+    Add the streaming flag for some port(s).
+
+    Example:
+        streaming_ports_add(
+            "9999/tcp"
+        )
+
+    :param ports: The port(s) to add the streaming flag to.
+        Example:
+            "9999/tcp"
+            "1500-2000/udp"
+        Form:
+            "<port>/<proto>"
+            "<port begin>-<port end>/<proto>"
+    :type ports: str
+    """
+    return _run_speedify_cmd(["streaming", "ports", "add", ports])
+
+
+@exception_wrapper("Failed to remove streaming flag")
+def streaming_ports_rem(ports: str):
+    """
+    streaming_ports_rem(ports)
+
+    Remove the streaming flag from some port(s).
+
+    Example:
+        streaming_ports_rem(
+            "9999/tcp"
+        )
+
+    :param ports: The port(s) to remove the streaming flag from.
+        Example:
+            "9999/tcp"
+            "1500-2000/udp"
+        Form:
+            "<port>/<proto>"
+            "<port begin>-<port end>/<proto>"
+    :type ports: str
+    """
+    return _run_speedify_cmd(["streaming", "ports", "rem", ports])
+
+
+@exception_wrapper("Failed to set streaming flag")
+def streaming_ports_set(ports: str):
+    """
+    streaming_ports_set(ports)
+
+    Set the streaming flag on some port(s).
+
+    Example:
+        streaming_ports_set(
+            "9999/tcp"
+        )
+
+    :param ports: The port(s) to set the streaming flag on.
+        Example:
+            "9999/tcp"
+            "1500-2000/udp"
+        Form:
+            "<port>/<proto>"
+            "<port begin>-<port end>/<proto>"
+    :type ports: str
+    """
+    return _run_speedify_cmd(["streaming", "ports", "set", ports])
+
+
+@exception_wrapper("Failed to add streaming bypass")
+def streamingbypass_domains_add(domains: str):
+    """
+    streamingbypass_domains_add(domains)
+
+    Add a streaming bypass for some domain(s).
+
+    Example:
+        streamingbypass_domains_add(
+            "example.com google.com"
+        )
+
+    :param domains: The domain(s) to add a streaming bypass to.
+        Example:
+            "example.com google.com"
+            "google.com"
+    :type domains: str
+    """
+    return _run_speedify_cmd(["streamingbypass", "domains", "add", domains])
+
+
+@exception_wrapper("Failed to remove streaming bypass")
+def streamingbypass_domains_rem(domains: str):
+    """
+    streamingbypass_domains_rem(domains)
+
+    Remove a streaming bypass from some domain(s).
+
+    Example:
+        streamingbypass_domains_rem(
+            "example.com google.com"
+        )
+
+    :param domains: The domain(s) to remove the streaming bypass from.
+        Example:
+            "example.com google.com"
+            "google.com"
+    :type domains: str
+    """
+    return _run_speedify_cmd(["streamingbypass", "domains", "rem", domains])
 
 
 @exception_wrapper("Failed to set streaming bypass")
-def streamingbypass_ports(operation: str, ports: str):
+def streamingbypass_domains_set(domains: str):
     """
-    streamingbypass_ports(operation, ports)
+    streamingbypass_domains_set(domains)
 
-    Add, remove, or set the streaming bypass for some ports.
+    Set a streaming bypass on some domain(s).
 
     Example:
-        streamingbypass_ports("rem", "9999/tcp")
+        streamingbypass_domains_set(
+            "example.com google.com"
+        )
 
-    :param operation: The operation to perform. One of:
-        "add"
-        "rem"
-        "set"
-    :type operation: str
-    :param ports: The ports to bypass. Must be of one of these forms:
-        "<port>/<proto>"
-        "<port begin>-<port end>/<proto>"
+    :param domains: The domain(s) to set the streaming bypass on.
+        Example:
+            "example.com google.com"
+            "google.com"
+    :type domains: str
+    """
+    return _run_speedify_cmd(["streamingbypass", "domains", "set", domains])
+
+
+@exception_wrapper("Failed to add streaming bypass")
+def streamingbypass_ipv4_add(ipv4_addrs: str):
+    """
+    streamingbypass_ipv4_add(ipv4_addrs)
+
+    Add a streaming bypass for some ipv4 address(es).
+
+    Example:
+        streamingbypass_ipv4_add(
+            "68.80.59.53 55.38.18.29"
+        )
+
+    :param ipv4_addrs: The ipv4 address(es) to add a streaming bypass to.
+        Example:
+            "68.80.59.53 55.38.18.29"
+            "55.38.18.29"
+    :type ipv4_addrs: str
+    """
+    return _run_speedify_cmd(["streamingbypass", "ipv4", "add", ipv4_addrs])
+
+
+@exception_wrapper("Failed to remove streaming bypass")
+def streamingbypass_ipv4_rem(ipv4_addrs: str):
+    """
+    streamingbypass_ipv4_rem(ipv4_addrs)
+
+    Remove a streaming bypass from some ipv4 address(es).
+
+    Example:
+        streamingbypass_ipv4_rem(
+            "68.80.59.53 55.38.18.29"
+        )
+
+    :param ipv4_addrs: The ipv4 address(es) to remove the streaming bypass from.
+        Example:
+            "68.80.59.53 55.38.18.29"
+            "55.38.18.29"
+    :type ipv4_addrs: str
+    """
+    return _run_speedify_cmd(["streamingbypass", "ipv4", "rem", ipv4_addrs])
+
+
+@exception_wrapper("Failed to set streaming bypass")
+def streamingbypass_ipv4_set(ipv4_addrs: str):
+    """
+    streamingbypass_ipv4_set(ipv4_addrs)
+
+    Set a streaming bypass on some ipv4 address(es).
+
+    Example:
+        streamingbypass_ipv4_set(
+            "68.80.59.53 55.38.18.29"
+        )
+
+    :param ipv4_addrs: The ipv4 address(es) to set the streaming bypass on.
+        Example:
+            "68.80.59.53 55.38.18.29"
+            "55.38.18.29"
+    :type ipv4_addrs: str
+    """
+    return _run_speedify_cmd(["streamingbypass", "ipv4", "set", ipv4_addrs])
+
+
+@exception_wrapper("Failed to add streaming bypass")
+def streamingbypass_ipv6_add(ipv6_addrs: str):
+    """
+    streamingbypass_ipv6_add(ipv6_addrs)
+
+    Add a streaming bypass for some ipv6 address(es).
+
+    Example:
+        streamingbypass_ipv6_add(
+            "2001:db8:1234:ffff:ffff:ffff:ffff:0f0f 2001:db8:1234:ffff:ffff:ffff:ffff:ffff"
+        )
+
+    :param ipv6_addrs: The ipv6 address(es) to add a streaming bypass to.
+        Example:
+            "2001:db8:1234:ffff:ffff:ffff:ffff:0f0f 2001:db8:1234:ffff:ffff:ffff:ffff:ffff"
+            "2001:db8:1234:ffff:ffff:ffff:ffff:ffff"
+    :type ipv6_addrs: str
+    """
+    return _run_speedify_cmd(["streamingbypass", "ipv6", "add", ipv6_addrs])
+
+
+@exception_wrapper("Failed to remove streaming bypass")
+def streamingbypass_ipv6_rem(ipv6_addrs: str):
+    """
+    streamingbypass_ipv6_rem(ipv6_addrs)
+
+    Remove a streaming bypass from some ipv6 address(es).
+
+    Example:
+        streamingbypass_ipv6_rem(
+            "2001:db8:1234:ffff:ffff:ffff:ffff:0f0f 2001:db8:1234:ffff:ffff:ffff:ffff:ffff"
+        )
+
+    :param ipv6_addrs: The ipv6 address(es) to remove the streaming bypass from.
+        Example:
+            "2001:db8:1234:ffff:ffff:ffff:ffff:0f0f 2001:db8:1234:ffff:ffff:ffff:ffff:ffff"
+            "2001:db8:1234:ffff:ffff:ffff:ffff:ffff"
+    :type ipv6_addrs: str
+    """
+    return _run_speedify_cmd(["streamingbypass", "ipv6", "rem", ipv6_addrs])
+
+
+@exception_wrapper("Failed to set streaming bypass")
+def streamingbypass_ipv6_set(ipv6_addrs: str):
+    """
+    streamingbypass_ipv6_set(ipv6_addrs)
+
+    Set a streaming bypass on some ipv6 address(es).
+
+    Example:
+        streamingbypass_ipv6_set(
+            "2001:db8:1234:ffff:ffff:ffff:ffff:0f0f 2001:db8:1234:ffff:ffff:ffff:ffff:ffff"
+        )
+
+    :param ipv6_addrs: The ipv6 address(es) to set the streaming bypass on.
+        Example:
+            "2001:db8:1234:ffff:ffff:ffff:ffff:0f0f 2001:db8:1234:ffff:ffff:ffff:ffff:ffff"
+            "2001:db8:1234:ffff:ffff:ffff:ffff:ffff"
+    :type ipv6_addrs: str
+    """
+    return _run_speedify_cmd(["streamingbypass", "ipv6", "set", ipv6_addrs])
+
+
+@exception_wrapper("Failed to add streaming bypass")
+def streamingbypass_ports_add(ports: str):
+    """
+    streamingbypass_ports_add(ports)
+
+    Add a streaming bypass for some port(s).
+
+    Example:
+        streamingbypass_ports_add("9999/tcp")
+
+    :param ports: The ports to add a streaming bypass to.
+        Must be of one of these forms:
+            "<port>/<proto>"
+            "<port begin>-<port end>/<proto>"
     :type ports: str
     """
-    valid_operations = ["add", "rem", "set"]
-    if operation in valid_operations:
-        return _run_speedify_cmd(["streamingbypass", "ports", operation, ports])
-    else:
-        raise ValueError("Invalid operation: " + operation)
+    return _run_speedify_cmd(["streamingbypass", "ports", "add", ports])
+
+
+@exception_wrapper("Failed to rem streaming bypass")
+def streamingbypass_ports_rem(ports: str):
+    """
+    streamingbypass_ports_rem(ports)
+
+    Remove a streaming bypass for some port(s).
+
+    Example:
+        streamingbypass_ports_rem("9999/tcp")
+
+    :param ports: The ports to remove a streaming bypass from.
+        Must be of one of these forms:
+            "<port>/<proto>"
+            "<port begin>-<port end>/<proto>"
+    :type ports: str
+    """
+    return _run_speedify_cmd(["streamingbypass", "ports", "rem", ports])
+
+
+@exception_wrapper("Failed to set streaming bypass")
+def streamingbypass_ports_set(ports: str):
+    """
+    streamingbypass_ports_set(ports)
+
+    Set a streaming bypass for some port(s).
+
+    Example:
+        streamingbypass_ports_set("9999/tcp")
+
+    :param ports: The ports to set a streaming bypass on.
+        Must be of one of these forms:
+            "<port>/<proto>"
+            "<port begin>-<port end>/<proto>"
+    :type ports: str
+    """
+    return _run_speedify_cmd(["streamingbypass", "ports", "set", ports])
 
 
 @exception_wrapper("Failed to set streaming bypass")
@@ -979,7 +1251,6 @@ def adapter_datalimit_monthly(adapterID: str, limit: int = 0, reset_day: int = 0
     """
     args = ["adapter", "datalimit", "monthly", adapterID, str(limit), str(reset_day)]
     return _run_speedify_cmd(args)
-
 
 
 @exception_wrapper("Failed to reset adapter usage")
