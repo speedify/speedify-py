@@ -119,7 +119,7 @@ class TestSpeedify(unittest.TestCase):
         logging.debug("Testing streaming bypass for ipv4 addresses...")
         ip = "68.80.59.53"
         mode = {
-            "on_add": {"op": speedify.streamingbypass_ipv4_rem, "val": True},
+            "on_add": {"op": speedify.streamingbypass_ipv4_add, "val": True},
             "on_rem": {"op": speedify.streamingbypass_ipv4_rem, "val": False},
         }
         for m in mode.keys():
@@ -132,7 +132,7 @@ class TestSpeedify(unittest.TestCase):
         logging.debug("Testing streaming bypass for ipv6 addresses...")
         ip = "2001:db8:1234:ffff:ffff:ffff:ffff:f0f"
         mode = {
-            "on_add": {"op": speedify.streamingbypass_ipv6_rem, "val": True},
+            "on_add": {"op": speedify.streamingbypass_ipv6_add, "val": True},
             "on_rem": {"op": speedify.streamingbypass_ipv6_rem, "val": False},
         }
         for m in mode.keys():
