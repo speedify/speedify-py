@@ -106,7 +106,7 @@ def exception_wrapper(argument):
 
 
 @exception_wrapper("Failed to connect")
-def connect(server=""):
+def connect(server: str = ""):
     """
     connect(server="")
     Tell Speedify to connect. Returns serverInformation if success, raises Speedify if unsuccessful.
@@ -116,15 +116,9 @@ def connect(server=""):
     :type server: str
     :returns:  dict -- :ref:`JSON currentserver <connect>` from speedify.
     """
-    args = ["connect"]
-    if server != None and server != "":
-        pieces = server.split("-")
-        for piece in pieces:
-            args.append(piece)
-        logger.debug("connecting to server = " + server)
-
-    resultjson = _run_speedify_cmd(args)
-    return resultjson
+    args = ["connect"] + server.split()
+    print(args)
+    return _run_speedify_cmd(args)
 
 
 def connect_closest():
