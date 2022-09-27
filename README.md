@@ -70,9 +70,21 @@ Added
   - `streamingbypass_service(str, bool)`
   - `adapter_overratelimit(str, int)`
   - `adapter_dailylimit_boost(str, int)`
+  - `show_servers()`
+  - `show_settings()`
+  - `show_privacy()`
+  - `show_adapters()`
+  - `show_currentserver()`
+  - `show_user()`
+  - `show_directory()`
+  - `show_connectmethod()`
+  - `show_streamingbypass()`
+  - `show_disconnect()`
+  - `show_streaming()`
+  - `show_speedtest()`
 
 Changed
-  - `adapter_encryption(str, str) -> adapter_encryption(str, str | bool)`
-  - `encryption(str) -> encryption(str | bool)`
+  - `adapter_encryption(str, str) -> adapter_encryption(str, str or bool)`
+  - `encryption(str) -> encryption(str or bool)`
   - `mode(str = "speed") -> mode(str)`
 
