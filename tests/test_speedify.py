@@ -52,22 +52,22 @@ class TestSpeedify(unittest.TestCase):
 
     def test_show(self):
         logging.debug("Testing show keys...")
-        valid_show_keys = [
-            "servers",
-            "settings",
-            "privacy",
-            "adapters",
-            "currentserver",
-            "user",
-            "directory",
-            "connectmethod",
-            "streamingbypass",
-            "disconnect",
-            "streaming",
-            "speedtest",
+        show_functions = [
+            speedify.show_servers,
+            speedify.show_settings,
+            speedify.show_privacy,
+            speedify.show_adapters,
+            speedify.show_currentserver,
+            speedify.show_user,
+            speedify.show_directory,
+            speedify.show_connectmethod,
+            speedify.show_streamingbypass,
+            speedify.show_disconnect,
+            speedify.show_streaming,
+            speedify.show_speedtest,
         ]
-        for key in valid_show_keys:
-            self.assertTrue(speedify.show(key) != "" and not None)
+        for f in show_functions:
+            self.assertTrue(f() != "" and not None)
 
     def test_esni(self):
         logging.debug("Testing esni settings...")
@@ -370,8 +370,7 @@ class TestSpeedify(unittest.TestCase):
         self.assertIn("num", server_info)
         self.assertFalse(server_info["isPrivate"])
         new_server = speedify.connect(
-            "country"
-            + server_info["country"]
+            server_info["country"]
             + server_info["city"]
             + str(server_info["num"])
         )

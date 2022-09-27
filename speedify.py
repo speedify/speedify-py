@@ -360,7 +360,7 @@ def daemon(method: str):
 #
 
 
-@exception_wrapper("Failed to get server list")
+@exception_wrapper("Failed to show server list")
 def show_servers():
     """
     show_servers()
@@ -371,7 +371,7 @@ def show_servers():
     return _run_speedify_cmd(["show", "servers"])
 
 
-@exception_wrapper("Failed to get privacy")
+@exception_wrapper("Failed to show privacy")
 def show_privacy():
     """
     show_privacy()
@@ -382,7 +382,7 @@ def show_privacy():
     return _run_speedify_cmd(["show", "privacy"])
 
 
-@exception_wrapper("Failed to get settings")
+@exception_wrapper("Failed to show settings")
 def show_settings():
     """
     show_settings()
@@ -393,7 +393,7 @@ def show_settings():
     return _run_speedify_cmd(["show", "settings"])
 
 
-@exception_wrapper("Failed to get adapters")
+@exception_wrapper("Failed to show adapters")
 def show_adapters():
     """
     show_adapters()
@@ -402,6 +402,17 @@ def show_adapters():
     :returns:  dict -- dict -- :ref:`JSON list of adapters <show-adapters>` from speedify.
     """
     return _run_speedify_cmd(["show", "adapters"])
+
+
+@exception_wrapper("Failed to show directory")
+def show_directory():
+    """
+    show_directory()
+    Returns current directory service
+
+    :returns:  dict -- dict -- :ref:`JSON object for the current directory service <show-directory>` from speedify.
+    """
+    return _run_speedify_cmd(["show", "directory"])
 
 
 @exception_wrapper("Failed to do captiveportal_check")
