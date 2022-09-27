@@ -112,6 +112,10 @@ def connect(server: str = ""):
     Tell Speedify to connect. Returns serverInformation if success, raises Speedify if unsuccessful.
     See show_servers() for the list of servers available.
 
+    Example:
+        connect()
+        connect("us nyc 11") # server numbers may change, use show_servers()
+
     :param server: Server to connect to.
     :type server: str
     :returns:  dict -- :ref:`JSON currentserver <connect>` from speedify.
