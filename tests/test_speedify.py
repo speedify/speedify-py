@@ -108,10 +108,7 @@ class TestSpeedify(unittest.TestCase):
         }
         for m in mode.keys():
             self.assertEqual(
-                int(port_num)
-                == result_of(
-                    mode[m]["op"](port_num + "/tcp")
-                ),
+                int(port_num) == result_of(mode[m]["op"](port_num + "/tcp")),
                 mode[m]["val"],
             )
 
@@ -371,7 +368,9 @@ class TestSpeedify(unittest.TestCase):
         self.assertFalse(server_info["isPrivate"])
         new_server = speedify.connect(
             server_info["country"]
+            + " "
             + server_info["city"]
+            + " "
             + str(server_info["num"])
         )
         self.assertEqual(server_info["tag"], new_server["tag"])
