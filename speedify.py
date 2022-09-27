@@ -121,7 +121,6 @@ def connect(server: str = ""):
     :returns:  dict -- :ref:`JSON currentserver <connect>` from speedify.
     """
     args = ["connect"] + server.split()
-    print(args)
     return _run_speedify_cmd(args)
 
 
