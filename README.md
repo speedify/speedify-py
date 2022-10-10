@@ -63,11 +63,18 @@ Added
   - `daemon(str)`
   - `login_auto()`
   - `login_oauth(token)`
-  - `streamingbypass_domains(str, str)`
-  - `streamingbypass_ports(str, str)`
-  - `streamingbypass_ipv4(str, str)`
-  - `streamingbypass_ipv6(str, str)`
-  - `streamingbypass_service(str, bool)`
+  - `streamingbypass_domains_add(str)`
+  - `streamingbypass_domains_rem(str)`
+  - `streamingbypass_domains_set(str)`
+  - `streamingbypass_ipv4_add(str)`
+  - `streamingbypass_ipv4_rem(str)`
+  - `streamingbypass_ipv4_set(str)`
+  - `streamingbypass_ipv6_add(str)`
+  - `streamingbypass_ipv6_rem(str)`
+  - `streamingbypass_ipv6_set(str)`
+  - `streamingbypass_ports_add(str)`
+  - `streamingbypass_ports_rem(str)`
+  - `streamingbypass_ports_set(str)`
   - `adapter_overratelimit(str, int)`
   - `adapter_dailylimit_boost(str, int)`
   - `show_servers()`
