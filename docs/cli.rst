@@ -27,41 +27,56 @@ The CLI contains the following commands:
 
 .. code:: text
 
-
-    speedify_cli.exe v7.5.0.6498
-    Usage : speedify_cli.exe action
-    Actions:
-       adapter datalimit daily <adapter id> <data usage in bytes|unlimited>
-       adapter datalimit dailyboost <adapter id> <additional bytes>
-       adapter datalimit monthly <adapter id> <data usage in bytes|unlimited> <day of the month to reset on|0 for last 30 days>
-       adapter encryption <adapter id> <on|off>
-       adapter overlimitratelimit <adapter id> <speed in bits per second|0 to stop using>
-       adapter priority <adapter id> <always|secondary|backup|never>
-       adapter ratelimit <adapter id> <speed in bits per second|unlimited>
-       connect [ closest | public | private | p2p | country [city [number]] | last ]
-       connectmethod [closest | public | private | p2p | country [city [number]] ]
-       daemon exit
-       directory [directory server domain]
-       dns <ip address> ...
-       disconnect
-       encryption <on|off>
-       jumbo <on|off>
-       login <username> <password>
-       login auto
-       login oauth <access token>
-       logout
-       mode <redundant|speed>
-       overflow <speed in mbps>
-       ports [port/proto] ...
-       privacy dnsleak <on|off>
-       privacy killswitch <on|off>
-       show <servers|settings|privacy|adapters|currentserver|user|directory|connectmethod>
-       speedtest [showProgress]
-       startupconnect <on|off>
-       state
-       stats [duration in seconds]
-       transport <auto|tcp|udp|
-       version
+  Usage : speedify_cli action
+  Actions:
+     adapter datalimit daily <adapter id> <data usage in bytes|unlimited>
+     adapter datalimit dailyboost <adapter id> <additional bytes>
+     adapter datalimit monthly <adapter id> <data usage in bytes|unlimited> <day of the month to reset on|0 for last 30 days>
+     adapter encryption <adapter id> <on|off>
+     adapter overlimitratelimit <adapter id> <speed in bits per second|0 to stop using>
+     adapter priority <adapter id> <automatic|always|secondary|backup|never>
+     adapter ratelimit <adapter id> <speed in bits per second|unlimited>
+     adapter resetusage <adapter id>
+     captiveportal check
+     captiveportal login <on|off> <adapter id>
+     headercompression <on|off>
+     connect [ closest | public | private | p2p | <country> [<city> [<number>]] | last ]
+     connectmethod < closest | public | private | p2p | <country> [<city> [<number>]] >
+     daemon exit
+     directory [directory server domain]
+     dns <ip address> ...
+     disconnect
+     encryption <on|off>
+     esni <on|off>
+     gateway [directory gateway uri]
+     jumbo <on|off>
+     login <username> [password]
+     login auto
+     login oauth [access token]
+     logout
+     mode <redundant|speed|streaming>
+     overflow <speed in mbps>
+     packetaggr <on|off>
+     ports [port/proto] ...
+     privacy requestToDisableDoH <on|off>
+     route default <on|off>
+     show < servers | settings | privacy | adapters | currentserver | user | directory | connectmethod | streamingbypass | disconnect | streaming | speedtest>
+     speedtest
+     streamtest
+     startupconnect <on|off>
+     state
+     stats [historic | [duration in seconds] [current|day|week|month|total|<period in hours>] ...]
+     streaming domains <add|rem|set> <domain> ...
+     streaming ipv4 <add|rem|set> <ip address> ...
+     streaming ipv6 <add|rem|set> <ip address> ...
+     streaming ports <add|rem|set> [port[-portRangeEnd]/proto] ...
+     streamingbypass domains <add|rem|set> <domain> ...
+     streamingbypass ipv4 <add|rem|set> <ip address> ...
+     streamingbypass ipv6 <add|rem|set> <ip address> ...
+     streamingbypass ports <add|rem|set> <port[-portRangeEnd]/proto> ...
+     streamingbypass service <service name> <on|off>
+     transport <auto|tcp|tcp-multi|udp|https>
+     version
 
 Commands
 --------
@@ -484,10 +499,11 @@ resolution.
 
     $ speedify_cli dns 8.8.8.8
     {
-        "crashReports": true,
-        "killswitch":   false,
-        "dnsleak":  true,
-        "dnsAddreses":  ["8.8.8.8"]
+      "dnsAddresses" :
+      [
+        "8.8.8.8"
+      ],
+      "requestToDisableDoH" : true
     }
 
 disconnect
@@ -730,29 +746,10 @@ forward requests.
         "overflowThreshold":    10
     }
 
-.. _privacy-crashreports:
-
-privacy crashreports <on\|off>
-------------------------------
-
-Are anonymous crashreports sent back to Speedify in case of crash.
-
-.. code:: text
-
-    $ speedify_cli privacy crashreports on
-    {
-        "crashReports": true,
-        "killswitch":   false,
-        "dnsleak":  true,
-        "dnsAddreses":  ["8.8.8.8"]
-    }
-
-.. _privacy-dnsleak:
-
 privacy dnsleak <on\|off>
 -------------------------
 
-A Windows only setting to ensure DNS cannot go around the tunnel. This
+A Windows-only setting to ensure DNS cannot go around the tunnel. This
 could make certain LAN based printers and shared drivers inaccessible.
 
 .. code:: text
@@ -770,8 +767,8 @@ could make certain LAN based printers and shared drivers inaccessible.
 privacy killswitch <on\|off>
 ----------------------------
 
-Configures firewall rules to make it impossible to access the internet
-when Speedify is not connected.
+A Windows-only setting that configures firewall rules to make it
+impossible to access the internet when Speedify is not connected.
 
 .. code:: text
 
@@ -782,6 +779,7 @@ when Speedify is not connected.
         "dnsleak":  false,
         "dnsAddreses":  ["8.8.8.8"]
     }
+
 
 .. _show-servers:
 
@@ -857,10 +855,11 @@ Outputs privacy related settings
 
     $ speedify_cli show privacy
     {
-        "crashReports": true,
-        "killswitch":   false,
-        "dnsleak":  false,
-        "dnsAddreses":  ["8.8.8.8"]
+      "dnsAddresses" :
+      [
+        "8.8.8.8"
+      ],
+      "requestToDisableDoH" : true
     }
 
 .. _show-adapters:

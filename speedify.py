@@ -7,7 +7,6 @@ import subprocess
 import os
 from enum import Enum
 from functools import wraps
-
 from utils import use_shell
 
 logger = logging.getLogger(__name__)
@@ -107,25 +106,22 @@ def exception_wrapper(argument):
 
 
 @exception_wrapper("Failed to connect")
-def connect(server=""):
+def connect(server: str = ""):
     """
     connect(server="")
     Tell Speedify to connect. Returns serverInformation if success, raises Speedify if unsuccessful.
     See show_servers() for the list of servers available.
 
+    Example:
+        connect()
+        connect("us nyc 11") # server numbers may change, use show_servers()
+
     :param server: Server to connect to.
     :type server: str
     :returns:  dict -- :ref:`JSON currentserver <connect>` from speedify.
     """
-    args = ["connect"]
-    if server != None and server != "":
-        pieces = server.split("-")
-        for piece in pieces:
-            args.append(piece)
-        logger.debug("connecting to server = " + server)
-
-    resultjson = _run_speedify_cmd(args)
-    return resultjson
+    args = ["connect"] + server.split()
+    return _run_speedify_cmd(args)
 
 
 def connect_closest():
@@ -160,7 +156,7 @@ def connect_p2p():
     return connect("p2p")
 
 
-def connect_country(country="us"):
+def connect_country(country: str = "us"):
     """Connects to a server via the 2 letter country code
     See show_servers() for the list of servers available.
 
@@ -195,7 +191,12 @@ def disconnect():
 def connectmethod(method, country="us", city=None, num=None):
     """
     connectmethod(method, country="us", city=None, num=None)
-    Sets the default connectmethod of closest,p2p,private or country (in which case country is required)
+    Sets the default connectmethod of --
+        closest
+        public
+        private
+        p2p
+        country (in which case country is required)
 
     :param method: The connect method.
     :type method: str
@@ -244,7 +245,8 @@ def connectmethod_as_string(connectMethodObject, hypens=True):
 def login(user, password):
     """
     login(user, password)
-    Login.  Returns a State.  returns the state if succesful
+    Login. Returns a State. State object will hold
+    information on the success of this command.
 
     :param user: username
     :type user: str
@@ -254,6 +256,34 @@ def login(user, password):
     """
     args = ["login", user, password]
     resultjson = _run_speedify_cmd(args)
+    return find_state_for_string(resultjson["state"])
+
+
+@exception_wrapper("Failed to login")
+def login_auto():
+    """
+    login()
+    Attempt to login automatically.
+    Returns a state indicating success category.
+
+    :returns:  speedify.State -- The speedify state enum.
+    """
+    resultjson = _run_speedify_cmd(["login", "auto"])
+    return find_state_for_string(resultjson["state"])
+
+
+@exception_wrapper("Failed to login")
+def login_oauth(token: str):
+    """
+    login()
+    Attempt to login via an oauth token.
+    Returns a state indicating success category.
+
+    :param token: The oauth token.
+    :tyope token: str
+    :returns:  speedify.State -- The speedify state enum.
+    """
+    resultjson = _run_speedify_cmd("login", "oauth", token)
     return find_state_for_string(resultjson["state"])
 
 
@@ -269,10 +299,68 @@ def logout():
     return find_state_for_string(jret["state"])
 
 
-### Getter functions ###
+def esni(is_on: bool = True):
+    """
+    esni(is_on)
+    Turn esni functionality on or off.
+
+    :param is_on: Whether esni should be on... or not.
+    :type is_on: bool
+    """
+    if is_on is True:
+        is_on = "on"
+    elif is_on is False:
+        is_on = "off"
+    else:
+        raise ValueError("is_on neither True nor False")
+    return _run_speedify_cmd(["esni", is_on])
 
 
-@exception_wrapper("Failed to get server list")
+def headercompression(is_on: bool = True):
+    """
+    headercompression(is_on)
+    Turn header compression on or off.
+
+    :param is_on: Whether headercompression should be on... or not.
+    :type is_on: bool
+    """
+    if is_on is True:
+        is_on = "on"
+    elif is_on is False:
+        is_on = "off"
+    else:
+        raise ValueError("is_on neither True nor False")
+    return _run_speedify_cmd(["headercompression", is_on])
+
+
+def gateway(uri: str):
+    """
+    gateway(uri)
+
+    Set the gateway uri.
+
+    :param uri: The gateway uri.
+    :type uri: str
+    """
+    return _run_speedify_cmd(["gateway", uri])
+
+
+def daemon(method: str):
+    """
+    daemon(method)
+    Call `method` on the daemon. Only "exit" is supported.
+
+    :param method: The method to call. Only "exit" is available.
+    """
+    return _run_speedify_cmd(["daemon", method])
+
+
+#
+# Getter functions
+#
+
+
+@exception_wrapper("Failed to show server list")
 def show_servers():
     """
     show_servers()
@@ -283,7 +371,7 @@ def show_servers():
     return _run_speedify_cmd(["show", "servers"])
 
 
-@exception_wrapper("Failed to get privacy")
+@exception_wrapper("Failed to show privacy")
 def show_privacy():
     """
     show_privacy()
@@ -294,7 +382,7 @@ def show_privacy():
     return _run_speedify_cmd(["show", "privacy"])
 
 
-@exception_wrapper("Failed to get settings")
+@exception_wrapper("Failed to show settings")
 def show_settings():
     """
     show_settings()
@@ -305,7 +393,7 @@ def show_settings():
     return _run_speedify_cmd(["show", "settings"])
 
 
-@exception_wrapper("Failed to get adapters")
+@exception_wrapper("Failed to show adapters")
 def show_adapters():
     """
     show_adapters()
@@ -314,6 +402,17 @@ def show_adapters():
     :returns:  dict -- dict -- :ref:`JSON list of adapters <show-adapters>` from speedify.
     """
     return _run_speedify_cmd(["show", "adapters"])
+
+
+@exception_wrapper("Failed to show directory")
+def show_directory():
+    """
+    show_directory()
+    Returns current directory service
+
+    :returns:  dict -- dict -- :ref:`JSON object for the current directory service <show-directory>` from speedify.
+    """
+    return _run_speedify_cmd(["show", "directory"])
 
 
 @exception_wrapper("Failed to do captiveportal_check")
@@ -328,7 +427,7 @@ def captiveportal_check():
 
 
 @exception_wrapper("Failed to do captiveportal_login")
-def captiveportal_login(proxy=True, adapterID=None):
+def captiveportal_login(proxy: bool = True, adapterID: str = None):
     """
     captiveportal_login()
     Starts or stops the local proxy intercepting traffic on ports 52,80,433, for
@@ -360,6 +459,61 @@ def captiveportal_login(proxy=True, adapterID=None):
     if adapterID and startproxy:
         args.append(adapterID)
     return _run_speedify_cmd(args)
+
+
+@exception_wrapper("Failed to show connectmethod")
+def show_connectmethod():
+    """
+    show_connectmethod()
+    Returns the current state of the 'connectmethod' setting.
+
+    :returns dict -- :ref:`JSON connectmethod <show-connectmethod>`.
+    """
+    return _run_speedify_cmd(["show", "connectmethod"])
+
+
+@exception_wrapper("Failed to show streamingbypass")
+def show_streamingbypass():
+    """
+    show_streamingbypass()
+    Returns the current state of the 'streamingbypass' setting.
+
+    :returns dict -- :ref:`JSON streamingbypass <show-streamingbypass>`.
+    """
+    return _run_speedify_cmd(["show", "streamingbypass"])
+
+
+@exception_wrapper("Failed to show disconnect")
+def show_disconnect():
+    """
+    show_disconnect()
+    Returns the last reason for a disconnection.
+
+    :returns dict -- :ref:`JSON disconnect <show-disconnect>`.
+    """
+    return _run_speedify_cmd(["show", "disconnect"])
+
+
+@exception_wrapper("Failed to show streaming")
+def show_streaming():
+    """
+    show_streaming()
+    Returns the current state of the 'streaming' setting.
+
+    :returns dict -- :ref:`JSON streaming <show-streaming>`.
+    """
+    return _run_speedify_cmd(["show", "streaming"])
+
+
+@exception_wrapper("Failed to show speedtest")
+def show_speedtest():
+    """
+    show_speedtest()
+    Returns the current results of 'speedtest'.
+
+    :returns dict -- :ref:`JSON speedtest <show-speedtest>`.
+    """
+    return _run_speedify_cmd(["show", "speedtest"])
 
 
 @exception_wrapper("Failed to get current server")
@@ -403,8 +557,8 @@ def show_state():
 
     :returns:  speedify.State -- The speedify state enum.
     """
-    jret = _run_speedify_cmd(["state"])
-    return find_state_for_string(jret["state"])
+    resultjson = _run_speedify_cmd(["state"])
+    return find_state_for_string(resultjson["state"])
 
 
 @exception_wrapper("Failed to get version")
@@ -424,11 +578,575 @@ def safebrowsing_stats():
     return _run_speedify_cmd(args)
 
 
-### Setter functions ###
-@exception_wrapper("Failed to set adapter priority")
-def adapter_priority(adapterID, priority=Priority.ALWAYS):
+#
+# Setter functions
+#
+
+
+@exception_wrapper("Failed to set directory server")
+def directory(domain: str = ""):
     """
-    adapter_priority(adapterID, priority=Priority.ALWAYS)
+    directory(domain)
+
+    Uses the given domain as the directory server.
+
+    :param domain: The domain of the directory server.
+    :type operation: str
+    """
+    return _run_speedify_cmd(["directory", domain])
+
+
+@exception_wrapper("Failed to set DNS")
+def dns(ip_addr: str = ""):
+    """
+    dns(ip_addr)
+
+    Uses the given IP address for as the DNS server.
+
+    Example:
+        dns("8.8.8.8")
+
+    :param ip_addr: The IP address of the DNS server.
+    :type operation: str
+    """
+    return _run_speedify_cmd(["dns", ip_addr])
+
+
+@exception_wrapper("Failed to add streaming bypass")
+def streaming_domains_add(domains: str):
+    """
+    streaming_domains_add(domains)
+
+    Add the streaming hint for some domains.
+
+    Example:
+        streaming_domains_add("example.com google.com")
+
+    :param domains: The domains to add the streaming hint for.
+    :type domains: str
+    """
+    return _run_speedify_cmd(["streaming", "domains", "add", domains])
+
+
+@exception_wrapper("Failed to remove streaming bypass")
+def streaming_domains_rem(domains: str):
+    """
+    streaming_domains_rem(domains)
+
+    Remove the streaming hint for some domains.
+
+    Example:
+        streaming_domains_rem("example.com google.com")
+
+    :param domains: The domains to remove the streaming hint from.
+    :type domains: str
+    """
+    return _run_speedify_cmd(["streaming", "domains", "rem", domains])
+
+
+@exception_wrapper("Failed to set streaming bypass")
+def streaming_domains_set(domains: str):
+    """
+    streaming_domains_set(domains)
+
+    Set the streaming hint for some domains.
+
+    Example:
+        streaming_domains_set("example.com google.com")
+
+    :param domains: The domains to set the streaming hint on.
+    :type domains: str
+    """
+    return _run_speedify_cmd(["streaming", "domains", "set", domains])
+
+
+@exception_wrapper("Failed to add streaming flag")
+def streaming_ipv4_add(ipv4_addrs: str):
+    """
+    streaming_ipv4_add(ipv4_addrs)
+
+    Add the streaming flag for some ipv4 address(es).
+
+    Example:
+        streaming_ipv4_add(
+            "68.80.59.53 55.38.18.29"
+        )
+
+    :param ipv4: The ipv4 adress(es) to add the streaming flag to.
+        Example:
+            "68.80.59.53 55.38.18.29"
+            "68.80.59.53"
+    :type ipv4_addrs: str
+    """
+    return _run_speedify_cmd(["streaming", "ipv4", "add", ipv4_addrs])
+
+
+@exception_wrapper("Failed to remove streaming flag")
+def streaming_ipv4_rem(ipv4_addrs: str):
+    """
+    streaming_ipv4_rem(ipv4_addrs)
+
+    Remove the streaming flag from some ipv4 adress(es).
+
+    Example:
+        streaming_ipv4_rem(
+            "68.80.59.53 55.38.18.29"
+        )
+
+    :param ipv4: The ipv4 adress(es) to remove the streaming flag from.
+        Example:
+            "68.80.59.53 55.38.18.29"
+            "68.80.59.53"
+    :type ipv4_addrs: str
+    """
+    return _run_speedify_cmd(["streaming", "ipv4", "rem", ipv4_addrs])
+
+
+@exception_wrapper("Failed to set streaming flag")
+def streaming_ipv4_set(ipv4_addrs: str):
+    """
+    streaming_ipv4_set(ipv4_addrs)
+
+    Set the streaming flag on some ipv4 adress(es).
+
+    Example:
+        streaming_ipv4_set(
+            "68.80.59.53 55.38.18.29"
+        )
+
+    :param ipv4: The ipv4 adress(es) to set the streaming flag on.
+        Example:
+            "68.80.59.53 55.38.18.29"
+            "68.80.59.53"
+    :type ipv4_addrs: str
+    """
+    return _run_speedify_cmd(["streaming", "ipv4", "set", ipv4_addrs])
+
+
+@exception_wrapper("Failed to add streaming flag")
+def streaming_ipv6_add(ipv6_addrs: str):
+    """
+    streaming_ipv6_add(ipv6_addrs)
+
+    Add the streaming flag for some ipv6 address(es).
+
+    Example:
+        streaming_ipv6_add(
+            "2001:db8:1234:ffff:ffff:ffff:ffff:0f0f 2001:db8:1234:ffff:ffff:ffff:ffff:ffff"
+        )
+
+    :param ipv6: The ipv6 adress(es) to add the streaming flag to.
+        Example:
+            "2001:db8:1234:ffff:ffff:ffff:ffff:0f0f 2001:db8:1234:ffff:ffff:ffff:ffff:ffff"
+            "2001:db8:1234:ffff:ffff:ffff:ffff:ffff"
+    :type ipv6_addrs: str
+    """
+    return _run_speedify_cmd(["streaming", "ipv6", "add", ipv6_addrs])
+
+
+@exception_wrapper("Failed to remove streaming flag")
+def streaming_ipv6_rem(ipv6_addrs: str):
+    """
+    streaming_ipv6_rem(ipv6_addrs)
+
+    Remove the streaming flag from some ipv6 adress(es).
+
+    Example:
+        streaming_ipv6_rem(
+            "2001:db8:1234:ffff:ffff:ffff:ffff:0f0f 2001:db8:1234:ffff:ffff:ffff:ffff:ffff"
+        )
+
+    :param ipv6: The ipv6 adress(es) to remove the streaming flag from.
+        Example:
+            "2001:db8:1234:ffff:ffff:ffff:ffff:0f0f 2001:db8:1234:ffff:ffff:ffff:ffff:ffff"
+            "2001:db8:1234:ffff:ffff:ffff:ffff:ffff"
+    :type ipv6_addrs: str
+    """
+    return _run_speedify_cmd(["streaming", "ipv6", "rem", ipv6_addrs])
+
+
+@exception_wrapper("Failed to set streaming flag")
+def streaming_ipv6_set(ipv6_addrs: str):
+    """
+    streaming_ipv6_set(ipv6_addrs)
+
+    Set the streaming flag on some ipv6 adress(es).
+
+    Example:
+        streaming_ipv6_set(
+            "2001:db8:1234:ffff:ffff:ffff:ffff:0f0f 2001:db8:1234:ffff:ffff:ffff:ffff:ffff"
+        )
+
+    :param ipv6: The ipv6 adress(es) to set the streaming flag on.
+        Example:
+            "2001:db8:1234:ffff:ffff:ffff:ffff:0f0f 2001:db8:1234:ffff:ffff:ffff:ffff:ffff"
+            "2001:db8:1234:ffff:ffff:ffff:ffff:ffff"
+    :type ipv6_addrs: str
+    """
+    return _run_speedify_cmd(["streaming", "ipv6", "set", ipv6_addrs])
+
+
+@exception_wrapper("Failed to add streaming flag")
+def streaming_ports_add(ports: str):
+    """
+    streaming_ports_add(ports)
+
+    Add the streaming flag for some port(s).
+
+    Example:
+        streaming_ports_add(
+            "9999/tcp"
+        )
+
+    :param ports: The port(s) to add the streaming flag to.
+        Example:
+            "9999/tcp"
+            "1500-2000/udp"
+        Form:
+            "<port>/<proto>"
+            "<port begin>-<port end>/<proto>"
+    :type ports: str
+    """
+    return _run_speedify_cmd(["streaming", "ports", "add", ports])
+
+
+@exception_wrapper("Failed to remove streaming flag")
+def streaming_ports_rem(ports: str):
+    """
+    streaming_ports_rem(ports)
+
+    Remove the streaming flag from some port(s).
+
+    Example:
+        streaming_ports_rem(
+            "9999/tcp"
+        )
+
+    :param ports: The port(s) to remove the streaming flag from.
+        Example:
+            "9999/tcp"
+            "1500-2000/udp"
+        Form:
+            "<port>/<proto>"
+            "<port begin>-<port end>/<proto>"
+    :type ports: str
+    """
+    return _run_speedify_cmd(["streaming", "ports", "rem", ports])
+
+
+@exception_wrapper("Failed to set streaming flag")
+def streaming_ports_set(ports: str):
+    """
+    streaming_ports_set(ports)
+
+    Set the streaming flag on some port(s).
+
+    Example:
+        streaming_ports_set(
+            "9999/tcp"
+        )
+
+    :param ports: The port(s) to set the streaming flag on.
+        Example:
+            "9999/tcp"
+            "1500-2000/udp"
+        Form:
+            "<port>/<proto>"
+            "<port begin>-<port end>/<proto>"
+    :type ports: str
+    """
+    return _run_speedify_cmd(["streaming", "ports", "set", ports])
+
+
+@exception_wrapper("Failed to add streaming bypass")
+def streamingbypass_domains_add(domains: str):
+    """
+    streamingbypass_domains_add(domains)
+
+    Add a streaming bypass for some domain(s).
+
+    Example:
+        streamingbypass_domains_add(
+            "example.com google.com"
+        )
+
+    :param domains: The domain(s) to add a streaming bypass to.
+        Example:
+            "example.com google.com"
+            "google.com"
+    :type domains: str
+    """
+    return _run_speedify_cmd(["streamingbypass", "domains", "add", domains])
+
+
+@exception_wrapper("Failed to remove streaming bypass")
+def streamingbypass_domains_rem(domains: str):
+    """
+    streamingbypass_domains_rem(domains)
+
+    Remove a streaming bypass from some domain(s).
+
+    Example:
+        streamingbypass_domains_rem(
+            "example.com google.com"
+        )
+
+    :param domains: The domain(s) to remove the streaming bypass from.
+        Example:
+            "example.com google.com"
+            "google.com"
+    :type domains: str
+    """
+    return _run_speedify_cmd(["streamingbypass", "domains", "rem", domains])
+
+
+@exception_wrapper("Failed to set streaming bypass")
+def streamingbypass_domains_set(domains: str):
+    """
+    streamingbypass_domains_set(domains)
+
+    Set a streaming bypass on some domain(s).
+
+    Example:
+        streamingbypass_domains_set(
+            "example.com google.com"
+        )
+
+    :param domains: The domain(s) to set the streaming bypass on.
+        Example:
+            "example.com google.com"
+            "google.com"
+    :type domains: str
+    """
+    return _run_speedify_cmd(["streamingbypass", "domains", "set", domains])
+
+
+@exception_wrapper("Failed to add streaming bypass")
+def streamingbypass_ipv4_add(ipv4_addrs: str):
+    """
+    streamingbypass_ipv4_add(ipv4_addrs)
+
+    Add a streaming bypass for some ipv4 address(es).
+
+    Example:
+        streamingbypass_ipv4_add(
+            "68.80.59.53 55.38.18.29"
+        )
+
+    :param ipv4_addrs: The ipv4 address(es) to add a streaming bypass to.
+        Example:
+            "68.80.59.53 55.38.18.29"
+            "55.38.18.29"
+    :type ipv4_addrs: str
+    """
+    return _run_speedify_cmd(["streamingbypass", "ipv4", "add", ipv4_addrs])
+
+
+@exception_wrapper("Failed to remove streaming bypass")
+def streamingbypass_ipv4_rem(ipv4_addrs: str):
+    """
+    streamingbypass_ipv4_rem(ipv4_addrs)
+
+    Remove a streaming bypass from some ipv4 address(es).
+
+    Example:
+        streamingbypass_ipv4_rem(
+            "68.80.59.53 55.38.18.29"
+        )
+
+    :param ipv4_addrs: The ipv4 address(es) to remove the streaming bypass from.
+        Example:
+            "68.80.59.53 55.38.18.29"
+            "55.38.18.29"
+    :type ipv4_addrs: str
+    """
+    return _run_speedify_cmd(["streamingbypass", "ipv4", "rem", ipv4_addrs])
+
+
+@exception_wrapper("Failed to set streaming bypass")
+def streamingbypass_ipv4_set(ipv4_addrs: str):
+    """
+    streamingbypass_ipv4_set(ipv4_addrs)
+
+    Set a streaming bypass on some ipv4 address(es).
+
+    Example:
+        streamingbypass_ipv4_set(
+            "68.80.59.53 55.38.18.29"
+        )
+
+    :param ipv4_addrs: The ipv4 address(es) to set the streaming bypass on.
+        Example:
+            "68.80.59.53 55.38.18.29"
+            "55.38.18.29"
+    :type ipv4_addrs: str
+    """
+    return _run_speedify_cmd(["streamingbypass", "ipv4", "set", ipv4_addrs])
+
+
+@exception_wrapper("Failed to add streaming bypass")
+def streamingbypass_ipv6_add(ipv6_addrs: str):
+    """
+    streamingbypass_ipv6_add(ipv6_addrs)
+
+    Add a streaming bypass for some ipv6 address(es).
+
+    Example:
+        streamingbypass_ipv6_add(
+            "2001:db8:1234:ffff:ffff:ffff:ffff:0f0f 2001:db8:1234:ffff:ffff:ffff:ffff:ffff"
+        )
+
+    :param ipv6_addrs: The ipv6 address(es) to add a streaming bypass to.
+        Example:
+            "2001:db8:1234:ffff:ffff:ffff:ffff:0f0f 2001:db8:1234:ffff:ffff:ffff:ffff:ffff"
+            "2001:db8:1234:ffff:ffff:ffff:ffff:ffff"
+    :type ipv6_addrs: str
+    """
+    return _run_speedify_cmd(["streamingbypass", "ipv6", "add", ipv6_addrs])
+
+
+@exception_wrapper("Failed to remove streaming bypass")
+def streamingbypass_ipv6_rem(ipv6_addrs: str):
+    """
+    streamingbypass_ipv6_rem(ipv6_addrs)
+
+    Remove a streaming bypass from some ipv6 address(es).
+
+    Example:
+        streamingbypass_ipv6_rem(
+            "2001:db8:1234:ffff:ffff:ffff:ffff:0f0f 2001:db8:1234:ffff:ffff:ffff:ffff:ffff"
+        )
+
+    :param ipv6_addrs: The ipv6 address(es) to remove the streaming bypass from.
+        Example:
+            "2001:db8:1234:ffff:ffff:ffff:ffff:0f0f 2001:db8:1234:ffff:ffff:ffff:ffff:ffff"
+            "2001:db8:1234:ffff:ffff:ffff:ffff:ffff"
+    :type ipv6_addrs: str
+    """
+    return _run_speedify_cmd(["streamingbypass", "ipv6", "rem", ipv6_addrs])
+
+
+@exception_wrapper("Failed to set streaming bypass")
+def streamingbypass_ipv6_set(ipv6_addrs: str):
+    """
+    streamingbypass_ipv6_set(ipv6_addrs)
+
+    Set a streaming bypass on some ipv6 address(es).
+
+    Example:
+        streamingbypass_ipv6_set(
+            "2001:db8:1234:ffff:ffff:ffff:ffff:0f0f 2001:db8:1234:ffff:ffff:ffff:ffff:ffff"
+        )
+
+    :param ipv6_addrs: The ipv6 address(es) to set the streaming bypass on.
+        Example:
+            "2001:db8:1234:ffff:ffff:ffff:ffff:0f0f 2001:db8:1234:ffff:ffff:ffff:ffff:ffff"
+            "2001:db8:1234:ffff:ffff:ffff:ffff:ffff"
+    :type ipv6_addrs: str
+    """
+    return _run_speedify_cmd(["streamingbypass", "ipv6", "set", ipv6_addrs])
+
+
+@exception_wrapper("Failed to add streaming bypass")
+def streamingbypass_ports_add(ports: str):
+    """
+    streamingbypass_ports_add(ports)
+
+    Add a streaming bypass for some port(s).
+
+    Example:
+        streamingbypass_ports_add("9999/tcp")
+
+    :param ports: The ports to add a streaming bypass to.
+        Must be of one of these forms:
+            "<port>/<proto>"
+            "<port begin>-<port end>/<proto>"
+    :type ports: str
+    """
+    return _run_speedify_cmd(["streamingbypass", "ports", "add", ports])
+
+
+@exception_wrapper("Failed to rem streaming bypass")
+def streamingbypass_ports_rem(ports: str):
+    """
+    streamingbypass_ports_rem(ports)
+
+    Remove a streaming bypass for some port(s).
+
+    Example:
+        streamingbypass_ports_rem("9999/tcp")
+
+    :param ports: The ports to remove a streaming bypass from.
+        Must be of one of these forms:
+            "<port>/<proto>"
+            "<port begin>-<port end>/<proto>"
+    :type ports: str
+    """
+    return _run_speedify_cmd(["streamingbypass", "ports", "rem", ports])
+
+
+@exception_wrapper("Failed to set streaming bypass")
+def streamingbypass_ports_set(ports: str):
+    """
+    streamingbypass_ports_set(ports)
+
+    Set a streaming bypass for some port(s).
+
+    Example:
+        streamingbypass_ports_set("9999/tcp")
+
+    :param ports: The ports to set a streaming bypass on.
+        Must be of one of these forms:
+            "<port>/<proto>"
+            "<port begin>-<port end>/<proto>"
+    :type ports: str
+    """
+    return _run_speedify_cmd(["streamingbypass", "ports", "set", ports])
+
+
+@exception_wrapper("Failed to set streaming bypass")
+def streamingbypass_service(service_name: str, is_on: bool):
+    """
+    streamingbypass_service(service_name, is_on)
+
+    Set the streaming bypass, on or off, for some pre-defined service.
+
+    Example:
+        streamingbypass_service("Netflix", True)
+
+    :param service_name: The service to modify.
+    :type service_name: str
+    :param is_on: Whether to bypass the service... or not.
+    :type is_on: bool
+    """
+    if is_on is True:
+        is_on = "on"
+    elif is_on is False:
+        is_on = "off"
+    return _run_speedify_cmd(["streamingbypass", "service", service_name, is_on])
+
+
+@exception_wrapper("Failed to set adapter encryption")
+def adapter_overratelimit(adapterID: str, bps: int):
+    """
+    adapter_overratelimit(adapterID: str, bps)
+
+    Sets the rate limit, in bps, on adapterID.
+    (show_adapters is where you find the adapterIDs).
+
+    :param adapterID: The interface adapterID
+    :type adapterID: str
+    :param bps: Speed, in bps, to limit the adapter to.
+    :type bps: int
+    :returns:  dict -- :ref:`JSON adapter response <adapter-encryption>` from speedify.
+    """
+    return _run_speedify_cmd(["adapter", "overlimitratelimit", adapterID, str(bps)])
+
+
+@exception_wrapper("Failed to set adapter priority")
+def adapter_priority(adapterID: str, priority=Priority.ALWAYS):
+    """
+    adapter_priority(adapterID: str, priority=Priority.ALWAYS)
     Sets the priority on the adapter whose adapterID is provided (show_adapters is where you find the adapterIDs)
 
     :param adapterID: The interface adapterID
@@ -445,37 +1163,38 @@ def adapter_priority(adapterID, priority=Priority.ALWAYS):
 
 
 @exception_wrapper("Failed to set adapter encryption")
-def adapter_encryption(adapterID, encrypt):
+def adapter_encryption(adapterID: str, should_encrypt):
     """
-    adapter_encryption(adapterID, encrypt)
-    Sets the encryption on the adapter whose adapterID is provided (show_adapters is where you find the adapterIDs).
+    adapter_encryption(adapterID: str, should_encrypt)
 
-    Note that any time the main encryption() function is called, all the per adapter encryption settings are immeidately reset.
+    Example:
+        adapter_encryption("something", True)
+        adapter_encryption("something", "off")
+
+    Sets the encryption on the adapter whose adapterID is provided
+    (show_adapters is where you find the adapterIDs).
+
+    Note that any time the main encryption() function is called,
+    all the per adapter encryption settings are immediately reset.
 
     :param adapterID: The interface adapterID
     :type adapterID: str
-    :param priority: Whether to encrypt
-    :type encrypt: boolean
+    :param should_encrypt: Whether to encrypt
+    :type should_encrypt: bool | str
     :returns:  dict -- :ref:`JSON adapter response <adapter-encryption>` from speedify.
     """
-    args = ["adapter", "encryption"]
-    args.append(str(adapterID))
-    if encrypt == "on":
-        args.append("on")
-    elif encrypt == "off":
-        args.append("off")
-    elif encrypt:
-        args.append("on")
-    else:
-        args.append("off")
-    resultjson = _run_speedify_cmd(args)
-    return resultjson
+    if should_encrypt is True:
+        should_encrypt = "on"
+    elif should_encrypt is False:
+        should_encrypt = "off"
+    should_encrypt = str(should_encrypt)
+    return _run_speedify_cmd(["adapter", "encryption", adapterID, should_encrypt])
 
 
 @exception_wrapper("Failed to set adapter ratelimit")
-def adapter_ratelimit(adapterID, ratelimit=0):
+def adapter_ratelimit(adapterID: str, ratelimit: int = 0):
     """
-    adapter_ratelimit(adapterID, ratelimit=0)
+    adapter_ratelimit(adapterID: str, ratelimit: int = 0)
     Sets the ratelimit in bps on the adapter whose adapterID is provided
     (show_adapters is where you find the adapterIDs)
 
@@ -485,17 +1204,13 @@ def adapter_ratelimit(adapterID, ratelimit=0):
     :type ratelimit: int
     :returns:  dict -- :ref:`JSON adapter response <adapter-datalimit-daily>` from speedify.
     """
-    args = ["adapter", "ratelimit"]
-    args.append(str(adapterID))
-    args.append((str(ratelimit)))
-    resultjson = _run_speedify_cmd(args)
-    return resultjson
+    return _run_speedify_cmd(["adapter", "ratelimit", adapterID, str(ratelimit)])
 
 
 @exception_wrapper("Failed to set adapter daily limit")
-def adapter_datalimit_daily(adapterID, limit=0):
+def adapter_datalimit_daily(adapterID: str, limit: int = 0):
     """
-    adapter_datalimit_daily( adapterID, limit=0)
+    adapter_datalimit_daily(adapterID, limit: int = 0)
     Sets the daily usage limit in bytes on the adapter whose adapterID is provided
     (show_adapters is where you find the adapterIDs)
 
@@ -505,17 +1220,32 @@ def adapter_datalimit_daily(adapterID, limit=0):
     :type limit: int
     :returns:  dict -- :ref:`JSON adapter response <adapter-datalimit-daily>` from speedify
     """
-    args = ["adapter", "datalimit", "daily"]
-    args.append(str(adapterID))
-    args.append((str(limit)))
-    resultjson = _run_speedify_cmd(args)
-    return resultjson
+    return _run_speedify_cmd(["adapter", "datalimit", "daily", adapterID, str(limit)])
+
+
+@exception_wrapper("Failed to set adapter daily boost")
+def adapter_datalimit_dailyboost(adapterID: str, boost: int = 0):
+    """
+    adapter_datalimit_dailyboost(adapterID, boost: int = 0)
+
+    Gives some additional daily data, in bytes,
+    to the adapter whose adapterID is provided.
+
+    Show_adapters is where you find the adapterIDs.
+
+    :param adapterID: The interface adapterID
+    :type adapterID: str
+    :param boost: Some additional bytes to give to the daily limit.
+    :type boost: int
+    :returns:  dict -- :ref:`JSON adapter response <adapter-datalimit-daily>` from speedify
+    """
+    return _run_speedify_cmd(["adapter", "datalimit", "dailyboost", str(boost)])
 
 
 @exception_wrapper("Failed to set adapter monthly limit")
-def adapter_datalimit_monthly(adapterID, limit=0, reset_day=0):
+def adapter_datalimit_monthly(adapterID: str, limit: int = 0, reset_day: int = 0):
     """
-    adapter_datalimit_monthly(adapterID, limit=0, reset_day=0)
+    adapter_datalimit_monthly(adapterID: str, limit: int = 0, reset_day: int = 0)
     Sets the monthly usage limit in bytes on the adapter whose adapterID is provided
     (show_adapters is where you find the adapterIDs)
 
@@ -527,17 +1257,12 @@ def adapter_datalimit_monthly(adapterID, limit=0, reset_day=0):
     :type reset_Day: int
     :returns:  dict -- :ref:`JSON adapter response <adapter-datalimit-monthly>` from speedify.
     """
-    args = ["adapter", "datalimit", "monthly"]
-    args.append(str(adapterID))
-    args.append((str(limit)))
-    args.append(str(reset_day))
-
-    resultjson = _run_speedify_cmd(args)
-    return resultjson
+    args = ["adapter", "datalimit", "monthly", adapterID, str(limit), str(reset_day)]
+    return _run_speedify_cmd(args)
 
 
 @exception_wrapper("Failed to reset adapter usage")
-def adapter_resetusage(adapterID):
+def adapter_resetusage(adapterID: str):
     """
     adapter_resetusage(adapterID)
     Resets all the stats on this adapter back to 0.  Starts both daily and monthly limits over, if set.
@@ -546,15 +1271,11 @@ def adapter_resetusage(adapterID):
     :type adapterID: str
     :returns:  dict -- :ref:`JSON adapter response <adapter-resetusage>` from speedify.
     """
-    args = ["adapter", "resetusage"]
-    args.append(str(adapterID))
-
-    resultjson = _run_speedify_cmd(args)
-    return resultjson
+    return _run_speedify_cmd(["adapter", "resetusage", adapterID])
 
 
-@exception_wrapper("Failed to set ports")
-def ports(tcpports=[], udpports=[]):
+@exception_wrapper("Failed to set forwarded ports")
+def ports(tcpports: list = [], udpports: list = []):
     """
     ports(tcpports=[], udpports=[])
     sets port forwarding. call with no arguments to unset all port forwarding
@@ -578,47 +1299,44 @@ def ports(tcpports=[], udpports=[]):
 
 
 @exception_wrapper("Failed to change modes")
-def mode(mode="speed"):
+def mode(mode: str):
     """
     mode(mode="speed")
-    Set 'redundant' or 'speed' operation modes
 
-    :param mode: "redundant" or "speed"
+    Uses one of 'redundant', 'speed' or 'streaming' operation modes.
+
+    :param mode: One of:
+        "redundant"
+        "speed"
+        "streaming"
     :type mode: str
     :returns:  dict -- :ref:`JSON settings <mode>` from speedify
     """
-    args = ["mode", mode]
-    resultjson = _run_speedify_cmd(args)
-    return resultjson
+    return _run_speedify_cmd(["mode", mode])
 
 
 @exception_wrapper("Failed to set encryption")
-def encryption(encrypt=True):
+def encryption(should_encrypt=True):
     """
-    encryption(encrypt=True)
+    encryption(encrypt = True)
     Sets encryption on or off.
 
     :param encrypt: Encrypted on or off
     :type encrypt: bool
     :returns:  dict -- :ref:`JSON settings <encryption>` from speedify
     """
-    args = ["encryption"]
-    if encrypt == "on":
-        args.append("on")
-    elif encrypt == "off":
-        args.append("off")
-    elif encrypt:
-        args.append("on")
-    else:
-        args.append("off")
-    resultjson = _run_speedify_cmd(args)
+    if should_encrypt is True:
+        should_encrypt = "on"
+    elif should_encrypt is False:
+        should_encrypt = "off"
+    resultjson = _run_speedify_cmd(["encryption", should_encrypt])
     return resultjson
 
 
 @exception_wrapper("Failed to set jumbo")
-def jumbo(mode=True):
+def jumbo(mode: bool = True):
     """
-    jumbo(mode=True)
+    jumbo(mode = True)
     Sets jumbo MTU mode on or off.
 
     :param mode: Jumbo MTU on or off
@@ -630,9 +1348,9 @@ def jumbo(mode=True):
         args.append("on")
     elif mode == "off":
         args.append("off")
-    elif mode == True:
+    elif mode is True:
         args.append("on")
-    elif mode == False:
+    elif mode is False:
         args.append("off")
     else:
         # probably invalid, but we'll let speedify tell us THAT
@@ -643,36 +1361,26 @@ def jumbo(mode=True):
 
 
 @exception_wrapper("Failed to set packetaggregation")
-def packetaggregation(mode=True):
+def packetaggregation(is_on: bool = True):
     """
-    packetaggregation(mode=True)
+    packetaggregation(is_on = True)
     Sets packetaggregation mode on or off.
 
-    :param mode: packetaggregation on or off
-    :type mode: bool
+    :param is_on: Whether packet aggregation is on... or off.
+    :type is_on: bool
     :returns:  dict -- :ref:`JSON settings <packetaggr>` from speedify
     """
-    args = ["packetaggr"]
-    if mode == "on":
-        args.append("on")
-    elif mode == "off":
-        args.append("off")
-    elif mode == True:
-        args.append("on")
-    elif mode == False:
-        args.append("off")
-    else:
-        # probably invalid, but we'll let speedify tell us THAT
-        args.append(mode)
-
-    resultjson = _run_speedify_cmd(args)
-    return resultjson
+    if is_on is True:
+        is_on = "on"
+    elif is_on is False:
+        is_on = "off"
+    return _run_speedify_cmd(["packetaggr", is_on])
 
 
 @exception_wrapper("Failed to set killswitch")
-def killswitch(killswitch=False):
+def killswitch(killswitch: bool = False):
     """
-    killswitch(killswitch=False)
+    killswitch(killswitch = False)
     sets killswitch on or off. (Windows only)
 
     :param killswitch: killswitch on or off
@@ -686,9 +1394,9 @@ def killswitch(killswitch=False):
 
 
 @exception_wrapper("Failed to set overflow")
-def overflow(speed_in_mbps=30.0):
+def overflow(speed_in_mbps: float = 30.0):
     """
-    overflow(speed_in_mbps=30.0)
+    overflow(speed_in_mbps = 30.0)
     sets overflow threshold.
 
     :param speed_in_mbps: Overflow threshold in mbps
@@ -702,9 +1410,9 @@ def overflow(speed_in_mbps=30.0):
 
 
 @exception_wrapper("Failed to set dnsleak")
-def dnsleak(leak=False):
+def dnsleak(leak: bool = False):
     """
-    dnsleak(leak=False)
+    dnsleak(leak = False)
     sets dnsleak on or off. (Windows only)
 
     :param dnsleak: dnsleak on or off
@@ -718,25 +1426,29 @@ def dnsleak(leak=False):
 
 
 @exception_wrapper("Failed to set startupconnect")
-def startupconnect(connect=True):
+def startupconnect(is_on: bool = True):
     """
-    startupconnect(connect=True)
-    sets whether to automatically connect on login.
+    startupconnect(is_on)
 
-    :param connect: Sets connect on startup on/off
-    :type connect: bool
+    Sets whether or not to automatically connect on login.
+
+    :param is_on: Sets connect on startup on/off
+    :type is_on: bool
     :returns:  dict -- :ref:`JSON settings <startupconnect>` from speedify
     """
-    args = ["startupconnect"]
-    args.append("on") if connect else args.append("off")
-    resultjson = _run_speedify_cmd(args)
-    return resultjson
+    if is_on is True:
+        is_on = "on"
+    elif is_on is False:
+        is_on = "off"
+    else:
+        raise ValueError("is_on neither True nor False")
+    return _run_speedify_cmd(["startupconnect", is_on])
 
 
-@exception_wrapper("Failed to set routedefault")
-def routedefault(route=True):
+@exception_wrapper("Failed to set route default")
+def routedefault(is_default: bool = True):
     """
-    routedefault(route=True)
+    routedefault(is_default=True)
     sets whether Speedify should take the default route to the internet.
     defaults to True, only make it False if you're planning to set up
     routing rules, like IP Tables, yourself..
@@ -745,17 +1457,37 @@ def routedefault(route=True):
     :type connect: bool
     :returns:  dict -- :ref:`JSON settings <routedefault>` from speedify
     """
-    args = ["route", "default"]
-    args.append("on") if route else args.append("off")
-    resultjson = _run_speedify_cmd(args)
-    return resultjson
+    if is_default is True:
+        is_default = "on"
+    elif is_default is False:
+        is_default = "off"
+    else:
+        raise ValueError("is_on neither True nor False")
+    return _run_speedify_cmd(["route", "default", is_default])
+
+
+@exception_wrapper("Failed to run streamtest")
+def streamtest():
+    """
+    streamtest()
+
+    Runs stream test.
+    Returns final results.
+    Will take around 30 seconds.
+
+    :returns:  dict -- :ref:`JSON streamtest <speedtest>` from speedify
+    """
+    return _run_speedify_cmd(["speedtest"], cmdtimeout=600)
 
 
 @exception_wrapper("Failed to run speedtest")
 def speedtest():
     """
     speedtest()
-    Returns runs speed test returns final results. Will take around 30 seconds.
+
+    Runs speed test.
+    Returns final results.
+    Will take around 30 seconds.
 
     :returns:  dict -- :ref:`JSON speedtest <speedtest>` from speedify
     """
@@ -764,12 +1496,17 @@ def speedtest():
 
 
 @exception_wrapper("Failed to set transport")
-def transport(transport="auto"):
+def transport(transport: str = "auto"):
     """
     transport(transport='auto')
-    Sets the transport mode (auto/tcp/udp/https).
+    Sets the transport mode (auto/tcp/multi-tcp/udp/https).
 
-    :param transport: Sets the transport to "auto","udp","tcp" or "https"
+    :param transport: Sets the transport to one of
+        "auto"
+        "udp"
+        "tcp"
+        "multi-tcp"
+        "https"
     :type transport: str
     :returns:  dict -- :ref:`JSON settings <transport>` from speedify
     """
@@ -779,7 +1516,7 @@ def transport(transport="auto"):
 
 
 @exception_wrapper("Failed getting stats")
-def stats(time=1):
+def stats(time: int = 1):
     """
     stats(time=1)
     calls stats returns a list of all the parsed json objects it gets back
@@ -807,7 +1544,7 @@ def stats(time=1):
     return list_callback.result_list
 
 
-def stats_callback(time, callback):
+def stats_callback(time: int, callback):
     """
     stats_callback(time, callback)
     calls stats, and callback supplied function with each line of output. 0 is forever
@@ -843,7 +1580,7 @@ def safebrowsing_enable(enable: bool):
 
 
 @exception_wrapper("Failed getting safebrowsing error")
-def safebrowsing_error(time=1):
+def safebrowsing_error(time: int = 1):
     if time == 0:
         logger.error("safebrowsing error cannot be run with 0, would never return")
         raise SpeedifyError(
@@ -862,15 +1599,19 @@ def safebrowsing_error(time=1):
     return list_callback.result_list
 
 
-def safebrowsing_error_callback(time, callback):
+def safebrowsing_error_callback(time: int, callback):
     args = ["safebrowsing", "errors", str(time)]
     cmd = [get_cli()] + args
 
     _run_long_command(cmd, callback)
 
 
-### Internal functions ###
-def _run_speedify_cmd(args, cmdtimeout=60):
+#
+# Internal functions
+#
+
+
+def _run_speedify_cmd(args, cmdtimeout: int = 60):
     "passes list of args to speedify command line returns the objects pulled from the json"
     resultstr = ""
     try:
@@ -942,10 +1683,17 @@ def _run_speedify_cmd(args, cmdtimeout=60):
             raise SpeedifyError(errorKind + ": " + str(": " + out))
 
 
-# CALLBACK VERSIONS
+#
+# Callbacks
+#
+
+
 # The normal _run_speedify_cmd runs the command and waits for the final output.
 # these versions keep running, calling you back as json objects are emitted. useful
 # for stats and for a verbose speedtest, otherwise, stick with the non-callback versions
+#
+
+
 @exception_wrapper("SpeedifyError in longRunCommand")
 def _run_long_command(cmdarray, callback):
     "callback is a function you provide, passed parsed json objects"
