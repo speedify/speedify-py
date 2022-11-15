@@ -1,4 +1,5 @@
 import os
+import re
 import sys
 
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
@@ -26,6 +27,7 @@ class TestSpeedify(unittest.TestCase):
     # Note doesn't test login/logout.  but then we have to deal with credentials being stored.
 
     def setUp(self):
+        self.assertFalse(speedify.show_state() == State.LOGGED_OUT)
         speedify.encryption(True)
         speedify.transport("auto")
         speedify.jumbo(True)
@@ -33,25 +35,29 @@ class TestSpeedify(unittest.TestCase):
         speedify.routedefault(True)
         speedify.connectmethod("closest")
         speedify.disconnect()
+        self.assertFalse(speedify.show_state() == State.LOGGED_OUT)
 
     def test_dns(self):
-        logging.debug("Testing dns...")
+        logging.debug("\n\nTesting dns...")
         ips = ["8.8.8.8", ""]
         for ip in ips:
             self.assertEqual(speedify.dns(ip)["dnsAddresses"], [ip] if ip != "" else [])
 
     def test_streamtest(self):
-        logging.info("Running streamtest...")
+        logging.debug("\n\nTesting streamtest...")
         if speedify.show_state() is not State.CONNECTED:
             speedify.connect("closest")
         self.assertEqual(speedify.streamtest()[0]["isError"], False)
 
     def test_directory(self):
-        logging.debug("Testing directory settings...")
-        self.assertEqual(speedify.directory()["domain"], "")
+        logging.debug("\n\nTesting directory settings...")
+        result = speedify.show_directory()["domain"]
+        is_prod = result == ""
+        is_dev = re.search(r"devdirectory.*", result)
+        self.assertTrue(is_prod or is_dev)
 
     def test_show(self):
-        logging.debug("Testing show keys...")
+        logging.debug("\n\nTesting show keys...")
         show_functions = [
             speedify.show_servers,
             speedify.show_settings,
@@ -70,17 +76,17 @@ class TestSpeedify(unittest.TestCase):
             self.assertTrue(f() != "" and not None)
 
     def test_esni(self):
-        logging.debug("Testing esni settings...")
+        logging.debug("\n\nTesting esni settings...")
         for b in [False, True]:
             self.assertEqual(speedify.esni(b)["enableEsni"], b)
 
     def test_headercompression(self):
-        logging.debug("Testing header compression settings...")
+        logging.debug("\n\nTesting header compression settings...")
         for b in [False, True]:
             self.assertEqual(speedify.headercompression(b)["headerCompression"], b)
 
     def test_streamingbypass_domains(self):
-        logging.debug("Testing streaming bypass for domains...")
+        logging.debug("\n\nTesting streaming bypass for domains...")
         ip = "11.11.11.11"
         mode = {
             "on_add": {"op": speedify.streamingbypass_domains_add, "val": True},
@@ -93,7 +99,7 @@ class TestSpeedify(unittest.TestCase):
             )
 
     def test_streamingbypass_ports(self):
-        logging.debug("Testing streaming bypass for ports...")
+        logging.debug("\n\nTesting streaming bypass for ports...")
 
         def result_of(d):
             try:
@@ -113,7 +119,7 @@ class TestSpeedify(unittest.TestCase):
             )
 
     def test_streamingbypass_ipv4(self):
-        logging.debug("Testing streaming bypass for ipv4 addresses...")
+        logging.debug("\n\nTesting streaming bypass for ipv4 addresses...")
         ip = "68.80.59.53"
         mode = {
             "on_add": {"op": speedify.streamingbypass_ipv4_add, "val": True},
@@ -126,7 +132,7 @@ class TestSpeedify(unittest.TestCase):
             )
 
     def test_streamingbypass_ipv6(self):
-        logging.debug("Testing streaming bypass for ipv6 addresses...")
+        logging.debug("\n\nTesting streaming bypass for ipv6 addresses...")
         ip = "2001:db8:1234:ffff:ffff:ffff:ffff:f0f"
         mode = {
             "on_add": {"op": speedify.streamingbypass_ipv6_add, "val": True},
@@ -139,7 +145,7 @@ class TestSpeedify(unittest.TestCase):
             )
 
     def test_streamingbypass_service(self):
-        logging.debug("Testing streaming bypass for services...")
+        logging.debug("\n\nTesting streaming bypass for services...")
         # I think these are still ok to test with.
         # If the get out of date:
         # speedify_cli show streamingbypass | grep title | sed -E 's/.*: (.*)/\1,/g'
@@ -172,7 +178,7 @@ class TestSpeedify(unittest.TestCase):
                         self.assertTrue(i["enabled"] is b)
 
     def test_adapter_overratelimit(self):
-        logging.info("")
+        logging.debug("\n\nTesting overratelimit...")
 
         def getrl(d):
             return d[0]["dataUsage"]["overlimitRatelimit"]
@@ -188,6 +194,7 @@ class TestSpeedify(unittest.TestCase):
             )
 
     def test_connect(self):
+        logging.debug("\n\nTesting connect...")
         serverinfo = speedify.connect_closest()
         state = speedify.show_state()
         self.assertEqual(state, State.CONNECTED)
@@ -195,6 +202,7 @@ class TestSpeedify(unittest.TestCase):
         self.assertIn("country", serverinfo)
 
     def test_connect_country(self):
+        logging.debug("\n\nTesting connect country...")
         serverinfo = speedify.connect_country("sg")
         state = speedify.show_state()
         self.assertEqual(state, State.CONNECTED)
@@ -205,6 +213,7 @@ class TestSpeedify(unittest.TestCase):
         self.assertEqual(new_serverinfo["country"], "sg")
 
     def test_transport(self):
+        logging.debug("\n\nTesting transport...")
         mysettings = speedify.transport("https")
         speedify.connect()
         mysettings = speedify.show_settings()
@@ -217,7 +226,8 @@ class TestSpeedify(unittest.TestCase):
         self.assertEqual(mysettings["transportMode"], "tcp")
 
     def test_bad_country(self):
-        logging.debug("Testing error handling, ignore next few errors")
+        logging.debug("\n\nTesting bad country...")
+        logging.debug("[Testing error handling, ignore next few errors]")
         state = speedify.show_state()
         self.assertEqual(state, State.LOGGED_IN)
         logging.debug("connecting to bad country")
@@ -229,6 +239,7 @@ class TestSpeedify(unittest.TestCase):
         logging.debug("Done testing error handling")
 
     def test_disconnect(self):
+        logging.debug("\n\nTesting disconnect...")
         speedify.connect_closest()
         state = speedify.show_state()
         self.assertEqual(state, State.CONNECTED)
@@ -237,6 +248,7 @@ class TestSpeedify(unittest.TestCase):
         self.assertEqual(state, speedify.State.LOGGED_IN)
 
     def test_connectmethod(self):
+        logging.debug("\n\nTesting connectmethod...")
         speedify.connect_closest()
         speedify.connectmethod("private", "jp")
         # pull settings from speedify to be sure they really set
@@ -270,6 +282,7 @@ class TestSpeedify(unittest.TestCase):
         self.assertEqual(cm_settings["city"], "")
 
     def test_version(self):
+        logging.debug("\n\nTesting version...")
         version = speedify.show_version()
         self.assertIn("maj", version)
         # expect at least Speedify 8.0
@@ -279,6 +292,7 @@ class TestSpeedify(unittest.TestCase):
         self.assertIn("build", version)
 
     def test_settings(self):
+        logging.debug("\n\nTesting settings...")
         # test some basic settings
         speedify.packetaggregation(False)
         speedify.jumbo(False)
@@ -292,6 +306,7 @@ class TestSpeedify(unittest.TestCase):
         self.assertTrue(my_settings["jumboPackets"])
 
     def test_badarguments(self):
+        logging.debug("\n\nTesting bad arguments...")
         # reaching into private methods to force some errors to be sure they're handled
         try:
             goterror = False
@@ -319,6 +334,7 @@ class TestSpeedify(unittest.TestCase):
         self.assertTrue(goterror)
 
     def test_privacy(self):
+        logging.debug("\n\nTesting privacy...")
         if os.name == "nt":
             # the windows only calls
             speedify.killswitch(True)
@@ -335,6 +351,7 @@ class TestSpeedify(unittest.TestCase):
                 logging.disable(logging.NOTSET)
 
     def test_routedefault(self):
+        logging.debug("\n\nTesting route default...")
         speedify.connect()
         if not speedifyutil.using_speedify():
             time.sleep(3)
@@ -356,6 +373,7 @@ class TestSpeedify(unittest.TestCase):
             self.assertTrue(speedifyutil.using_speedify())
 
     def test_serverlist(self):
+        logging.debug("\n\nTesting server list...")
         # also tests connecting to one server
         server_list = speedify.show_servers()
         self.assertIn("public", server_list)
@@ -379,6 +397,7 @@ class TestSpeedify(unittest.TestCase):
         self.assertEqual(server_info["num"], new_server["num"])
 
     def test_stats(self):
+        logging.debug("\n\nTesting stats...")
         speedify.connect_closest()
         report_list = speedify.stats(2)
         self.assertTrue(report_list)  # Check for non empty list
@@ -386,6 +405,7 @@ class TestSpeedify(unittest.TestCase):
         self.assertIn("adapters", reports)  # Check for at least one adapters report
 
     def test_adapters(self):
+        logging.debug("\n\nTesting adapters...")
         adapters = speedify.show_adapters()
         self.assertTrue(adapters)
         adapterIDs = [adapter["adapterID"] for adapter in adapters]
@@ -393,6 +413,7 @@ class TestSpeedify(unittest.TestCase):
         self._set_and_test_adapter_list(adapterIDs, Priority.ALWAYS, 0)
 
     def test_encryption(self):
+        logging.debug("\n\nTesting encryption...")
         adapters = speedify.show_adapters()
         self.assertTrue(adapters)
         # just grab first adapter for testing

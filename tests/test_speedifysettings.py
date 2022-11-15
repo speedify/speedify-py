@@ -5,6 +5,7 @@ os.chdir(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append("../")
 
 import speedify
+from speedify import State
 import speedifysettings
 import logging
 import unittest
@@ -20,19 +21,23 @@ logging.basicConfig(
 
 class TestSpeedifySettings(unittest.TestCase):
     def setUp(self):
+        self.assertFalse(speedify.show_state() == State.LOGGED_OUT)
         speedify.encryption(True)
         speedify.transport("auto")
         speedify.jumbo(True)
         speedify.packetaggregation(True)
         speedify.routedefault(True)
+        self.assertFalse(speedify.show_state() == State.LOGGED_OUT)
 
     def test_reset(self):
+        logging.debug("\n\nTesting reset...")
         # read settings
         currentsettings = speedifysettings.get_speedify_settings()
         # write them back
         self.assertTrue(speedifysettings.apply_speedify_settings(currentsettings))
 
     def test_set_defaults(self):
+        logging.debug("\n\nTesting setting defaults...")
         speedify.encryption(False)
         speedify.transport("tcp")
         self.assertTrue(
@@ -44,6 +49,7 @@ class TestSpeedifySettings(unittest.TestCase):
         self.assertEqual(settings["transportMode"], "auto")
 
     def test_read_settings(self):
+        logging.debug("\n\nTesting reading defaults...")
         speedify.encryption(False)
         speedify.transport("tcp")
         speedify.packetaggregation(False)
@@ -57,6 +63,7 @@ class TestSpeedifySettings(unittest.TestCase):
         self.assertTrue(mysettings["jumbo"])
 
     def test_set_json(self):
+        logging.debug("\n\nTesting setting json...")
         # lets use a settings string to apply it back
         json_string = '{"encryption" : false, "jumbo" : false, "packet_aggregation":false,"transport":"tcp","adapter_priority_wifi" : "backup", "route_default": false}'
         self.assertTrue(speedifysettings.apply_speedify_settings(json_string))
@@ -68,6 +75,7 @@ class TestSpeedifySettings(unittest.TestCase):
         self.assertEqual(settings["transportMode"], "tcp")
 
     def test_bad_json(self):
+        logging.debug("\n\nTesting bad json...")
         # bad setting
         logging.disable(logging.ERROR)
         json_string = '{"encryption_nonexistant" : true}'
