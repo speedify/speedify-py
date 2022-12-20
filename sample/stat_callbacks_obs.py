@@ -42,8 +42,10 @@ class speedify_callback:
         self.last_bad_cpu = False
         self.last_bad_memory = False
         self.last_total_saves = 0
+        self.starlink_adapter_id = ""
 
     def __call__(self, callback_input):
+        # print("call back - "+ callback_input[0])
         if callback_input[0] == "adapters":
             self.adapter_callback(callback_input)
         elif callback_input[0] == "state":
@@ -63,15 +65,25 @@ class speedify_callback:
 
     def adapter_callback(self, callback_input):
         adapterlist = callback_input[1]
+        saw_starlink = False;
         for adapter in adapterlist:
-            if(adapter["isp"] == "Starlink"):
+            if(adapter["isp"] == "Starlink" or adapter["adapterID"] == self.starlink_adapter_id ):
+                self.starlink_adapter_id = adapter["adapterID"]
+                saw_starlink = True
                 starlink_state = adapter["state"]
-                if(self.last_starlink_state != None ):
+                if(self.last_starlink_state != None and self.last_starlink_state != starlink_state ):
                     if starlink_state == "connected":
                         self.send_hotkey('w', "starlink connected")
                     elif starlink_state == "disconnected":
                         self.send_hotkey('r', "starlink disconnected")
+                    elif starlink_state == "connnecting":
+                        self.send_hotkey('e', "starlink connecting")
+                    else:
+                        print("starlink in unknown state: " + str(starlink_state) )
                 self.last_starlink_state = starlink_state;
+        if (self.starlink_adapter_id != "") and (not saw_starlink) and self.last_starlink_state != "disconnected":
+            self.send_hotkey('r', "starlink disconnected (disappeared)")
+            self.last_starlink_state = "disconnected"
   
     def streaming_callback(self, callback_input):
         streaming_stats = callback_input[1]
