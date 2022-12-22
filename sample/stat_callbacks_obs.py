@@ -43,17 +43,28 @@ class speedify_callback:
         self.last_bad_memory = False
         self.last_total_saves = 0
         self.starlink_adapter_id = ""
+        self.streams = {}
 
     def __call__(self, callback_input):
-        # print("call back - "+ callback_input[0])
+        """Called every time a JSON object is emitted by `speedify_cli stats`.  
+           Usually you get one of each message type per second."""
+        print("call back - "+ callback_input[0])
         if callback_input[0] == "adapters":
+            # list of hardware adaptesr and what we know about them
             self.adapter_callback(callback_input)
         elif callback_input[0] == "state":
+            # overall speedify state: connected, connecting, etc.
             self.state_callback(callback_input)
         elif callback_input[0] == "streaming_stats":
+            # stats on high priority live streams (RTMP, VoIP, WebRTC video conferences)
             self.streaming_callback(callback_input)
         elif  callback_input[0] == "session_stats":
+            # session stats - totals, both current for this session and historic
             self.session_callback(callback_input)
+        elif  callback_input[0] == "connection_stats":
+            # connection stats - about the current connections over the adapters
+            # not doing anything right now.
+            pass;
 
 
     def send_hotkey(self,hotkey, reason):
@@ -103,7 +114,9 @@ class speedify_callback:
         if bad_memory and not self.last_bad_memory:
             self.send_hotkey('f', "bad memory")
         self.last_bad_memory = bad_memory
-        
+        # the streams lets us see stream by stream what's happening
+        # but we just pull the sums from the ["session"]["current"] object
+         
     def session_callback(self, callback_input):
         session_stats = callback_input[1]
         current = session_stats["current"]
@@ -121,11 +134,7 @@ class speedify_callback:
             new_state = state_obj["state"]
             if new_state != self.last_state:
                 # clear things whenever connectify state changes
-                self.last_starlink_state = None
-                self.last_bad_latency = False
-                self.last_bad_loss = False
-                self.last_bad_cpu = False
-                self.last_bad_memory = False
+                self.reset_stats()
                 if self.last_state != None:
                     if new_state == "CONNECTED":                           
                         self.send_hotkey('u', "speedify connected")
@@ -137,6 +146,17 @@ class speedify_callback:
                         self.send_hotkey('o', "speedify disconnecting")
                 logging.info("State changed to " + new_state)
                 self.last_state = new_state
+
+    def reset_stats(self):
+        """Starting our stats over, we connected or disconnected or something"""
+        self.last_ssid = ""
+        self.last_starlink_state = None
+        self.last_bad_latency = False
+        self.last_bad_loss = False
+        self.last_bad_cpu = False
+        self.last_bad_memory = False
+        self.last_total_saves = 0
+        self.streams = {}
 
 
 speedify_callback = speedify_callback()
