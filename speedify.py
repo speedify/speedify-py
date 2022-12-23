@@ -1726,7 +1726,7 @@ def _do_callback(callback, message):
     if jsonret:
         try:
             callback(jsonret)
-        except SpeedifyError as e:
+        except Exception as e:
             logger.warning("problem callback: " + str(e))
 
 
