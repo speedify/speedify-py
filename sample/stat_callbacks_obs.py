@@ -49,23 +49,27 @@ class speedify_callback:
         """Called every time a JSON object is emitted by `speedify_cli stats`.  
            Usually you get one of each message type per second."""
         print("call back - "+ callback_input[0])
-        if callback_input[0] == "adapters":
-            # list of hardware adaptesr and what we know about them
-            self.adapter_callback(callback_input)
-        elif callback_input[0] == "state":
-            # overall speedify state: connected, connecting, etc.
-            self.state_callback(callback_input)
-        elif callback_input[0] == "streaming_stats":
-            # stats on high priority live streams (RTMP, VoIP, WebRTC video conferences)
-            self.streaming_callback(callback_input)
-        elif  callback_input[0] == "session_stats":
-            # session stats - totals, both current for this session and historic
-            self.session_callback(callback_input)
-        elif  callback_input[0] == "connection_stats":
-            # connection stats - about the current connections over the adapters
-            # not doing anything right now.
-            pass;
-
+        try:
+            if callback_input[0] == "adapters":
+                # list of hardware adaptesr and what we know about them
+                self.adapter_callback(callback_input)
+            elif callback_input[0] == "state":
+                # overall speedify state: connected, connecting, etc.
+                self.state_callback(callback_input)
+            elif callback_input[0] == "streaming_stats":
+                # stats on high priority live streams (RTMP, VoIP, WebRTC video conferences)
+                self.streaming_callback(callback_input)
+            elif  callback_input[0] == "session_stats":
+                # session stats - totals, both current for this session and historic
+                self.session_callback(callback_input)
+            elif  callback_input[0] == "connection_stats":
+                # connection stats - about the current connections over the adapters
+                # not doing anything right now.
+                pass;
+        except Exception as e:
+            print("callback failed because of Exception:" + str(e))
+        except:
+            print("callback failed for other reason")
 
     def send_hotkey(self,hotkey, reason):
         wsh = comctl.Dispatch("WScript.Shell")
