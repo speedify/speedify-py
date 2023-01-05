@@ -1728,7 +1728,8 @@ def _do_callback(callback, message):
             callback(jsonret)
         except Exception as e:
             logger.warning("problem callback: " + str(e))
-
+        except:
+            logger.warning("problem in callback")
 
 # Default cli search locations
 def _find_cli():

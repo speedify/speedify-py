@@ -1,4 +1,6 @@
+import datetime
 import sys
+import requests
 
 import win32com.client as comctl
 
@@ -30,6 +32,10 @@ Ctrl-Alt-KEY combos:
   * n = stream saved!
 """
 
+call_webhook = False
+webhook_reporting_url = None
+isp_of_interest = "Starlink"
+#isp_of_interest = "Comcast Cable"
 
 
 class speedify_callback:
@@ -44,27 +50,32 @@ class speedify_callback:
         self.last_total_saves = 0
         self.starlink_adapter_id = ""
         self.streams = {}
+        # last time we reported stats to webservice rounded to nearest minute
+        self.lastminute = None
 
     def __call__(self, callback_input):
         """Called every time a JSON object is emitted by `speedify_cli stats`.  
-           Usually you get one of each message type per second."""
+           Typically there a couple messages a second."""
         print("call back - "+ callback_input[0])
         try:
             if callback_input[0] == "adapters":
-                # list of hardware adaptesr and what we know about them
+                # list of hardware adapters and what we know about them
+                # this one is often skipped if there have been no changes
                 self.adapter_callback(callback_input)
             elif callback_input[0] == "state":
                 # overall speedify state: connected, connecting, etc.
+                # often skipped if nothing changed
                 self.state_callback(callback_input)
             elif callback_input[0] == "streaming_stats":
                 # stats on high priority live streams (RTMP, VoIP, WebRTC video conferences)
+                # only come if there's a stream
                 self.streaming_callback(callback_input)
             elif  callback_input[0] == "session_stats":
                 # session stats - totals, both current for this session and historic
                 self.session_callback(callback_input)
             elif  callback_input[0] == "connection_stats":
+                self.connection_callback(callback_input)
                 # connection stats - about the current connections over the adapters
-                # not doing anything right now.
                 pass;
         except Exception as e:
             print("callback failed because of Exception:" + str(e))
@@ -82,7 +93,7 @@ class speedify_callback:
         adapterlist = callback_input[1]
         saw_starlink = False;
         for adapter in adapterlist:
-            if(adapter["isp"] == "Starlink" or adapter["adapterID"] == self.starlink_adapter_id ):
+            if(adapter["isp"] == isp_of_interest or adapter["adapterID"] == self.starlink_adapter_id ):
                 self.starlink_adapter_id = adapter["adapterID"]
                 saw_starlink = True
                 starlink_state = adapter["state"]
@@ -100,6 +111,22 @@ class speedify_callback:
             self.send_hotkey('r', "starlink disconnected (disappeared)")
             self.last_starlink_state = "disconnected"
   
+    def connection_callback(self, callback_input):
+        try:
+            connections = callback_input[1]
+            connectionlist = connections["connections"]
+            saw_starlink = False;
+            if (self.starlink_adapter_id == ""):
+                return;
+            for connection in connectionlist:
+                #print("connection: " + connection)
+                if (connection["adapterID"] == self.starlink_adapter_id):
+                    saw_starlink = True
+                    self.send_if_time_changed(connection)
+                    pass
+        except Exception as e:
+            print("exception in connection_callback: " + str(e))
+
     def streaming_callback(self, callback_input):
         streaming_stats = callback_input[1]
         bad_latency = streaming_stats["badLatency"]
@@ -151,6 +178,43 @@ class speedify_callback:
                 logging.info("State changed to " + new_state)
                 self.last_state = new_state
 
+    def round_time(self):
+        # when the date that comes out of this function changes, then the webhook is called again.
+        # currently set to time rounded down to minute
+        tm = datetime.datetime.now()
+        tm = tm - datetime.timedelta(
+                             seconds=tm.second,
+                             microseconds=tm.microsecond)
+        return tm;
+
+    def update_time(self):
+        tm = self.round_time();
+        self.lastminute = tm;
+
+    def time_elapsed(self):
+        # returns true if the rounded time has changed since last stored
+        tm = self.round_time();
+        if tm != self.lastminute:
+            return True
+        return False
+
+    def send_if_time_changed(self, data):
+        try:
+            if not call_webhook:
+                return;
+            if not self.time_elapsed():
+                return;
+            # do report
+
+            print("Sending connection data: " + str(data))
+            x = requests.post(webhook_reporting_url, json = data)
+            print(x.text)
+            # success!
+            self.update_time()
+        except Exception as e:
+            print("exception in send_if_time_changed: " + str(e))
+    
+
     def reset_stats(self):
         """Starting our stats over, we connected or disconnected or something"""
         self.last_ssid = ""
@@ -163,5 +227,11 @@ class speedify_callback:
         self.streams = {}
 
 
+if(len(sys.argv) > 1):
+    webhook_reporting_url = sys.argv[1];
+if webhook_reporting_url != None and webhook_reporting_url.startswith("http"):
+    call_webhook = True
+
+print("call_webhook: " + str(call_webhook))
 speedify_callback = speedify_callback()
 speedify.stats_callback(0, speedify_callback)
