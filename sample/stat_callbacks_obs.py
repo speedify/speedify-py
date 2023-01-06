@@ -48,6 +48,7 @@ class speedify_callback:
         self.last_bad_cpu = False
         self.last_bad_memory = False
         self.last_total_saves = 0
+        self.recent_saves = 0
         self.starlink_adapter_id = ""
         self.streams = {}
         # last time we reported stats to webservice rounded to nearest minute
@@ -120,10 +121,25 @@ class speedify_callback:
                 return;
             for connection in connectionlist:
                 #print("connection: " + connection)
-                if (connection["adapterID"] == self.starlink_adapter_id):
+                if (connection["adapterID"] == self.starlink_adapter_id and connection["protocol"] != "proxy"):
+                    connection["state"] = self.last_state 
+                    connection["isp"] =isp_of_interest
+                    connection["connection_state"] =self.last_starlink_state 
+                    connection["stream_bad_latency"] = self.last_bad_latency
+                    connection["stream_bad_loss"] = self.last_bad_loss 
+                    connection["stream_bad_cpu"] = self.last_bad_cpu 
+                    connection["stream_bad_memory"] = self.last_bad_memory
+                    connection["stream_recent_saves"] = self.recent_saves
+                    self.recent_saves =0
+
                     saw_starlink = True
                     self.send_if_time_changed(connection)
-                    pass
+                    
+            if not saw_starlink and self.starlink_adapter_id != "":
+                temp_record = {}
+                temp_record["adapterID"] = self.starlink_adapter_id
+                temp_record["connected"] = False
+                self.send_if_time_changed(temp_record)
         except Exception as e:
             print("exception in connection_callback: " + str(e))
 
@@ -154,6 +170,7 @@ class speedify_callback:
         streaming = current["streaming"]
         totalSaves = streaming["totalFailoverSaves"] +  streaming["totalRedundantModeSaves"] +  streaming["totalSpeedModeSaves"]
         if self.last_total_saves != 0 and totalSaves > self.last_total_saves :
+            self.last_recent_saves = self.last_recent_saves + (self.last_total_saves - totalSaves)
             # new save!  or we have no idea how many there were before, same difference
             self.send_hotkey("n","stream saved")
         self.last_total_saves = totalSaves
@@ -223,6 +240,7 @@ class speedify_callback:
         self.last_bad_loss = False
         self.last_bad_cpu = False
         self.last_bad_memory = False
+        self.last_recent_saves = 0
         self.last_total_saves = 0
         self.streams = {}
 
