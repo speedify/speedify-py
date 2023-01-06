@@ -155,7 +155,7 @@ class speedify_callback:
         totalSaves = streaming["totalFailoverSaves"] +  streaming["totalRedundantModeSaves"] +  streaming["totalSpeedModeSaves"]
         if self.last_total_saves != 0 and totalSaves > self.last_total_saves :
             # new save!  or we have no idea how many there were before, same difference
-            self.send_hotkey('n' "stream saved")
+            self.send_hotkey("n","stream saved")
         self.last_total_saves = totalSaves
 
     def state_callback(self, callback_input):
