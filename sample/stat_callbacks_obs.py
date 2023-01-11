@@ -105,10 +105,10 @@ class speedify_callback:
                         self.send_hotkey('w', "starlink connected")
                     elif starlink_state == "disconnected":
                         self.send_hotkey('r', "starlink disconnected")
-                    elif starlink_state == "connnecting":
+                    elif starlink_state == "connecting": 
                         self.send_hotkey('e', "starlink connecting")
                     else:
-                        print("starlink in unknown state: " + str(starlink_state) )
+                        print("starlink in unknown state: \"" + str(starlink_state) + "\"" )
                 self.last_starlink_state = starlink_state;
         if (self.starlink_adapter_id != "") and (not saw_starlink) and self.last_starlink_state != "disconnected":
             self.send_hotkey('r', "starlink disconnected (disappeared)")
@@ -140,11 +140,11 @@ class speedify_callback:
                     
             if not saw_starlink and self.starlink_adapter_id != "":
                 # Adapter is missing.  send a mostly empty row
-                self.last_state = "disconnected"
+                self.last_starlink_state = "disconnected"
                 connection = {}
                 connection["adapterID"] = self.starlink_adapter_id
                 connection["connected"] = False
-                connection["state"] =  self.last_starlink_state
+                connection["state"] =  self.last_state
                 connection["isp"] =isp_of_interest
                 connection["connection_state"] =self.last_starlink_state 
                 connection["stream_bad_latency"] = self.last_bad_latency
@@ -202,6 +202,7 @@ class speedify_callback:
         if "state" in state_obj:
             new_state = state_obj["state"]
             if new_state != self.last_state:
+                print("new_state: " + str(new_state) + ", last_state: " + str(self.last_state))
                 # clear things whenever connectify state changes
                 self.reset_stats()
                 if self.last_state != None:
