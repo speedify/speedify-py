@@ -151,7 +151,10 @@ class speedify_callback:
         self.last_bad_latency = bad_latency
         bad_loss = streaming_stats["badLoss"]
         if bad_loss and not self.last_bad_loss:
+            print("bad loss started")
             self.send_hotkey('s', "bad loss")
+        if not bad_loss and self.last_bad_loss:
+            print("bad loss stopped")
         self.last_bad_loss = bad_loss
         bad_cpu = streaming_stats["badCpu"]
         if bad_cpu and not self.last_bad_cpu:
@@ -168,9 +171,11 @@ class speedify_callback:
         session_stats = callback_input[1]
         current = session_stats["current"]
         streaming = current["streaming"]
-        totalSaves = streaming["totalFailoverSaves"] +  streaming["totalRedundantModeSaves"] +  streaming["totalSpeedModeSaves"]
-        if self.last_total_saves != 0 and totalSaves > self.last_total_saves :
-            self.last_recent_saves = self.last_recent_saves + (self.last_total_saves - totalSaves)
+        totalSaves = int(streaming["totalFailoverSaves"]) +  int(streaming["totalRedundantModeSaves"]) +  int(streaming["totalSpeedModeSaves"])
+        if int(self.last_total_saves) != 0 and int(totalSaves) > int(self.last_total_saves) :
+            print("saves: " + str(totalSaves) + ", lastSaves: " + str(self.last_total_saves))
+            self.recent_saves = int(self.recent_saves) + (int(self.last_total_saves) - int(totalSaves))
+            
             # new save!  or we have no idea how many there were before, same difference
             self.send_hotkey("n","stream saved")
         self.last_total_saves = totalSaves
@@ -240,7 +245,7 @@ class speedify_callback:
         self.last_bad_loss = False
         self.last_bad_cpu = False
         self.last_bad_memory = False
-        self.last_recent_saves = 0
+        self.recent_saves = 0
         self.last_total_saves = 0
         self.streams = {}
 
