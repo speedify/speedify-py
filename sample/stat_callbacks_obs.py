@@ -50,6 +50,7 @@ class speedify_callback:
         self.last_total_saves = 0
         self.recent_saves = 0
         self.starlink_adapter_id = ""
+        self.starlink_adapter_priority = ""
         self.streams = {}
         # last time we reported stats to webservice rounded to nearest minute
         self.lastminute = None
@@ -96,6 +97,7 @@ class speedify_callback:
         for adapter in adapterlist:
             if(adapter["isp"] == isp_of_interest or adapter["adapterID"] == self.starlink_adapter_id ):
                 self.starlink_adapter_id = adapter["adapterID"]
+                self.starlink_adapter_priority = adapter["workingPriority"]
                 saw_starlink = True
                 starlink_state = adapter["state"]
                 if(self.last_starlink_state != None and self.last_starlink_state != starlink_state ):
@@ -130,16 +132,30 @@ class speedify_callback:
                     connection["stream_bad_cpu"] = self.last_bad_cpu 
                     connection["stream_bad_memory"] = self.last_bad_memory
                     connection["stream_recent_saves"] = self.recent_saves
+                    connection["priority"] = self.starlink_adapter_priority
                     self.recent_saves =0
 
                     saw_starlink = True
                     self.send_if_time_changed(connection)
                     
             if not saw_starlink and self.starlink_adapter_id != "":
-                temp_record = {}
-                temp_record["adapterID"] = self.starlink_adapter_id
-                temp_record["connected"] = False
-                self.send_if_time_changed(temp_record)
+                # Adapter is missing.  send a mostly empty row
+                self.last_state = "disconnected"
+                connection = {}
+                connection["adapterID"] = self.starlink_adapter_id
+                connection["connected"] = False
+                connection["state"] =  self.last_starlink_state
+                connection["isp"] =isp_of_interest
+                connection["connection_state"] =self.last_starlink_state 
+                connection["stream_bad_latency"] = self.last_bad_latency
+                connection["stream_bad_loss"] = self.last_bad_loss 
+                connection["stream_bad_cpu"] = self.last_bad_cpu 
+                connection["stream_bad_memory"] = self.last_bad_memory
+                connection["stream_recent_saves"] = self.recent_saves
+                connection["priority"] = self.starlink_adapter_priority
+                self.recent_saves =0
+
+                self.send_if_time_changed(connection)
         except Exception as e:
             print("exception in connection_callback: " + str(e))
 
