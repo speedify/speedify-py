@@ -50,6 +50,7 @@ class speedify_callback:
         self.last_total_saves = 0
         self.recent_saves = 0
         self.starlink_adapter_id = ""
+        self.starlink_adapter_priority = ""
         self.streams = {}
         # last time we reported stats to webservice rounded to nearest minute
         self.lastminute = None
@@ -96,6 +97,7 @@ class speedify_callback:
         for adapter in adapterlist:
             if(adapter["isp"] == isp_of_interest or adapter["adapterID"] == self.starlink_adapter_id ):
                 self.starlink_adapter_id = adapter["adapterID"]
+                self.starlink_adapter_priority = adapter["workingPriority"]
                 saw_starlink = True
                 starlink_state = adapter["state"]
                 if(self.last_starlink_state != None and self.last_starlink_state != starlink_state ):
@@ -103,10 +105,10 @@ class speedify_callback:
                         self.send_hotkey('w', "starlink connected")
                     elif starlink_state == "disconnected":
                         self.send_hotkey('r', "starlink disconnected")
-                    elif starlink_state == "connnecting":
+                    elif starlink_state == "connecting": 
                         self.send_hotkey('e', "starlink connecting")
                     else:
-                        print("starlink in unknown state: " + str(starlink_state) )
+                        print("starlink in unknown state: \"" + str(starlink_state) + "\"" )
                 self.last_starlink_state = starlink_state;
         if (self.starlink_adapter_id != "") and (not saw_starlink) and self.last_starlink_state != "disconnected":
             self.send_hotkey('r', "starlink disconnected (disappeared)")
@@ -130,16 +132,30 @@ class speedify_callback:
                     connection["stream_bad_cpu"] = self.last_bad_cpu 
                     connection["stream_bad_memory"] = self.last_bad_memory
                     connection["stream_recent_saves"] = self.recent_saves
+                    connection["priority"] = self.starlink_adapter_priority
                     self.recent_saves =0
 
                     saw_starlink = True
                     self.send_if_time_changed(connection)
                     
             if not saw_starlink and self.starlink_adapter_id != "":
-                temp_record = {}
-                temp_record["adapterID"] = self.starlink_adapter_id
-                temp_record["connected"] = False
-                self.send_if_time_changed(temp_record)
+                # Adapter is missing.  send a mostly empty row
+                self.last_starlink_state = "disconnected"
+                connection = {}
+                connection["adapterID"] = self.starlink_adapter_id
+                connection["connected"] = False
+                connection["state"] =  self.last_state
+                connection["isp"] =isp_of_interest
+                connection["connection_state"] =self.last_starlink_state 
+                connection["stream_bad_latency"] = self.last_bad_latency
+                connection["stream_bad_loss"] = self.last_bad_loss 
+                connection["stream_bad_cpu"] = self.last_bad_cpu 
+                connection["stream_bad_memory"] = self.last_bad_memory
+                connection["stream_recent_saves"] = self.recent_saves
+                connection["priority"] = self.starlink_adapter_priority
+                self.recent_saves =0
+
+                self.send_if_time_changed(connection)
         except Exception as e:
             print("exception in connection_callback: " + str(e))
 
@@ -151,7 +167,10 @@ class speedify_callback:
         self.last_bad_latency = bad_latency
         bad_loss = streaming_stats["badLoss"]
         if bad_loss and not self.last_bad_loss:
+            print("bad loss started")
             self.send_hotkey('s', "bad loss")
+        if not bad_loss and self.last_bad_loss:
+            print("bad loss stopped")
         self.last_bad_loss = bad_loss
         bad_cpu = streaming_stats["badCpu"]
         if bad_cpu and not self.last_bad_cpu:
@@ -168,9 +187,11 @@ class speedify_callback:
         session_stats = callback_input[1]
         current = session_stats["current"]
         streaming = current["streaming"]
-        totalSaves = streaming["totalFailoverSaves"] +  streaming["totalRedundantModeSaves"] +  streaming["totalSpeedModeSaves"]
-        if self.last_total_saves != 0 and totalSaves > self.last_total_saves :
-            self.last_recent_saves = self.last_recent_saves + (self.last_total_saves - totalSaves)
+        totalSaves = int(streaming["totalFailoverSaves"]) +  int(streaming["totalRedundantModeSaves"]) +  int(streaming["totalSpeedModeSaves"])
+        if int(self.last_total_saves) != 0 and int(totalSaves) > int(self.last_total_saves) :
+            print("saves: " + str(totalSaves) + ", lastSaves: " + str(self.last_total_saves))
+            self.recent_saves = int(self.recent_saves) + (int(self.last_total_saves) - int(totalSaves))
+            
             # new save!  or we have no idea how many there were before, same difference
             self.send_hotkey("n","stream saved")
         self.last_total_saves = totalSaves
@@ -181,6 +202,7 @@ class speedify_callback:
         if "state" in state_obj:
             new_state = state_obj["state"]
             if new_state != self.last_state:
+                print("new_state: " + str(new_state) + ", last_state: " + str(self.last_state))
                 # clear things whenever connectify state changes
                 self.reset_stats()
                 if self.last_state != None:
@@ -240,7 +262,7 @@ class speedify_callback:
         self.last_bad_loss = False
         self.last_bad_cpu = False
         self.last_bad_memory = False
-        self.last_recent_saves = 0
+        self.recent_saves = 0
         self.last_total_saves = 0
         self.streams = {}
 
