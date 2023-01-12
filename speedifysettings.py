@@ -25,7 +25,7 @@ speedify_defaults = (
     "adapter_datalimit_monthly_all" : 0, "adapter_ratelimit_all" : 0, "route_default": true
     """
     + (
-        ', "privacy_killswitch":false, "privacy_dnsleak": true,'
+        ', "privacy_killswitch":false, "privacy_dnsleak": true'
         if os.name == "nt"
         else ""
     )
@@ -110,7 +110,7 @@ def apply_speedify_settings(newsettings):
     filesuccess = True
     try:
         body = {}
-
+        
         if isinstance(newsettings, str):
             body = json.loads(newsettings)
         else:
@@ -119,7 +119,7 @@ def apply_speedify_settings(newsettings):
             value = body[cmd]
             filesuccess = filesuccess and apply_setting(cmd, value)
     except Exception as e:
-        logging.error("Failed to apply file:" + str(e))
+        logging.error("Failed to apply file: " + str(e))
         filesuccess = False
     return filesuccess
 
