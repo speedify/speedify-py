@@ -50,6 +50,11 @@ For the full list of settings, build the sphinx documentation by running make ht
 
 ## Changelog
 
+### Release 13.x.x
+
+Removed
+  - `esni(bool)`
+
 ### Release 12.5.x
 
 Added
@@ -57,7 +62,6 @@ Added
   - `streamtest()`
   - `directory(str)`
   - `gateway(str)`
-  - `esni(bool)`
   - `headercompression(bool)`
   - `privacy(str, bool)`
   - `daemon(str)`

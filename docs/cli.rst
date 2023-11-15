@@ -47,7 +47,6 @@ The CLI contains the following commands:
      dns <ip address> ...
      disconnect
      encryption <on|off>
-     esni <on|off>
      gateway [directory gateway uri]
      jumbo <on|off>
      login <username> [password]

@@ -299,23 +299,6 @@ def logout():
     return find_state_for_string(jret["state"])
 
 
-def esni(is_on: bool = True):
-    """
-    esni(is_on)
-    Turn esni functionality on or off.
-
-    :param is_on: Whether esni should be on... or not.
-    :type is_on: bool
-    """
-    if is_on is True:
-        is_on = "on"
-    elif is_on is False:
-        is_on = "off"
-    else:
-        raise ValueError("is_on neither True nor False")
-    return _run_speedify_cmd(["esni", is_on])
-
-
 def headercompression(is_on: bool = True):
     """
     headercompression(is_on)
