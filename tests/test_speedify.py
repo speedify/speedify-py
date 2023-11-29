@@ -75,11 +75,6 @@ class TestSpeedify(unittest.TestCase):
         for f in show_functions:
             self.assertTrue(f() != "" and not None)
 
-    def test_esni(self):
-        logging.debug("\n\nTesting esni settings...")
-        for b in [False, True]:
-            self.assertEqual(speedify.esni(b)["enableEsni"], b)
-
     def test_headercompression(self):
         logging.debug("\n\nTesting header compression settings...")
         for b in [False, True]:
