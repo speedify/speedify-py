@@ -22,7 +22,9 @@ speedify_defaults = (
     "startupconnect": true,  "packet_aggregation": true,  "transport":"auto","overflow_threshold": 30.0,
     "adapter_priority_ethernet" : "always","adapter_priority_wifi" : "always",
     "adapter_priority_cellular" : "secondary", "adapter_datalimit_daily_all" : 0,
-    "adapter_datalimit_monthly_all" : 0, "adapter_ratelimit_all" : 0, "route_default": true
+    "adapter_datalimit_monthly_all" : 0,
+    "adapter_ratelimit": {"upload_bps": 0, "download_bps": 0},
+    "route_default": true
     """
     + (
         ', "privacy_killswitch":false, "privacy_dnsleak": true,'
@@ -148,7 +150,10 @@ def get_speedify_settings():
         for adapter in adapters:
             logging.debug("Adapter is :" + str(adapter))
             adaptername = adapter["name"]
-            settings["adapter_ratelimit_" + adaptername] = adapter["rateLimit"]
+            settings["adapter_ratelimit_" + adaptername] = {
+                "upload_bps": adapter["rateLimit"]["uploadBps"],
+                "download_bps": adapter["rateLimit"]["downloadBps"],
+            }
             settings["adapter_priority_" + adaptername] = adapter["priority"]
             if "dataUsage" in adapter:
                 limits = adapter["dataUsage"]
@@ -262,4 +267,4 @@ def _apply_setting_to_adapters(setting, value, adapterguids):
             raise
     elif setting.startswith("adapter_ratelimit"):
         for guid in adapterguids:
-            speedify.adapter_ratelimit(guid, value)
+            speedify.adapter_ratelimit(guid, value["upload_bps"], value["download_bps"])
