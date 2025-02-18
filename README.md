@@ -11,7 +11,9 @@ Automatically looks for `speedify_cli` in a number of standard locations.
 
 You can force it to use a particular location by either setting the environment variable `SPEEDIFY_CLI` or by calling `speedify.set_cli()`.  In either case it takes the full path of the `speedify_cli` executable.
 
-## Usage
+Please see the documentation on our [CLI](https://support.speedify.com/article/285-speedify-cli) for more information on the commands and options available.
+
+## Examples
 
 Put Speedify in speed mode with UDP transport
 ```python
@@ -37,7 +39,7 @@ speedify_settings = '''{"connectmethod" : "closest","encryption" : true, "jumbo"
     "startupconnect": true,    "transport":"auto","overflow_threshold": 30.0,
     "adapter_priority_ethernet" : "always","adapter_priority_wifi" : "always",
     "adapter_priority_cellular" : "secondary", "adapter_datalimit_daily_all" : 0,
-    "adapter_datalimit_monthly_all" : 0, "adapter_ratelimit_all" : 0
+    "adapter_datalimit_monthly_all" : 0, "adapter_ratelimit" : {"upload_bps":0, "download_bps":0},
     }'''
 
 #Apply settings
@@ -46,7 +48,9 @@ apply_speedify_settings(speedify_settings)
 print(get_speedify_settings())
 ```
 
-For the full list of settings, build the sphinx documentation by running make html in the docs/ folder.
+`privacy_killswitch` and `privacy_dnsleak` are only supported on Windows.
+
+The example settings above contain all of the possible settings.
 
 ## Changelog
 
