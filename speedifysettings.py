@@ -213,6 +213,7 @@ def _find_adapterids(adaptertype="wifi"):
 
     adapters = speedify.show_adapters()
     for adapter in adapters:
+        guid = None
         if isAll:
             adapterGuids.append(str(adapter["adapterID"]))
         elif not isGuid:
@@ -258,7 +259,7 @@ def _apply_setting_to_adapters(setting, value, adapterguids):
             for guid in adapterguids:
                 speedify.adapter_priority(guid, Priority[str(value).upper()])
         except KeyError as keyerr:
-            print("no such priority: " + str(value) + keyerr)
+            print("no such priority: " + str(value) + str(keyerr))
             raise
     elif setting.startswith("adapter_ratelimit"):
         for guid in adapterguids:
