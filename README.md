@@ -39,7 +39,7 @@ speedify_settings = '''{"connectmethod" : "closest","encryption" : true, "jumbo"
     "startupconnect": true,    "transport":"auto","overflow_threshold": 30.0,
     "adapter_priority_ethernet" : "always","adapter_priority_wifi" : "always",
     "adapter_priority_cellular" : "secondary", "adapter_datalimit_daily_all" : 0,
-    "adapter_datalimit_monthly_all" : 0, "adapter_ratelimit" : {"upload_bps":0, "download_bps":0},
+    "adapter_datalimit_monthly_all" : 0, "adapter_ratelimit_all" : 0
     }'''
 
 #Apply settings
