@@ -1,6 +1,8 @@
 Speedify for Python
 =======================
 
+The [v1.0.0](https://github.com/speedify/speedify-py/tree/v1.0.0) is compatible with Speedify versions 15.2.x and below.
+
 Lets you control [Speedify](https://speedify.com), the bonding VPN, from Python.  Nearly everything available to the user interface is available via this library.
 
 This library exposes all of the functionality from the [Speedify CLI](https://support.speedify.com/article/285-speedify-command-line-interface).  
