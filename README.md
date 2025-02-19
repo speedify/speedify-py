@@ -11,7 +11,9 @@ Automatically looks for `speedify_cli` in a number of standard locations.
 
 You can force it to use a particular location by either setting the environment variable `SPEEDIFY_CLI` or by calling `speedify.set_cli()`.  In either case it takes the full path of the `speedify_cli` executable.
 
-## Usage
+Please see the documentation on our [CLI](https://support.speedify.com/article/285-speedify-cli) for more information on the commands and options available.
+
+## Examples
 
 Put Speedify in speed mode with UDP transport
 ```python
@@ -46,7 +48,9 @@ apply_speedify_settings(speedify_settings)
 print(get_speedify_settings())
 ```
 
-For the full list of settings, build the sphinx documentation by running make html in the docs/ folder.
+`privacy_killswitch` and `privacy_dnsleak` are only supported on Windows.
+
+The example settings above contain all of the possible settings.
 
 ## Changelog
 
