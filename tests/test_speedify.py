@@ -452,7 +452,7 @@ class TestSpeedify(unittest.TestCase):
     def _set_and_test_adapter_list(self, adapterIDs, priority, limit):
         for adapterID in adapterIDs:
             speedify.adapter_priority(adapterID, priority)
-            speedify.adapter_ratelimit(adapterID, limit)
+            speedify.adapter_ratelimit(adapterID, limit, limit)
             speedify.adapter_datalimit_daily(adapterID, limit)
             speedify.adapter_datalimit_monthly(adapterID, limit, 0)
         updated_adapters = speedify.show_adapters()
@@ -470,7 +470,8 @@ class TestSpeedify(unittest.TestCase):
             # Disconnected adapters speedify is aware of will have an unchangable priority never
             if set_priority != Priority.NEVER.value:
                 self.assertEqual(set_priority, priority.value)
-            self.assertEqual(rate_limit, limit)
+            self.assertEqual(rate_limit["uploadBps"], limit)
+            self.assertEqual(rate_limit["downloadBps"], limit)
             self.assertEqual(daily_limit, limit)
             self.assertEqual(monthly_limit, limit)
 
