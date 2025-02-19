@@ -1192,9 +1192,9 @@ def adapter_encryption(adapterID: str, should_encrypt):
 
 
 @exception_wrapper("Failed to set adapter ratelimit")
-def adapter_ratelimit(adapterID: str, upload_bps: int = 0, download_bps: int = 0):
+def adapter_ratelimit(adapterID: str, download_bps: int = 0, upload_bps: int = 0):
     """
-    adapter_ratelimit(adapterID: str, upload_bps: int = 0, download_bps: int = 0)
+    adapter_ratelimit(adapterID: str, download_bps: int = 0, upload_bps: int = 0)
     Sets the ratelimit in bps on the adapter whose adapterID is provided
     (show_adapters is where you find the adapterIDs)
 
@@ -1206,7 +1206,7 @@ def adapter_ratelimit(adapterID: str, upload_bps: int = 0, download_bps: int = 0
     :type download_bps: int
     :returns:  dict -- :ref:`JSON adapter response <adapter-datalimit-daily>` from speedify.
     """
-    return _run_speedify_cmd(["adapter", "ratelimit", adapterID, str(upload_bps), str(download_bps)])
+    return _run_speedify_cmd(["adapter", "ratelimit", adapterID, str(download_bps), str(upload_bps)])
 
 
 @exception_wrapper("Failed to set adapter daily limit")

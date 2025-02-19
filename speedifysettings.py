@@ -267,4 +267,4 @@ def _apply_setting_to_adapters(setting, value, adapterguids):
             raise
     elif setting.startswith("adapter_ratelimit"):
         for guid in adapterguids:
-            speedify.adapter_ratelimit(guid, value["upload_bps"], value["download_bps"])
+            speedify.adapter_ratelimit(guid, value["download_bps"], value["upload_bps"])
