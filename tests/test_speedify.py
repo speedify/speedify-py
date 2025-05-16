@@ -24,12 +24,9 @@ logging.basicConfig(
 # assumes you're logged in
 
 
-def known_private_server_countries() -> list[str]:
-    return [s["country"] for s in speedify.show_servers()["private"]]
-
-
-def random_private_server_country() -> str:
-    return random.choice(known_private_server_countries())
+def server_countries() -> set[str]:
+    all_known_servers = speedify.show_servers()["private"] + speedify.show_servers()["public"]
+    return {s["country"] for s in all_known_servers}
 
 
 class TestSpeedify(unittest.TestCase):
@@ -207,7 +204,7 @@ class TestSpeedify(unittest.TestCase):
 
     def test_connect_country(self):
         logging.debug("\n\nTesting connect country...")
-        country = random_private_server_country()
+        country = random.choice(list(server_countries()))
         serverinfo = speedify.connect_country(country)
         state = speedify.show_state()
         self.assertEqual(state, State.CONNECTED)
@@ -255,7 +252,8 @@ class TestSpeedify(unittest.TestCase):
     def test_connectmethod(self):
         logging.debug("\n\nTesting connectmethod...")
         speedify.connect_closest()
-        speedify.connectmethod("private", random_private_server_country())
+        country = random.choice(list(server_countries()))
+        speedify.connectmethod("private", country)
         # pull settings from speedify to be sure they really set
         cm_settings = speedify.show_connectmethod()
         self.assertEqual(cm_settings["connectMethod"], "private")
@@ -269,7 +267,8 @@ class TestSpeedify(unittest.TestCase):
         self.assertEqual(cm_settings["country"], "")
         self.assertEqual(cm_settings["num"], 0)
         self.assertEqual(cm_settings["city"], "")
-        for country in known_private_server_countries():
+        country_sample = random.sample(list(server_countries()), 3)
+        for country in country_sample:
             retval = speedify.connectmethod("country", country=country)
             cm_settings = speedify.show_connectmethod()
             self.assertEqual(cm_settings["connectMethod"], "country")
