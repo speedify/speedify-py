@@ -204,15 +204,16 @@ class TestSpeedify(unittest.TestCase):
 
     def test_connect_country(self):
         logging.debug("\n\nTesting connect country...")
-        country = random.choice(list(server_countries()))
-        serverinfo = speedify.connect_country(country)
-        state = speedify.show_state()
-        self.assertEqual(state, State.CONNECTED)
-        self.assertIn("tag", serverinfo)
-        self.assertIn("country", serverinfo)
-        self.assertEqual(serverinfo["country"], country)
-        new_serverinfo = speedify.show_currentserver()
-        self.assertEqual(new_serverinfo["country"], country)
+        country_sample = random.sample(list(server_countries()), 3)
+        for country in country_sample:
+            serverinfo = speedify.connect_country(country)
+            state = speedify.show_state()
+            self.assertEqual(state, State.CONNECTED)
+            self.assertIn("tag", serverinfo)
+            self.assertIn("country", serverinfo)
+            self.assertEqual(serverinfo["country"], country)
+            new_serverinfo = speedify.show_currentserver()
+            self.assertEqual(new_serverinfo["country"], country)
 
     def test_transport(self):
         logging.debug("\n\nTesting transport...")
