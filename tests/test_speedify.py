@@ -12,6 +12,7 @@ import speedifyutil
 import logging
 import unittest
 import time
+import random
 
 logging.basicConfig(
     handlers=[logging.FileHandler("test.log"), logging.StreamHandler(sys.stdout)],
@@ -21,6 +22,11 @@ logging.basicConfig(
 
 # Test the speedify library
 # assumes you're logged in
+
+
+def server_countries() -> set[str]:
+    all_known_servers = speedify.show_servers()["private"] + speedify.show_servers()["public"]
+    return {s["country"] for s in all_known_servers}
 
 
 class TestSpeedify(unittest.TestCase):
@@ -198,14 +204,16 @@ class TestSpeedify(unittest.TestCase):
 
     def test_connect_country(self):
         logging.debug("\n\nTesting connect country...")
-        serverinfo = speedify.connect_country("sg")
-        state = speedify.show_state()
-        self.assertEqual(state, State.CONNECTED)
-        self.assertIn("tag", serverinfo)
-        self.assertIn("country", serverinfo)
-        self.assertEqual(serverinfo["country"], "sg")
-        new_serverinfo = speedify.show_currentserver()
-        self.assertEqual(new_serverinfo["country"], "sg")
+        country_sample = random.sample(list(server_countries()), 3)
+        for country in country_sample:
+            serverinfo = speedify.connect_country(country)
+            state = speedify.show_state()
+            self.assertEqual(state, State.CONNECTED)
+            self.assertIn("tag", serverinfo)
+            self.assertIn("country", serverinfo)
+            self.assertEqual(serverinfo["country"], country)
+            new_serverinfo = speedify.show_currentserver()
+            self.assertEqual(new_serverinfo["country"], country)
 
     def test_transport(self):
         logging.debug("\n\nTesting transport...")
@@ -245,7 +253,8 @@ class TestSpeedify(unittest.TestCase):
     def test_connectmethod(self):
         logging.debug("\n\nTesting connectmethod...")
         speedify.connect_closest()
-        speedify.connectmethod("private", "jp")
+        country = random.choice(list(server_countries()))
+        speedify.connectmethod("private", country)
         # pull settings from speedify to be sure they really set
         cm_settings = speedify.show_connectmethod()
         self.assertEqual(cm_settings["connectMethod"], "private")
@@ -259,16 +268,18 @@ class TestSpeedify(unittest.TestCase):
         self.assertEqual(cm_settings["country"], "")
         self.assertEqual(cm_settings["num"], 0)
         self.assertEqual(cm_settings["city"], "")
-        retval = speedify.connectmethod("country", country="sg")
-        cm_settings = speedify.show_connectmethod()
-        self.assertEqual(cm_settings["connectMethod"], "country")
-        self.assertEqual(cm_settings["country"], "sg")
-        # the settings were returned by the actual connectmethod call,
-        # and should be exactly the same
-        self.assertEqual(cm_settings["connectMethod"], retval["connectMethod"])
-        self.assertEqual(cm_settings["country"], retval["country"])
-        self.assertEqual(cm_settings["num"], retval["num"])
-        self.assertEqual(cm_settings["city"], retval["city"])
+        country_sample = random.sample(list(server_countries()), 3)
+        for country in country_sample:
+            retval = speedify.connectmethod("country", country=country)
+            cm_settings = speedify.show_connectmethod()
+            self.assertEqual(cm_settings["connectMethod"], "country")
+            self.assertEqual(cm_settings["country"], country)
+            # the settings were returned by the actual connectmethod call,
+            # and should be exactly the same
+            self.assertEqual(cm_settings["connectMethod"], retval["connectMethod"])
+            self.assertEqual(cm_settings["country"], retval["country"])
+            self.assertEqual(cm_settings["num"], retval["num"])
+            self.assertEqual(cm_settings["city"], retval["city"])
         speedify.connectmethod("closest")
         cm_settings = speedify.show_connectmethod()
         self.assertEqual(cm_settings["connectMethod"], "closest")
