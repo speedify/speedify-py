@@ -54,7 +54,7 @@ The example settings above contain all of the possible settings.
 
 ## Changelog
 
-### Release 12.5.x
+### Release 16.0.2
 
 Added
   - `dns(str)`
