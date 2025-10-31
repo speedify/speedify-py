@@ -5,6 +5,7 @@ import speedify
 import json
 import logging
 import os
+import sys
 
 from speedify import Priority
 from speedify import SpeedifyError
@@ -64,6 +65,8 @@ def apply_setting(setting, value):
             speedify.packetaggregation(value)
         elif setting == "jumbo":
             speedify.jumbo(value)
+        elif setting == "headerCompression":
+            speedify.headercompression(value)
         # dnsleak and killswitch not available on all platforms
         elif setting == "privacy_dnsleak":
             if os.name == "nt":
@@ -89,17 +92,23 @@ def apply_setting(setting, value):
             speedify.priorityoverflow(float(value))
         elif setting == "max_redundant_sends":
             speedify.maxredundant(int(value))
-        elif setting == "packet_pool_size":
-            speedify.packetpool(str(value))
         elif setting == "maximum_connect_retry":
             speedify.connectretry(int(value))
         elif setting == "maximum_transport_retry":
             speedify.transportretry(int(value))
-        # Note: allow_chacha_encryption, header_compression, automatic_connection_priority,
-        # forwarded_ports, downstream_subnets, per_connection_encryption, dns_addresses,
-        # request_to_disable_doh, streaming_*, bypass, localproxy_domain_watchlist,
-        # daemon_log_settings, dscp_queues, and network_sharing_* settings
-        # may require additional CLI command support for setting (not just getting)
+        # Read-only settings that can be retrieved but not set via CLI
+        elif setting in ["automatic_connection_priority", "per_connection_encryption",
+                         "forwarded_ports", "downstream_subnets", "dns_addresses",
+                         "streaming_domains", "streaming_ipv4", "streaming_ipv6", "streaming_ports",
+                         "bypass", "localproxy_domain_watchlist", "daemon_log_settings", "dscp_queues",
+                         "network_sharing_client_enabled", "network_sharing_host_enabled",
+                         "network_sharing_pair_request_behavior", "request_to_disable_doh",
+                         "packet_pool_size"]:
+            # These settings are read-only or not yet implemented for writing
+            # dscp_queues is Linux-only, packet_pool_size appears to be read-only
+            logging.debug("skipping read-only or unimplemented setting: " + str(setting))
+            # Don't mark as failure since these are expected
+        # Note: allow_chacha_encryption and other settings may require additional CLI command support
         else:
             logging.warning("unknown setting " + str(setting))
             success = False
@@ -194,8 +203,8 @@ def get_speedify_settings():
         settings["route_default"] = currentsettings["enableDefaultRoute"]
 
         # Additional settings from show_settings()
-        settings["allow_chacha_encryption"] = currentsettings.get("allowChaChaEncryption", True)
-        settings["header_compression"] = currentsettings.get("headerCompression", True)
+        # settings["allow_chacha_encryption"] = currentsettings.get("allowChaChaEncryption", True)
+        settings["headerCompression"] = currentsettings.get("headerCompression", True)
         settings["priority_overflow_threshold"] = currentsettings.get("priorityOverflowThreshold", 70)
         settings["max_redundant_sends"] = currentsettings.get("maxRedundant", 5)
         settings["automatic_connection_priority"] = currentsettings.get("enableAutomaticPriority", True)
@@ -274,19 +283,24 @@ def get_speedify_settings():
                 "log_level": log_level_str
             }
 
-        # DSCP settings
-        dscpsettings = speedify.show_dscp()
-        if dscpsettings and "dscpQueues" in dscpsettings:
-            # Map CLI field names to schema field names
-            dscp_queues = []
-            for queue in dscpsettings["dscpQueues"]:
-                dscp_queues.append({
-                    "value": queue.get("dscp", 0),
-                    "priority": queue.get("priority", "auto"),
-                    "replication": queue.get("replication", "auto"),
-                    "retransmission_attempts": queue.get("retransmissionAttempts", 2)
-                })
-            settings["dscp_queues"] = dscp_queues
+        # DSCP settings (Linux only)
+        if sys.platform.startswith('linux'):
+            try:
+                dscpsettings = speedify.show_dscp()
+                if dscpsettings and "dscpQueues" in dscpsettings:
+                    # Map CLI field names to schema field names
+                    dscp_queues = []
+                    for queue in dscpsettings["dscpQueues"]:
+                        dscp_queues.append({
+                            "value": queue.get("dscp", 0),
+                            "priority": queue.get("priority", "auto"),
+                            "replication": queue.get("replication", "auto"),
+                            "retransmission_attempts": queue.get("retransmissionAttempts", 2)
+                        })
+                    settings["dscp_queues"] = dscp_queues
+            except SpeedifyError:
+                # DSCP call failed even on Linux
+                logging.debug("DSCP call failed")
 
         # Network sharing settings
         nssettings = speedify.networksharing_settings()

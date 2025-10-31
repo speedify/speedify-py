@@ -803,7 +803,11 @@ def show_dscp():
     show_dscp()
     Returns current DSCP queue settings
 
+    Note: DSCP (Differentiated Services Code Point) settings are only supported on Linux.
+    On other platforms, this will raise a SpeedifyAPIError.
+
     :returns:  dict -- :ref:`JSON dscp settings <show-dscp>` from speedify.
+    :raises SpeedifyAPIError: On non-Linux platforms where DSCP is not supported.
     """
     return _run_speedify_cmd(["show", "dscp"])
 
@@ -813,6 +817,8 @@ def dscp_queues_add(dscp: int, priority: str = None, replication: str = None, re
     """
     dscp_queues_add(dscp, priority, replication, retransmissions)
     Add a DSCP queue configuration.
+
+    Note: DSCP settings are only supported on Linux.
 
     Example:
         dscp_queues_add(0, priority="on", replication="auto", retransmissions=2)
@@ -826,6 +832,7 @@ def dscp_queues_add(dscp: int, priority: str = None, replication: str = None, re
     :param retransmissions: Number of retransmission attempts (0-255), optional.
     :type retransmissions: int
     :returns:  dict -- JSON with updated DSCP queue settings.
+    :raises SpeedifyAPIError: On non-Linux platforms where DSCP is not supported.
     """
     args = ["dscp", "queues", "add", str(dscp)]
     if priority is not None:
@@ -843,6 +850,8 @@ def dscp_queues_set(dscp: int, priority: str = None, replication: str = None, re
     dscp_queues_set(dscp, priority, replication, retransmissions)
     Set a DSCP queue configuration.
 
+    Note: DSCP settings are only supported on Linux.
+
     Example:
         dscp_queues_set(0, priority="on", replication="auto", retransmissions=2)
 
@@ -855,6 +864,7 @@ def dscp_queues_set(dscp: int, priority: str = None, replication: str = None, re
     :param retransmissions: Number of retransmission attempts (0-255), optional.
     :type retransmissions: int
     :returns:  dict -- JSON with updated DSCP queue settings.
+    :raises SpeedifyAPIError: On non-Linux platforms where DSCP is not supported.
     """
     args = ["dscp", "queues", "set", str(dscp)]
     if priority is not None:
@@ -872,12 +882,15 @@ def dscp_queues_rem(dscp: int):
     dscp_queues_rem(dscp)
     Remove a DSCP queue configuration.
 
+    Note: DSCP settings are only supported on Linux.
+
     Example:
         dscp_queues_rem(0)
 
     :param dscp: DSCP value (0-63) to remove.
     :type dscp: int
     :returns:  dict -- JSON with updated DSCP queue settings.
+    :raises SpeedifyAPIError: On non-Linux platforms where DSCP is not supported.
     """
     return _run_speedify_cmd(["dscp", "queues", "rem", str(dscp)])
 
@@ -2373,9 +2386,6 @@ def stats(time: int = 1):
     if time == 0:
         logger.error("stats cannot be run with 0, would never return")
         raise SpeedifyError("Stats cannot be run with 0")
-    if time == 1:
-        # fix for bug where passing in 1 returns nothing.
-        time = 2
 
     class list_callback:
         def __init__(self):
@@ -2400,7 +2410,7 @@ def stats_callback(time: int, callback):
     :type callback: function
     """
     args = ["stats", str(time)]
-    cmd = [get_cli()] + args
+    cmd = [get_cli(), "-s"] + args
 
     _run_long_command(cmd, callback)
 
@@ -2446,7 +2456,7 @@ def safebrowsing_error(time: int = 1):
 
 def safebrowsing_error_callback(time: int, callback):
     args = ["safebrowsing", "errors", str(time)]
-    cmd = [get_cli()] + args
+    cmd = [get_cli(), "-s"] + args
 
     _run_long_command(cmd, callback)
 
@@ -2461,10 +2471,13 @@ def _run_speedify_cmd(args, cmdtimeout: int = 60):
     Core function that executes Speedify CLI commands and parses JSON responses.
 
     This is the primary interface between Python and the speedify_cli executable. It:
-    1. Constructs the command by prepending the CLI path to the provided arguments
+    1. Constructs the command by prepending the CLI path and -s flag to the provided arguments
     2. Executes the command via subprocess with appropriate timeout and shell settings
-    3. Parses JSON from the last record in stdout (CLI may output multiple JSON objects)
+    3. Parses single-line JSON from the last line in stdout (using -s flag for compact output)
     4. Handles errors by parsing stderr JSON and raising appropriate SpeedifyError exceptions
+
+    The -s flag tells speedify_cli to output JSON as single lines instead of pretty-printed,
+    making parsing simpler and more efficient.
 
     The Speedify CLI returns:
     - Exit code 0: Success, JSON response in stdout
@@ -2481,8 +2494,8 @@ def _run_speedify_cmd(args, cmdtimeout: int = 60):
     """
     resultstr = ""
     try:
-        # Build the full command: CLI path + user arguments
-        cmd = [get_cli()] + args
+        # Build the full command: CLI path + "-s" flag for single-line JSON + user arguments
+        cmd = [get_cli(), "-s"] + args
 
         # Execute the CLI command with appropriate settings
         result = subprocess.run(
@@ -2497,15 +2510,13 @@ def _run_speedify_cmd(args, cmdtimeout: int = 60):
         # Parse the JSON response from stdout
         resultstr = result.stdout.decode("utf-8").strip()
 
-        # CLI may output multiple JSON objects separated by double line breaks
-        # We want the last one, which contains the final result
-        sep = os.linesep * 2
-        records = resultstr.split(sep)
-        reclen = len(records)
+        # With -s flag, CLI outputs one JSON object per line
+        # Split by newlines and take the last non-empty line
+        lines = [line for line in resultstr.split('\n') if line.strip()]
 
-        if reclen > 0:
-            # Parse and return the last JSON object
-            return json.loads(records[-1])
+        if len(lines) > 0:
+            # Parse and return the last JSON object (the final result)
+            return json.loads(lines[-1])
 
         # No output received (shouldn't happen with a successful exit code)
         logger.error("command " + args[0] + " had NO records")
@@ -2596,41 +2607,28 @@ def _run_long_command(cmdarray, callback):
 
     Unlike _run_speedify_cmd() which waits for a single final response, this function
     handles commands that continuously output JSON objects over time (like stats or
-    continuous monitoring). It reads stdout line-by-line, buffers complete JSON objects,
-    and invokes the callback function for each parsed object.
+    continuous monitoring). With the -s flag, each line contains a complete JSON object,
+    making parsing straightforward.
 
     Used internally by stats_callback() and safebrowsing_error_callback() to provide
     real-time monitoring capabilities.
 
-    :param cmdarray: Complete command array including CLI path (e.g., ["/path/to/speedify_cli", "stats", "10"])
+    :param cmdarray: Complete command array including CLI path and -s flag (e.g., ["/path/to/speedify_cli", "-s", "stats", "10"])
     :type cmdarray: list
     :param callback: Function to invoke with each parsed JSON object. Takes one argument: the JSON dict.
     :type callback: function
     :returns: None
     """
-    outputbuffer = ""
-
     with subprocess.Popen(cmdarray, stdout=subprocess.PIPE) as proc:
-        # Read stdout line by line as it becomes available
+        # With -s flag, each line is a complete JSON object
+        # Read and process each line as it becomes available
         for line in proc.stdout:
             line = line.decode("utf-8").strip()
 
             if line:
-                # Non-empty line: add to buffer (building up a JSON object)
-                outputbuffer += str(line)
-            else:
-                # Empty line signals end of a JSON object
-                if outputbuffer:
-                    # Parse and invoke callback with the buffered JSON
-                    _do_callback(callback, outputbuffer)
-                    outputbuffer = ""
-                else:
-                    # Multiple consecutive empty lines, just reset buffer
-                    outputbuffer = ""
-
-    # Handle any remaining buffered output when stream ends
-    if outputbuffer:
-        _do_callback(callback, outputbuffer)
+                # Non-empty line contains a complete JSON object
+                # Parse and invoke callback immediately
+                _do_callback(callback, line)
 
 
 def _do_callback(callback, message):
