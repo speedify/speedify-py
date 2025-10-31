@@ -572,6 +572,39 @@ def show_version():
     return _run_speedify_cmd(["version"])
 
 
+@exception_wrapper("Failed to show logsettings")
+def show_logsettings():
+    """
+    show_logsettings()
+    Returns current log settings
+
+    :returns:  dict -- :ref:`JSON logsettings <show-logsettings>` from speedify.
+    """
+    return _run_speedify_cmd(["show", "logsettings"])
+
+
+@exception_wrapper("Failed to show dscp")
+def show_dscp():
+    """
+    show_dscp()
+    Returns current DSCP queue settings
+
+    :returns:  dict -- :ref:`JSON dscp settings <show-dscp>` from speedify.
+    """
+    return _run_speedify_cmd(["show", "dscp"])
+
+
+@exception_wrapper("Failed to get networksharing settings")
+def networksharing_settings():
+    """
+    networksharing_settings()
+    Returns current network sharing (Pair & Share) settings
+
+    :returns:  dict -- :ref:`JSON networksharing settings <networksharing-settings>` from speedify.
+    """
+    return _run_speedify_cmd(["networksharing", "settings"])
+
+
 @exception_wrapper("Failed to get stats")
 def safebrowsing_stats():
     args = ["safebrowsing", "stats"]
@@ -1407,6 +1440,86 @@ def overflow(speed_in_mbps: float = 30.0):
     """
     args = ["overflow"]
     args.append(str(speed_in_mbps))
+    resultjson = _run_speedify_cmd(args)
+    return resultjson
+
+
+@exception_wrapper("Failed to set priority overflow")
+def priorityoverflow(speed_in_mbps: float = 70.0):
+    """
+    priorityoverflow(speed_in_mbps = 70.0)
+    sets priority overflow threshold.
+
+    :param speed_in_mbps: Priority overflow threshold in mbps
+    :type speed_in_mbps: float
+    :returns:  dict -- :ref:`JSON settings <priorityoverflow>` from speedify
+    """
+    args = ["priorityoverflow"]
+    args.append(str(speed_in_mbps))
+    resultjson = _run_speedify_cmd(args)
+    return resultjson
+
+
+@exception_wrapper("Failed to set maxredundant")
+def maxredundant(num_connections: int = 5):
+    """
+    maxredundant(num_connections = 5)
+    sets maximum number of redundant connections.
+
+    :param num_connections: Maximum number of connections to use in redundant mode
+    :type num_connections: int
+    :returns:  dict -- :ref:`JSON settings <maxredundant>` from speedify
+    """
+    args = ["maxredundant"]
+    args.append(str(num_connections))
+    resultjson = _run_speedify_cmd(args)
+    return resultjson
+
+
+@exception_wrapper("Failed to set packet pool size")
+def packetpool(size: str = "default"):
+    """
+    packetpool(size = "default")
+    sets packet pool size.
+
+    :param size: Packet pool size (small, default, or large)
+    :type size: str
+    :returns:  dict -- :ref:`JSON settings <packetpool>` from speedify
+    """
+    args = ["packetpool"]
+    args.append(str(size))
+    resultjson = _run_speedify_cmd(args)
+    return resultjson
+
+
+@exception_wrapper("Failed to set connect retry")
+def connectretry(seconds: int = 0):
+    """
+    connectretry(seconds = 0)
+    sets maximum connect retry timeout.
+
+    :param seconds: Maximum number of seconds to wait between connect attempts
+    :type seconds: int
+    :returns:  dict -- :ref:`JSON settings <connectretry>` from speedify
+    """
+    args = ["connectretry"]
+    args.append(str(seconds))
+    resultjson = _run_speedify_cmd(args)
+    return resultjson
+
+
+@exception_wrapper("Failed to set transport retry")
+def transportretry(seconds: int = 0):
+    """
+    transportretry(seconds = 0)
+    sets maximum transport retry timeout.
+
+    :param seconds: Maximum number of seconds to wait between transport attempts
+    :type seconds: int
+    :returns:  dict -- :ref:`JSON settings <transportretry>` from speedify
+    """
+    args = ["transportretry"]
+    args.append(str(seconds))
     resultjson = _run_speedify_cmd(args)
     return resultjson
 
