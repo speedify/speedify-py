@@ -14,7 +14,40 @@ logger.setLevel(logging.INFO)
 
 """
 .. module:: speedify
-   :synopsis: Contains speedify cli wrapper functions
+   :synopsis: Python wrapper for the Speedify CLI (Command Line Interface)
+
+This module provides a comprehensive Python interface to control Speedify, a bonding VPN service.
+It wraps nearly all functionality available in the Speedify CLI, allowing programmatic control of:
+- Connection management (connect, disconnect, server selection)
+- Authentication (login, logout, OAuth)
+- Settings configuration (mode, encryption, transport, etc.)
+- Adapter management (priority, rate limits, data limits)
+- Privacy settings (killswitch, DNS leak protection)
+- Traffic rules (streaming, bypass, fixed delay)
+- Network sharing (Pair & Share)
+- Statistics and monitoring
+
+All functions communicate with the Speedify daemon via the speedify_cli executable using subprocess calls.
+Responses are returned as parsed JSON dictionaries. Errors raise SpeedifyError or SpeedifyAPIError exceptions.
+
+The CLI executable path is automatically detected on Windows, macOS, and Linux. You can override the default
+by setting the SPEEDIFY_CLI environment variable or calling set_cli() with a custom path.
+
+Example:
+    import speedify
+
+    # Check current state
+    state = speedify.show_state()
+
+    # Connect to closest server
+    speedify.connect_closest()
+
+    # Change settings
+    speedify.mode("speed")
+    speedify.encryption(True)
+
+    # Disconnect
+    speedify.disconnect()
 """
 
 
@@ -83,10 +116,35 @@ def get_cli():
 
 
 def find_state_for_string(mystate):
+    """
+    Converts a string representation of a Speedify state to a State enum.
+
+    :param mystate: String representation of the state (case-insensitive).
+    :type mystate: str
+    :returns: speedify.State -- The corresponding State enum value.
+    :raises KeyError: If the state string is not a valid State enum value.
+    """
     return State[str(mystate).upper().strip()]
 
 
 def exception_wrapper(argument):
+    """
+    Decorator that wraps functions to provide standardized error logging for SpeedifyError exceptions.
+
+    This decorator catches SpeedifyError exceptions, logs them with a contextual message,
+    and then re-raises the exception. It's applied to most public API functions to ensure
+    consistent error handling and logging throughout the module.
+
+    :param argument: Contextual error message prefix to use when logging errors.
+    :type argument: str
+    :returns: function -- The decorated function with error handling.
+
+    Example:
+        @exception_wrapper("Failed to connect")
+        def connect(server=""):
+            # Function implementation
+            pass
+    """
     def decorator(function):
         @wraps(function)
         def wrapper(*args, **kwargs):
@@ -224,9 +282,25 @@ def connectmethod(method, country="us", city=None, num=None):
 
 
 def connectmethod_as_string(connectMethodObject, hypens=True):
-    """takes the JSON returned by show_connectmethod and turns it into a string
-    either with -s for places that want us-nova-2 type strings, or with spaces
-    for passing to command line of connectmethod, "us nova 2", for example
+    """
+    Converts a connectmethod JSON object to a formatted string.
+
+    Takes the JSON object returned by show_connectmethod() and converts it to a string
+    representation. The separator can be either hyphens (for "us-nova-2" style strings)
+    or spaces (for "us nova 2" style strings suitable for command line arguments).
+
+    Example:
+        method_obj = show_connectmethod()
+        # Returns "us-nova-2" with hyphens
+        hyphenated = connectmethod_as_string(method_obj, hypens=True)
+        # Returns "us nova 2" with spaces
+        spaced = connectmethod_as_string(method_obj, hypens=False)
+
+    :param connectMethodObject: The JSON object returned by show_connectmethod().
+    :type connectMethodObject: dict
+    :param hypens: If True, use hyphens as separator; if False, use spaces.
+    :type hypens: bool
+    :returns: str -- Formatted connection method string.
     """
     sep = " "
     if hypens:
@@ -275,12 +349,12 @@ def login_auto():
 @exception_wrapper("Failed to login")
 def login_oauth(token: str):
     """
-    login()
+    login_oauth(token)
     Attempt to login via an oauth token.
     Returns a state indicating success category.
 
     :param token: The oauth token.
-    :tyope token: str
+    :type token: str
     :returns:  speedify.State -- The speedify state enum.
     """
     resultjson = _run_speedify_cmd("login", "oauth", token)
@@ -297,6 +371,23 @@ def logout():
     """
     jret = _run_speedify_cmd(["logout"])
     return find_state_for_string(jret["state"])
+
+
+@exception_wrapper("Failed to refresh OAuth token")
+def refresh_oauth(token: str):
+    """
+    refresh_oauth(token)
+    Accepts a new security token for the same user to be used when communicating with servers.
+    If changing users, use login_oauth() instead.
+
+    Example:
+        refresh_oauth("abdef1234567890")
+
+    :param token: The new OAuth access token.
+    :type token: str
+    :returns:  dict -- JSON response from speedify.
+    """
+    return _run_speedify_cmd(["refresh", "oauth", token])
 
 
 def esni(is_on: bool = True):
@@ -380,6 +471,55 @@ def show_privacy():
     :returns:  dict -- dict -- :ref:`JSON privacy <show-privacy>` from speedify.
     """
     return _run_speedify_cmd(["show", "privacy"])
+
+
+@exception_wrapper("Failed to set advanced ISP stats")
+def privacy_advanced_isp_stats(is_on: bool):
+    """
+    privacy_advanced_isp_stats(is_on)
+    Enables or disables advanced ISP statistics. When enabled, extra stats are available from some ISPs (e.g., Starlink).
+
+    Example:
+        privacy_advanced_isp_stats(True)
+
+    :param is_on: Enable (True) or disable (False) advanced ISP stats.
+    :type is_on: bool
+    :returns:  dict -- JSON privacy settings.
+    """
+    return _run_speedify_cmd(["privacy", "advancedIspStats", "on" if is_on else "off"])
+
+
+@exception_wrapper("Failed to set API protection")
+def privacy_api_protection(is_on: bool):
+    """
+    privacy_api_protection(is_on)
+    Enables or disables protection on the Speedify API port. When disabled, speedify_cli can control a remote Speedify installation.
+
+    Example:
+        privacy_api_protection(True)
+
+    :param is_on: Enable (True) or disable (False) API protection.
+    :type is_on: bool
+    :returns:  dict -- JSON privacy settings.
+    """
+    return _run_speedify_cmd(["privacy", "apiProtection", "on" if is_on else "off"])
+
+
+@exception_wrapper("Failed to set DoH request")
+def privacy_request_disable_doh(is_on: bool):
+    """
+    privacy_request_disable_doh(is_on)
+    If the Speedify VPN connection should request that browsers disable DNS over HTTPS.
+    Enabling this can help streaming and streamingbypass rules function.
+
+    Example:
+        privacy_request_disable_doh(True)
+
+    :param is_on: Enable (True) or disable (False) request to disable DoH.
+    :type is_on: bool
+    :returns:  dict -- JSON privacy settings.
+    """
+    return _run_speedify_cmd(["privacy", "requestToDisableDoH", "on" if is_on else "off"])
 
 
 @exception_wrapper("Failed to show settings")
@@ -516,6 +656,29 @@ def show_speedtest():
     return _run_speedify_cmd(["show", "speedtest"])
 
 
+@exception_wrapper("Failed to show fixeddelay")
+def show_fixeddelay():
+    """
+    show_fixeddelay()
+    Shows the current rules for including traffic in the jitter buffer (fixed delay).
+    Rules for domains, ports, and IP addresses are supported.
+
+    :returns dict -- :ref:`JSON traffic rules with fixed_delay action <show-fixeddelay>`.
+    """
+    return _run_speedify_cmd(["show", "fixeddelay"])
+
+
+@exception_wrapper("Failed to show traffic rules")
+def show_trafficrules():
+    """
+    show_trafficrules()
+    Shows the current traffic rules setting.
+
+    :returns dict -- :ref:`JSON traffic rules <show-trafficrules>`.
+    """
+    return _run_speedify_cmd(["show", "trafficrules"])
+
+
 @exception_wrapper("Failed to get current server")
 def show_currentserver():
     """
@@ -572,6 +735,22 @@ def show_version():
     return _run_speedify_cmd(["version"])
 
 
+@exception_wrapper("Failed to get activation code")
+def activationcode():
+    """
+    activationcode()
+    Obtain activation code to activate a device on my.speedify.com
+
+    Example:
+        result = activationcode()
+        print(result["activationCode"])
+        print(result["activationUrl"])
+
+    :returns:  dict -- JSON with activationCode and activationUrl fields.
+    """
+    return _run_speedify_cmd(["activationcode"])
+
+
 @exception_wrapper("Failed to show logsettings")
 def show_logsettings():
     """
@@ -581,6 +760,41 @@ def show_logsettings():
     :returns:  dict -- :ref:`JSON logsettings <show-logsettings>` from speedify.
     """
     return _run_speedify_cmd(["show", "logsettings"])
+
+
+@exception_wrapper("Failed to erase logs")
+def log_erase():
+    """
+    log_erase()
+    Deletes the Speedify daemon's log files.
+
+    :returns:  dict -- JSON response from speedify.
+    """
+    return _run_speedify_cmd(["log", "erase"])
+
+
+@exception_wrapper("Failed to configure daemon logs")
+def log_daemon(file_size: int, files_per_daemon: int, total_files: int, log_level: str):
+    """
+    log_daemon(file_size, files_per_daemon, total_files, log_level)
+    Configure the size and number of the Speedify daemon's log files.
+
+    Example:
+        log_daemon(3145728, 7, 9, "info")
+
+    :param file_size: Size of each log file in bytes.
+    :type file_size: int
+    :param files_per_daemon: Number of log files per daemon.
+    :type files_per_daemon: int
+    :param total_files: Total number of log files.
+    :type total_files: int
+    :param log_level: Log level (verbose|info|warn|error).
+    :type log_level: str
+    :returns:  dict -- :ref:`JSON log settings <log-daemon>` from speedify.
+    """
+    return _run_speedify_cmd(
+        ["log", "daemon", str(file_size), str(files_per_daemon), str(total_files), log_level]
+    )
 
 
 @exception_wrapper("Failed to show dscp")
@@ -594,6 +808,80 @@ def show_dscp():
     return _run_speedify_cmd(["show", "dscp"])
 
 
+@exception_wrapper("Failed to add DSCP queue")
+def dscp_queues_add(dscp: int, priority: str = None, replication: str = None, retransmissions: int = None):
+    """
+    dscp_queues_add(dscp, priority, replication, retransmissions)
+    Add a DSCP queue configuration.
+
+    Example:
+        dscp_queues_add(0, priority="on", replication="auto", retransmissions=2)
+
+    :param dscp: DSCP value (0-63).
+    :type dscp: int
+    :param priority: Priority setting (on|off|auto), optional.
+    :type priority: str
+    :param replication: Replication setting (on|off|auto), optional.
+    :type replication: str
+    :param retransmissions: Number of retransmission attempts (0-255), optional.
+    :type retransmissions: int
+    :returns:  dict -- JSON with updated DSCP queue settings.
+    """
+    args = ["dscp", "queues", "add", str(dscp)]
+    if priority is not None:
+        args.extend(["priority", priority])
+    if replication is not None:
+        args.extend(["replication", replication])
+    if retransmissions is not None:
+        args.extend(["retransmissions", str(retransmissions)])
+    return _run_speedify_cmd(args)
+
+
+@exception_wrapper("Failed to set DSCP queue")
+def dscp_queues_set(dscp: int, priority: str = None, replication: str = None, retransmissions: int = None):
+    """
+    dscp_queues_set(dscp, priority, replication, retransmissions)
+    Set a DSCP queue configuration.
+
+    Example:
+        dscp_queues_set(0, priority="on", replication="auto", retransmissions=2)
+
+    :param dscp: DSCP value (0-63).
+    :type dscp: int
+    :param priority: Priority setting (on|off|auto), optional.
+    :type priority: str
+    :param replication: Replication setting (on|off|auto), optional.
+    :type replication: str
+    :param retransmissions: Number of retransmission attempts (0-255), optional.
+    :type retransmissions: int
+    :returns:  dict -- JSON with updated DSCP queue settings.
+    """
+    args = ["dscp", "queues", "set", str(dscp)]
+    if priority is not None:
+        args.extend(["priority", priority])
+    if replication is not None:
+        args.extend(["replication", replication])
+    if retransmissions is not None:
+        args.extend(["retransmissions", str(retransmissions)])
+    return _run_speedify_cmd(args)
+
+
+@exception_wrapper("Failed to remove DSCP queue")
+def dscp_queues_rem(dscp: int):
+    """
+    dscp_queues_rem(dscp)
+    Remove a DSCP queue configuration.
+
+    Example:
+        dscp_queues_rem(0)
+
+    :param dscp: DSCP value (0-63) to remove.
+    :type dscp: int
+    :returns:  dict -- JSON with updated DSCP queue settings.
+    """
+    return _run_speedify_cmd(["dscp", "queues", "rem", str(dscp)])
+
+
 @exception_wrapper("Failed to get networksharing settings")
 def networksharing_settings():
     """
@@ -605,8 +893,203 @@ def networksharing_settings():
     return _run_speedify_cmd(["networksharing", "settings"])
 
 
+@exception_wrapper("Failed to get available shares")
+def networksharing_availableshares():
+    """
+    networksharing_availableshares()
+    Returns an array of all currently available networksharing peers found via discovery.
+
+    :returns:  list -- Array of peer information.
+    """
+    return _run_speedify_cmd(["networksharing", "availableshares"])
+
+
+@exception_wrapper("Failed to connect to peer")
+def networksharing_connect(peer_connect_code: str):
+    """
+    networksharing_connect(peer_connect_code)
+    Connect to a peer using a connect code (hostConnectCode), if available on local network.
+
+    Example:
+        networksharing_connect("F1C1290C-CA03-17B4-9989-A22222A28B74")
+
+    :param peer_connect_code: The peer connect code from QR code scan.
+    :type peer_connect_code: str
+    :returns:  dict -- JSON with connection result.
+    """
+    return _run_speedify_cmd(["networksharing", "connect", peer_connect_code])
+
+
+@exception_wrapper("Failed to get discovery state")
+def networksharing_discovery():
+    """
+    networksharing_discovery()
+    Shows the current state of Pair & Share discovery.
+
+    :returns:  dict -- JSON with discoveryActive boolean field.
+    """
+    return _run_speedify_cmd(["networksharing", "discovery"])
+
+
+@exception_wrapper("Failed to manage peer")
+def networksharing_peer(action: str, peer_uuid: str):
+    """
+    networksharing_peer(action, peer_uuid)
+    Controls pairing behavior with the peer with the given uuid.
+
+    Example:
+        networksharing_peer("allow", "F1C1290C-CA03-17B4-9989-A22222A28B74")
+        networksharing_peer("request", "F1C1290C-CA03-17B4-9989-A22222A28B74")
+        networksharing_peer("unpair", "F1C1290C-CA03-17B4-9989-A22222A28B74")
+
+    :param action: Action to perform (allow|reject|request|unpair).
+    :type action: str
+    :param peer_uuid: UUID of the peer.
+    :type peer_uuid: str
+    :returns:  dict -- JSON with peer information.
+    """
+    return _run_speedify_cmd(["networksharing", "peer", action, peer_uuid])
+
+
+@exception_wrapper("Failed to reconnect to peer")
+def networksharing_reconnect(peer_uuid: str):
+    """
+    networksharing_reconnect(peer_uuid)
+    Reconnect to the peer at the specified UUID.
+
+    Example:
+        networksharing_reconnect("F1C1290C-CA03-17B4-9989-A22222A28B74")
+
+    :param peer_uuid: UUID of the peer.
+    :type peer_uuid: str
+    :returns:  dict -- JSON with connection result.
+    """
+    return _run_speedify_cmd(["networksharing", "reconnect", peer_uuid])
+
+
+@exception_wrapper("Failed to set networksharing mode")
+def networksharing_set_mode(mode: str, is_on: bool):
+    """
+    networksharing_set_mode(mode, is_on)
+    Controls if device acts as a client (using peers' shared cellular) or host (sharing cellular).
+
+    Example:
+        networksharing_set_mode("client", True)
+        networksharing_set_mode("host", False)
+
+    :param mode: Mode to set (host|client).
+    :type mode: str
+    :param is_on: Enable (True) or disable (False).
+    :type is_on: bool
+    :returns:  dict -- JSON with updated settings.
+    """
+    return _run_speedify_cmd(["networksharing", "set", mode, "on" if is_on else "off"])
+
+
+@exception_wrapper("Failed to set always on discovery")
+def networksharing_set_alwayson_discovery(is_on: bool):
+    """
+    networksharing_set_alwayson_discovery(is_on)
+    Controls if Pair and Share peer discovery is always active (can use more power when on battery).
+
+    Example:
+        networksharing_set_alwayson_discovery(True)
+
+    :param is_on: Enable (True) or disable (False).
+    :type is_on: bool
+    :returns:  dict -- JSON with updated settings.
+    """
+    return _run_speedify_cmd(["networksharing", "set", "alwaysOnDiscovery", "on" if is_on else "off"])
+
+
+@exception_wrapper("Failed to set auto pair behavior")
+def networksharing_set_autopair_behavior(behavior: str):
+    """
+    networksharing_set_autopair_behavior(behavior)
+    Controls if peers of the same user and/or team are automatically paired.
+
+    Example:
+        networksharing_set_autopair_behavior("auto_user_team")
+
+    :param behavior: Pairing behavior (manual|auto_user|auto_user_team).
+    :type behavior: str
+    :returns:  dict -- JSON with updated settings.
+    """
+    return _run_speedify_cmd(["networksharing", "set", "autoPairBehavior", behavior])
+
+
+@exception_wrapper("Failed to set display name")
+def networksharing_set_displayname(name: str):
+    """
+    networksharing_set_displayname(name)
+    Set the display name for this device. Other devices will see this name when pairing/sharing.
+
+    Example:
+        networksharing_set_displayname("My Laptop")
+
+    :param name: Display name for this device.
+    :type name: str
+    :returns:  dict -- JSON with updated settings.
+    """
+    return _run_speedify_cmd(["networksharing", "set", "displayname", name])
+
+
+@exception_wrapper("Failed to set pair request behavior")
+def networksharing_set_pair_request_behavior(behavior: str):
+    """
+    networksharing_set_pair_request_behavior(behavior)
+    Set the behavior for incoming connection requests.
+
+    Example:
+        networksharing_set_pair_request_behavior("accept")
+
+    :param behavior: Request behavior (ask|accept|reject).
+    :type behavior: str
+    :returns:  dict -- JSON with updated settings.
+    """
+    return _run_speedify_cmd(["networksharing", "set", "pairRequestBehavior", behavior])
+
+
+@exception_wrapper("Failed to set peer setting")
+def networksharing_set_peer(setting: str, peer_uuid: str, is_on: bool):
+    """
+    networksharing_set_peer(setting, peer_uuid, is_on)
+    Turns on/off settings related to an individual peer.
+
+    Example:
+        networksharing_set_peer("autoreconnect", "F1C1290C-CA03-17B4-9989-A22222A28B74", True)
+        networksharing_set_peer("allowhost", "F1C1290C-CA03-17B4-9989-A22222A28B74", True)
+
+    :param setting: Setting to change (autoreconnect|allowhost|allowclient).
+    :type setting: str
+    :param peer_uuid: UUID of the peer.
+    :type peer_uuid: str
+    :param is_on: Enable (True) or disable (False).
+    :type is_on: bool
+    :returns:  list -- Array of peer information.
+    """
+    return _run_speedify_cmd(["networksharing", "set", "peer", setting, peer_uuid, "on" if is_on else "off"])
+
+
+@exception_wrapper("Failed to start discovery")
+def networksharing_startdiscovery():
+    """
+    networksharing_startdiscovery()
+    Begin discovering other devices on the local network.
+
+    :returns:  dict -- JSON with discoveryActive boolean field.
+    """
+    return _run_speedify_cmd(["networksharing", "startdiscovery"])
+
+
 @exception_wrapper("Failed to get stats")
 def safebrowsing_stats():
+    """
+    safebrowsing_stats()
+    Retrieves statistics about safe browsing feature usage.
+
+    :returns: dict -- JSON response with safe browsing statistics from speedify.
+    """
     args = ["safebrowsing", "stats"]
     return _run_speedify_cmd(args)
 
@@ -1289,7 +1772,7 @@ def adapter_datalimit_monthly(adapterID: str, limit: int = 0, reset_day: int = 0
     :param limit: The monthly usage limit, in bytes
     :type limit: int
     :param reset_day: The day of the month to reset monthly usage (0-31)
-    :type reset_Day: int
+    :type reset_day: int
     :returns:  dict -- :ref:`JSON adapter response <adapter-datalimit-monthly>` from speedify.
     """
     args = ["adapter", "datalimit", "monthly", adapterID, str(limit), str(reset_day)]
@@ -1307,6 +1790,45 @@ def adapter_resetusage(adapterID: str):
     :returns:  dict -- :ref:`JSON adapter response <adapter-resetusage>` from speedify.
     """
     return _run_speedify_cmd(["adapter", "resetusage", adapterID])
+
+
+@exception_wrapper("Failed to set adapter directional mode")
+def adapter_directionalmode(adapterID: str, upload_mode: str, download_mode: str):
+    """
+    adapter_directionalmode(adapterID, upload_mode, download_mode)
+    Controls if and how the adapter is used for upload and download, respectively.
+
+    Example:
+        adapter_directionalmode("eth0", "on", "on")
+        adapter_directionalmode("wlan0", "backup_off", "on")
+
+    :param adapterID: The interface adapterID
+    :type adapterID: str
+    :param upload_mode: Upload mode (on|backup_off|strict_off).
+    :type upload_mode: str
+    :param download_mode: Download mode (on|backup_off|strict_off).
+    :type download_mode: str
+    :returns:  dict -- :ref:`JSON adapter response <adapter-directionalmode>` from speedify.
+    """
+    return _run_speedify_cmd(["adapter", "directionalmode", adapterID, upload_mode, download_mode])
+
+
+@exception_wrapper("Failed to set adapter expose-dscp")
+def adapter_expose_dscp(adapterID: str, is_on: bool):
+    """
+    adapter_expose_dscp(adapterID, is_on)
+    Allows DSCP values of internal packets to be exposed to the VPN transport connection.
+
+    Example:
+        adapter_expose_dscp("eth0", True)
+
+    :param adapterID: The interface adapterID
+    :type adapterID: str
+    :param is_on: Enable (True) or disable (False) DSCP exposure.
+    :type is_on: bool
+    :returns:  dict -- :ref:`JSON settings <adapter-expose-dscp>` from speedify.
+    """
+    return _run_speedify_cmd(["adapter", "expose-dscp", adapterID, "on" if is_on else "off"])
 
 
 @exception_wrapper("Failed to set forwarded ports")
@@ -1393,6 +1915,177 @@ def jumbo(mode: bool = True):
 
     resultjson = _run_speedify_cmd(args)
     return resultjson
+
+
+@exception_wrapper("Failed to set fixed delay")
+def fixeddelay(delay_ms: int):
+    """
+    fixeddelay(delay_ms)
+    Set the jitter buffer delay in milliseconds (0-1000ms).
+    The jitter buffer adds a delay to traffic and delivers it with consistent latency through the VPN tunnel to minimize jitter.
+    Valid delay range: 0-1000 ms.
+
+    Example:
+        fixeddelay(100)
+
+    :param delay_ms: Delay in milliseconds (0-1000).
+    :type delay_ms: int
+    :returns:  dict -- :ref:`JSON settings <fixeddelay>` from speedify.
+    """
+    return _run_speedify_cmd(["fixeddelay", str(delay_ms)])
+
+
+@exception_wrapper("Failed to add fixeddelay domain rule")
+def fixeddelay_domains_add(domains: str):
+    """
+    fixeddelay_domains_add(domains)
+    Add domain(s) to include in the jitter buffer (fixed delay).
+
+    Example:
+        fixeddelay_domains_add("example.com another.com")
+
+    :param domains: Space-separated domain(s) to add.
+    :type domains: str
+    :returns:  dict -- :ref:`JSON traffic rules <fixeddelay-domains>` from speedify.
+    """
+    args = ["fixeddelay", "domains", "add"] + domains.split()
+    return _run_speedify_cmd(args)
+
+
+@exception_wrapper("Failed to remove fixeddelay domain rule")
+def fixeddelay_domains_rem(domains: str):
+    """
+    fixeddelay_domains_rem(domains)
+    Remove domain(s) from the jitter buffer (fixed delay).
+
+    Example:
+        fixeddelay_domains_rem("example.com")
+
+    :param domains: Space-separated domain(s) to remove.
+    :type domains: str
+    :returns:  dict -- :ref:`JSON traffic rules <fixeddelay-domains>` from speedify.
+    """
+    args = ["fixeddelay", "domains", "rem"] + domains.split()
+    return _run_speedify_cmd(args)
+
+
+@exception_wrapper("Failed to set fixeddelay domain rules")
+def fixeddelay_domains_set(domains: str):
+    """
+    fixeddelay_domains_set(domains)
+    Set domain(s) to include in the jitter buffer (fixed delay), replacing existing rules.
+
+    Example:
+        fixeddelay_domains_set("example.com another.com")
+
+    :param domains: Space-separated domain(s) to set.
+    :type domains: str
+    :returns:  dict -- :ref:`JSON traffic rules <fixeddelay-domains>` from speedify.
+    """
+    args = ["fixeddelay", "domains", "set"] + domains.split()
+    return _run_speedify_cmd(args)
+
+
+@exception_wrapper("Failed to add fixeddelay IP rule")
+def fixeddelay_ips_add(ips: str):
+    """
+    fixeddelay_ips_add(ips)
+    Add IP address(es) to include in the jitter buffer (fixed delay).
+
+    Example:
+        fixeddelay_ips_add("192.168.1.1 10.0.0.1")
+
+    :param ips: Space-separated IP address(es) to add.
+    :type ips: str
+    :returns:  dict -- :ref:`JSON traffic rules <fixeddelay-ips>` from speedify.
+    """
+    args = ["fixeddelay", "ips", "add"] + ips.split()
+    return _run_speedify_cmd(args)
+
+
+@exception_wrapper("Failed to remove fixeddelay IP rule")
+def fixeddelay_ips_rem(ips: str):
+    """
+    fixeddelay_ips_rem(ips)
+    Remove IP address(es) from the jitter buffer (fixed delay).
+
+    Example:
+        fixeddelay_ips_rem("192.168.1.1")
+
+    :param ips: Space-separated IP address(es) to remove.
+    :type ips: str
+    :returns:  dict -- :ref:`JSON traffic rules <fixeddelay-ips>` from speedify.
+    """
+    args = ["fixeddelay", "ips", "rem"] + ips.split()
+    return _run_speedify_cmd(args)
+
+
+@exception_wrapper("Failed to set fixeddelay IP rules")
+def fixeddelay_ips_set(ips: str):
+    """
+    fixeddelay_ips_set(ips)
+    Set IP address(es) to include in the jitter buffer (fixed delay), replacing existing rules.
+
+    Example:
+        fixeddelay_ips_set("192.168.1.1 10.0.0.1")
+
+    :param ips: Space-separated IP address(es) to set.
+    :type ips: str
+    :returns:  dict -- :ref:`JSON traffic rules <fixeddelay-ips>` from speedify.
+    """
+    args = ["fixeddelay", "ips", "set"] + ips.split()
+    return _run_speedify_cmd(args)
+
+
+@exception_wrapper("Failed to add fixeddelay port rule")
+def fixeddelay_ports_add(ports: str):
+    """
+    fixeddelay_ports_add(ports)
+    Add port(s) to include in the jitter buffer (fixed delay).
+
+    Example:
+        fixeddelay_ports_add("9000/udp 8000-8010/tcp")
+
+    :param ports: Space-separated port specification(s) (format: port/proto or port-portRangeEnd/proto).
+    :type ports: str
+    :returns:  dict -- :ref:`JSON traffic rules <fixeddelay-ports>` from speedify.
+    """
+    args = ["fixeddelay", "ports", "add"] + ports.split()
+    return _run_speedify_cmd(args)
+
+
+@exception_wrapper("Failed to remove fixeddelay port rule")
+def fixeddelay_ports_rem(ports: str):
+    """
+    fixeddelay_ports_rem(ports)
+    Remove port(s) from the jitter buffer (fixed delay).
+
+    Example:
+        fixeddelay_ports_rem("9000/udp")
+
+    :param ports: Space-separated port specification(s) (format: port/proto or port-portRangeEnd/proto).
+    :type ports: str
+    :returns:  dict -- :ref:`JSON traffic rules <fixeddelay-ports>` from speedify.
+    """
+    args = ["fixeddelay", "ports", "rem"] + ports.split()
+    return _run_speedify_cmd(args)
+
+
+@exception_wrapper("Failed to set fixeddelay port rules")
+def fixeddelay_ports_set(ports: str):
+    """
+    fixeddelay_ports_set(ports)
+    Set port(s) to include in the jitter buffer (fixed delay), replacing existing rules.
+
+    Example:
+        fixeddelay_ports_set("9000/udp 8000-8010/tcp")
+
+    :param ports: Space-separated port specification(s) (format: port/proto or port-portRangeEnd/proto).
+    :type ports: str
+    :returns:  dict -- :ref:`JSON traffic rules <fixeddelay-ports>` from speedify.
+    """
+    args = ["fixeddelay", "ports", "set"] + ports.split()
+    return _run_speedify_cmd(args)
 
 
 @exception_wrapper("Failed to set packetaggregation")
@@ -1630,6 +2323,43 @@ def transport(transport: str = "auto"):
     return resultjson
 
 
+@exception_wrapper("Failed to set subnets")
+def subnets(*subnet_list):
+    """
+    subnets(*subnet_list)
+    Configures a group of subnets connected to this machine as accessible by other clients on a private server.
+    Only for advanced enterprise routing scenarios.
+
+    Example:
+        subnets("192.168.202.1/23", "10.0.0.0/24")
+        subnets()  # Clear all subnets
+
+    :param subnet_list: Variable number of subnet specifications (format: address/prefix_length).
+    :type subnet_list: str
+    :returns:  dict -- :ref:`JSON settings <subnets>` from speedify.
+    """
+    args = ["subnets"] + list(subnet_list)
+    return _run_speedify_cmd(args)
+
+
+@exception_wrapper("Failed to set target connections")
+def targetconnections(upload_connections: int, download_connections: int):
+    """
+    targetconnections(upload_connections, download_connections)
+    Controls the amount of connections Speedify will attempt to use for upload and download, respectively.
+
+    Example:
+        targetconnections(5, 5)
+
+    :param upload_connections: Number of upload connections to target.
+    :type upload_connections: int
+    :param download_connections: Number of download connections to target.
+    :type download_connections: int
+    :returns:  dict -- :ref:`JSON settings <targetconnections>` from speedify.
+    """
+    return _run_speedify_cmd(["targetconnections", str(upload_connections), str(download_connections)])
+
+
 @exception_wrapper("Failed getting stats")
 def stats(time: int = 1):
     """
@@ -1727,38 +2457,82 @@ def safebrowsing_error_callback(time: int, callback):
 
 
 def _run_speedify_cmd(args, cmdtimeout: int = 60):
-    "passes list of args to speedify command line returns the objects pulled from the json"
+    """
+    Core function that executes Speedify CLI commands and parses JSON responses.
+
+    This is the primary interface between Python and the speedify_cli executable. It:
+    1. Constructs the command by prepending the CLI path to the provided arguments
+    2. Executes the command via subprocess with appropriate timeout and shell settings
+    3. Parses JSON from the last record in stdout (CLI may output multiple JSON objects)
+    4. Handles errors by parsing stderr JSON and raising appropriate SpeedifyError exceptions
+
+    The Speedify CLI returns:
+    - Exit code 0: Success, JSON response in stdout
+    - Exit code 1: API error from daemon, structured JSON error in stderr
+    - Exit code 2-4: CLI parameter errors, plain text error messages
+
+    :param args: List of command arguments to pass to speedify_cli (e.g., ["connect", "closest"])
+    :type args: list
+    :param cmdtimeout: Maximum time in seconds to wait for command completion (default: 60)
+    :type cmdtimeout: int
+    :returns: dict -- Parsed JSON response object from the CLI
+    :raises SpeedifyError: For general CLI errors, timeouts, or invalid output
+    :raises SpeedifyAPIError: For API errors returned by the Speedify daemon (exit code 1)
+    """
     resultstr = ""
     try:
+        # Build the full command: CLI path + user arguments
         cmd = [get_cli()] + args
+
+        # Execute the CLI command with appropriate settings
         result = subprocess.run(
             cmd,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            shell=use_shell(),
-            check=True,
-            timeout=cmdtimeout,
+            stdout=subprocess.PIPE,  # Capture stdout for JSON response
+            stderr=subprocess.PIPE,  # Capture stderr for error messages
+            shell=use_shell(),       # Platform-specific: True on Windows, False on Unix
+            check=True,              # Raise CalledProcessError on non-zero exit
+            timeout=cmdtimeout,      # Prevent indefinite hangs
         )
+
+        # Parse the JSON response from stdout
         resultstr = result.stdout.decode("utf-8").strip()
+
+        # CLI may output multiple JSON objects separated by double line breaks
+        # We want the last one, which contains the final result
         sep = os.linesep * 2
         records = resultstr.split(sep)
         reclen = len(records)
+
         if reclen > 0:
+            # Parse and return the last JSON object
             return json.loads(records[-1])
+
+        # No output received (shouldn't happen with a successful exit code)
         logger.error("command " + args[0] + " had NO records")
         raise SpeedifyError("No output from command " + args[0])
+
     except subprocess.TimeoutExpired:
         logger.error("Command timed out")
         raise SpeedifyError("Command timed out: " + args[0])
     except ValueError:
+        # JSON parsing failed - CLI returned non-JSON or malformed JSON
         logger.error("Running cmd, bad json: (" + resultstr + ")")
         raise SpeedifyError("Invalid output from CLI")
     except subprocess.CalledProcessError as cpe:
-        # TODO: errors can be json now
+        # The CLI command failed with a non-zero exit code
+        # Try stderr first (daemon errors), fall back to stdout if stderr is empty
         out = cpe.stderr.decode("utf-8").strip()
         if not out:
             out = cpe.stdout.decode("utf-8").strip()
+
         returncode = cpe.returncode
+
+        # Map exit codes to error categories
+        # Exit code meanings from speedify_cli:
+        # 1 = API error from daemon (structured JSON error)
+        # 2 = Invalid parameter value
+        # 3 = Missing required parameter
+        # 4 = Unknown/unrecognized parameter
         errorKind = "Unknown"
         if returncode == 1:
             errorKind = "Speedify API"
@@ -1768,32 +2542,38 @@ def _run_speedify_cmd(args, cmdtimeout: int = 60):
             errorKind = "Missing Parameter"
         elif returncode == 4:
             errorKind = "Unknown Parameter"
-            # whole usage message here, no help
+            # Exit code 4 returns full usage message, just raise generic error
             raise SpeedifyError(errorKind)
 
+        # Parse the error based on exit code
         newerror = None
         if returncode == 1:
+            # Exit code 1 means daemon returned a structured JSON error
             try:
                 job = json.loads(out)
                 if "errorCode" in job:
-                    # json error! came from the speedify daemon
+                    # Successfully parsed JSON error from daemon
                     newerror = SpeedifyAPIError(
                         job["errorCode"], job["errorType"], job["errorMessage"]
                     )
             except ValueError:
+                # JSON parsing failed, treat as generic error
                 logger.error("Could not parse Speedify API Error: " + out)
                 newerror = SpeedifyError(errorKind + ": Could not parse error message")
         else:
+            # Exit codes 2-3 return plain text errors, extract last non-empty line
             lastline = [i for i in out.split("\n") if i][-1]
             if lastline:
                 newerror = SpeedifyError(str(lastline))
             else:
                 newerror = SpeedifyError(errorKind + ": " + str("Unknown error"))
 
+        # Raise the constructed error
         if newerror:
             raise newerror
         else:
-            # treat the plain text as an error, common for valid command, with invalud arguments
+            # Fallback: treat the raw output as an error message
+            # This can happen with valid commands but invalid argument combinations
             logger.error("runSpeedifyCmd CPE : " + out)
             raise SpeedifyError(errorKind + ": " + str(": " + out))
 
@@ -1811,27 +2591,63 @@ def _run_speedify_cmd(args, cmdtimeout: int = 60):
 
 @exception_wrapper("SpeedifyError in longRunCommand")
 def _run_long_command(cmdarray, callback):
-    "callback is a function you provide, passed parsed json objects"
+    """
+    Executes long-running Speedify CLI commands that stream multiple JSON responses.
+
+    Unlike _run_speedify_cmd() which waits for a single final response, this function
+    handles commands that continuously output JSON objects over time (like stats or
+    continuous monitoring). It reads stdout line-by-line, buffers complete JSON objects,
+    and invokes the callback function for each parsed object.
+
+    Used internally by stats_callback() and safebrowsing_error_callback() to provide
+    real-time monitoring capabilities.
+
+    :param cmdarray: Complete command array including CLI path (e.g., ["/path/to/speedify_cli", "stats", "10"])
+    :type cmdarray: list
+    :param callback: Function to invoke with each parsed JSON object. Takes one argument: the JSON dict.
+    :type callback: function
+    :returns: None
+    """
     outputbuffer = ""
 
     with subprocess.Popen(cmdarray, stdout=subprocess.PIPE) as proc:
+        # Read stdout line by line as it becomes available
         for line in proc.stdout:
             line = line.decode("utf-8").strip()
+
             if line:
+                # Non-empty line: add to buffer (building up a JSON object)
                 outputbuffer += str(line)
             else:
+                # Empty line signals end of a JSON object
                 if outputbuffer:
+                    # Parse and invoke callback with the buffered JSON
                     _do_callback(callback, outputbuffer)
                     outputbuffer = ""
                 else:
+                    # Multiple consecutive empty lines, just reset buffer
                     outputbuffer = ""
 
+    # Handle any remaining buffered output when stream ends
     if outputbuffer:
         _do_callback(callback, outputbuffer)
 
 
 def _do_callback(callback, message):
-    "parsing string as json, calls callback function with result"
+    """
+    Helper function that parses a JSON string and invokes a callback with the result.
+
+    Used by _run_long_command() to process buffered output. This function:
+    1. Attempts to parse the message string as JSON
+    2. If successful, invokes the callback with the parsed JSON object
+    3. Logs any parsing or callback execution errors without raising exceptions
+
+    :param callback: Function to invoke with the parsed JSON object
+    :type callback: function
+    :param message: String containing JSON to parse
+    :type message: str
+    :returns: None
+    """
     jsonret = ""
     try:
         if message:
@@ -1847,7 +2663,24 @@ def _do_callback(callback, message):
 
 # Default cli search locations
 def _find_cli():
-    """Finds the path for the CLI"""
+    """
+    Locates the speedify_cli executable on the system.
+
+    This function searches for the Speedify CLI executable in the following order:
+    1. Checks the SPEEDIFY_CLI environment variable for a custom path
+    2. Searches platform-specific default installation paths:
+       - macOS: /Applications/Speedify.app/Contents/Resources/speedify_cli
+       - Windows: C:\\Program Files (x86)\\Speedify\\speedify_cli.exe
+                  C:\\Program Files\\Speedify\\speedify_cli.exe
+       - Linux: /usr/share/speedify/speedify_cli
+
+    Called automatically by get_cli() on first use. Users can override the detected
+    path by setting the SPEEDIFY_CLI environment variable or calling set_cli().
+
+    :returns: str -- Absolute path to the speedify_cli executable
+    :raises SpeedifyError: If the CLI executable cannot be found in any of the default locations
+    """
+    # Check environment variable first
     if "SPEEDIFY_CLI" in os.environ:
         possible = os.environ["SPEEDIFY_CLI"]
         if possible:
@@ -1860,6 +2693,8 @@ def _find_cli():
                     + possible
                     + '"'
                 )
+
+    # Search platform-specific default installation paths
     possible_paths = [
         "/Applications/Speedify.app/Contents/Resources/speedify_cli",
         "c://program files (x86)//speedify//speedify_cli.exe",

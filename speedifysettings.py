@@ -85,6 +85,21 @@ def apply_setting(setting, value):
             speedify.startupconnect(value)
         elif setting == "transport":
             speedify.transport(value)
+        elif setting == "priority_overflow_threshold":
+            speedify.priorityoverflow(float(value))
+        elif setting == "max_redundant_sends":
+            speedify.maxredundant(int(value))
+        elif setting == "packet_pool_size":
+            speedify.packetpool(str(value))
+        elif setting == "maximum_connect_retry":
+            speedify.connectretry(int(value))
+        elif setting == "maximum_transport_retry":
+            speedify.transportretry(int(value))
+        # Note: allow_chacha_encryption, header_compression, automatic_connection_priority,
+        # forwarded_ports, downstream_subnets, per_connection_encryption, dns_addresses,
+        # request_to_disable_doh, streaming_*, bypass, localproxy_domain_watchlist,
+        # daemon_log_settings, dscp_queues, and network_sharing_* settings
+        # may require additional CLI command support for setting (not just getting)
         else:
             logging.warning("unknown setting " + str(setting))
             success = False
@@ -177,6 +192,34 @@ def get_speedify_settings():
         settings["overflow_threshold"] = currentsettings["overflowThreshold"]
         settings["packet_aggregation"] = currentsettings["packetAggregation"]
         settings["route_default"] = currentsettings["enableDefaultRoute"]
+
+        # Additional settings from show_settings()
+        settings["allow_chacha_encryption"] = currentsettings.get("allowChaChaEncryption", True)
+        settings["header_compression"] = currentsettings.get("headerCompression", True)
+        settings["priority_overflow_threshold"] = currentsettings.get("priorityOverflowThreshold", 70)
+        settings["max_redundant_sends"] = currentsettings.get("maxRedundant", 5)
+        settings["automatic_connection_priority"] = currentsettings.get("enableAutomaticPriority", True)
+        settings["packet_pool_size"] = currentsettings.get("packetPoolSize", "default")
+        settings["maximum_connect_retry"] = currentsettings.get("maximumConnectRetry", 1800)
+        settings["maximum_transport_retry"] = currentsettings.get("maximumTransportRetry", 300)
+
+        # Forwarded ports
+        if "forwardedPorts" in currentsettings:
+            settings["forwarded_ports"] = currentsettings["forwardedPorts"]
+
+        # Downstream subnets
+        if "downstreamSubnets" in currentsettings:
+            settings["downstream_subnets"] = currentsettings["downstreamSubnets"]
+
+        # Per-connection encryption settings (by adapter type)
+        if "perConnectionEncryptionSettings" in currentsettings:
+            per_conn_enc = {}
+            for adapter_type in ["Wi-Fi", "Cellular", "Ethernet", "Unknown"]:
+                if adapter_type in currentsettings["perConnectionEncryptionSettings"]:
+                    per_conn_enc[adapter_type] = currentsettings["perConnectionEncryptionSettings"][adapter_type]
+            if per_conn_enc:
+                settings["per_connection_encryption"] = per_conn_enc
+
         # TODO: can no longer get connectmethod back out!
         connectmethodsettings = speedify.show_connectmethod()
         settings["connectmethod"] = connectmethodsettings["connectMethod"]
@@ -188,6 +231,69 @@ def get_speedify_settings():
             settings["privacy_dnsleak"] = privacysettings["dnsleak"]
         if "killswitch" in privacysettings:
             settings["privacy_killswitch"] = privacysettings["killswitch"]
+
+        # Additional privacy settings
+        if "dnsAddresses" in privacysettings:
+            settings["dns_addresses"] = privacysettings["dnsAddresses"]
+        if "requestToDisableDoH" in privacysettings:
+            settings["request_to_disable_doh"] = privacysettings["requestToDisableDoH"]
+
+        # Streaming settings
+        streamingsettings = speedify.show_streaming()
+        if streamingsettings:
+            if "domains" in streamingsettings:
+                settings["streaming_domains"] = streamingsettings["domains"]
+            if "ipv4" in streamingsettings:
+                settings["streaming_ipv4"] = streamingsettings["ipv4"]
+            if "ipv6" in streamingsettings:
+                settings["streaming_ipv6"] = streamingsettings["ipv6"]
+            if "ports" in streamingsettings:
+                settings["streaming_ports"] = streamingsettings["ports"]
+
+        # Streamingbypass (localproxy/bypass) settings
+        bypasssettings = speedify.show_streamingbypass()
+        if bypasssettings:
+            if "domainWatchlistEnabled" in bypasssettings:
+                settings["bypass"] = bypasssettings["domainWatchlistEnabled"]
+            if "services" in bypasssettings:
+                settings["localproxy_domain_watchlist"] = bypasssettings["services"]
+
+        # Log settings
+        logsettings = speedify.show_logsettings()
+        if logsettings and "daemon" in logsettings:
+            daemon_log = logsettings["daemon"]
+            # Convert log level from int to string if needed
+            log_level_map = {0: "error", 1: "warning", 2: "info"}
+            log_level_int = daemon_log.get("logLevel", 1)
+            log_level_str = log_level_map.get(log_level_int, "info")
+
+            settings["daemon_log_settings"] = {
+                "file_size": daemon_log.get("fileSize", 3145728),
+                "files_per_daemon": daemon_log.get("filesPerDaemon", 3),
+                "total_files": daemon_log.get("totalFiles", 9),
+                "log_level": log_level_str
+            }
+
+        # DSCP settings
+        dscpsettings = speedify.show_dscp()
+        if dscpsettings and "dscpQueues" in dscpsettings:
+            # Map CLI field names to schema field names
+            dscp_queues = []
+            for queue in dscpsettings["dscpQueues"]:
+                dscp_queues.append({
+                    "value": queue.get("dscp", 0),
+                    "priority": queue.get("priority", "auto"),
+                    "replication": queue.get("replication", "auto"),
+                    "retransmission_attempts": queue.get("retransmissionAttempts", 2)
+                })
+            settings["dscp_queues"] = dscp_queues
+
+        # Network sharing settings
+        nssettings = speedify.networksharing_settings()
+        if nssettings:
+            settings["network_sharing_client_enabled"] = nssettings.get("clientEnabled", False)
+            settings["network_sharing_host_enabled"] = nssettings.get("hostEnabled", False)
+            settings["network_sharing_pair_request_behavior"] = nssettings.get("pairRequestBehavior", "ask")
 
     except SpeedifyError as se:
         logging.error("Speedify error on getSpeedfiySetting:" + str(se))
