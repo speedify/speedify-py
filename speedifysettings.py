@@ -95,6 +95,7 @@ def apply_setting(setting, value):
         elif setting == "maximum_connect_retry":
             speedify.connectretry(int(value))
         elif setting == "maximum_transport_retry":
+   
             speedify.transportretry(int(value))
         # Read-only settings that can be retrieved but not set via CLI
         elif setting in ["automatic_connection_priority", "per_connection_encryption",
