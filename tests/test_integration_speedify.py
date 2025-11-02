@@ -17,7 +17,6 @@ import pytest
 
 import speedify
 from speedify import State, Priority, SpeedifyError, SpeedifyAPIError
-import speedifysettings
 
 
 logger = logging.getLogger(__name__)

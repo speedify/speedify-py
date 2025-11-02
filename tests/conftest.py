@@ -14,7 +14,6 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 
 import speedify
 from speedify import State, Priority, SpeedifyError
-import speedifysettings
 
 
 # Configure logging for tests
@@ -104,13 +103,17 @@ def speedify_default_settings(speedify_logged_in):
     Applies default settings before test runs. This ensures consistent
     starting state for tests that depend on specific settings.
     """
-    # Apply defaults before test
-    speedifysettings.apply_speedify_settings(speedifysettings.speedify_defaults)
+    # Apply standard defaults before test
+    speedify.encryption(True)
+    speedify.transport("auto")
+    speedify.jumbo(True)
+    speedify.packetaggregation(True)
+    speedify.routedefault(True)
+    speedify.connectmethod("closest")
 
     yield
 
-    # Optionally restore defaults after test (commented out to reduce test time)
-    # speedifysettings.apply_speedify_settings(speedifysettings.speedify_defaults)
+    # No cleanup needed - next test will set its own state
 
 
 @pytest.fixture

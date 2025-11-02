@@ -38,7 +38,7 @@ Repository = "https://github.com/speedify/speedify-py"
 Issues = "https://github.com/speedify/speedify-py/issues"
 
 [tool.setuptools]
-py-modules = ["speedify", "speedifysettings"]
+py-modules = ["speedify"]
 
 [project.optional-dependencies]
 test = [

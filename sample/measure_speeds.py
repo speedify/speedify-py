@@ -3,7 +3,6 @@ import sys
 sys.path.append("../")
 import speedify
 from speedify import State
-from speedifysettings import apply_setting
 import time
 import math
 import json
@@ -35,8 +34,12 @@ def apply_value(name, value):
     elif name == "mode":
         mode = "redundant" if value else "speed"
         speedify.mode(mode)
-    else:
-        apply_setting(name, value)
+    elif name == "jumbo":
+        speedify.jumbo(value)
+    elif name == "encryption":
+        speedify.encryption(value)
+    elif name == "privacy_killswitch":
+        speedify.killswitch(value)
 
 
 def print_all_attr(attrlist, attrvalues):
@@ -139,7 +142,7 @@ def main():
             # typically takes a dozen times through this loop before
             # we start seeing it really work.  think that's just windows.
             try:
-                if speedifyutil.using_speedify():
+                if speedify.using_speedify():
                     trc = True
                     break
             except FileNotFoundError:
