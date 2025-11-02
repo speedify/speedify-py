@@ -8,7 +8,6 @@ sys.path.append("../")
 import speedify
 from speedify import State, Priority, SpeedifyError, SpeedifyAPIError
 import speedifysettings
-import speedifyutil
 import logging
 import unittest
 import time

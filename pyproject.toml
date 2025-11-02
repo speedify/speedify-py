@@ -38,4 +38,25 @@ Repository = "https://github.com/speedify/speedify-py"
 Issues = "https://github.com/speedify/speedify-py/issues"
 
 [tool.setuptools]
-py-modules = ["speedify", "speedifysettings", "speedifyutil", "utils"]
+py-modules = ["speedify", "speedifysettings"]
+
+[project.optional-dependencies]
+test = [
+    "pytest>=7.0",
+    "pytest-mock>=3.10",
+    "pytest-cov>=4.0",
+]
+
+[tool.pytest.ini_options]
+minversion = "7.0"
+addopts = "-ra -q --strict-markers"
+testpaths = ["tests"]
+python_files = "test_*.py"
+python_classes = "Test*"
+python_functions = "test_*"
+markers = [
+    "integration: Integration tests requiring Speedify daemon to be running",
+    "unit: Fast unit tests with mocking, no Speedify daemon required",
+    "slow: Tests that take more than 5 seconds to run",
+    "windows: Windows-specific tests (privacy settings)",
+]
