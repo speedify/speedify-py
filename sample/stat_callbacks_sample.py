@@ -19,6 +19,7 @@ class speedify_callback:
     def __init__(self):
         self.last_ssid = ""
         self.last_state = None
+        self.last_adapters = {}  # Dict of {adapterID: adapter_info}
 
     def __call__(self, callback_input):
         if callback_input[0] == "adapters":
@@ -28,13 +29,144 @@ class speedify_callback:
 
     def adapter_callback(self, callback_input):
         networklist = callback_input[1]
-        for network in networklist:
-            if (network["type"] == "Wi-Fi") and (network["state"] == "connected"):
-                if "connectedNetworkName" in network:
-                    ssid = network["connectedNetworkName"]
+
+        # Build current adapters dict for comparison
+        current_adapters = {}
+        for adapter in networklist:
+            adapter_id = adapter.get("adapterID", "unknown")
+            current_adapters[adapter_id] = adapter
+
+            # Check for Wi-Fi SSID changes (original functionality)
+            if (adapter["type"] == "Wi-Fi") and (adapter["state"] == "connected"):
+                if "connectedNetworkName" in adapter:
+                    ssid = adapter["connectedNetworkName"]
                     if not self.last_ssid == ssid:
                         logging.info("SSID changed to " + ssid)
                         self.last_ssid = ssid
+
+        # Detect adapter changes
+        current_ids = set(current_adapters.keys())
+        last_ids = set(self.last_adapters.keys())
+
+        # Check for added adapters
+        added_ids = current_ids - last_ids
+        for adapter_id in added_ids:
+            adapter = current_adapters[adapter_id]
+            self.on_adapter_added(adapter)
+
+        # Check for removed adapters
+        removed_ids = last_ids - current_ids
+        for adapter_id in removed_ids:
+            adapter = self.last_adapters[adapter_id]
+            self.on_adapter_removed(adapter)
+
+        # Check for state changes in existing adapters
+        common_ids = current_ids & last_ids
+        for adapter_id in common_ids:
+            current = current_adapters[adapter_id]
+            last = self.last_adapters[adapter_id]
+
+            current_state = current.get("state", "unknown")
+            last_state = last.get("state", "unknown")
+
+            if current_state != last_state:
+                self.on_adapter_state_changed(current, last_state, current_state)
+
+        # Update our tracking
+        self.last_adapters = current_adapters
+
+    def on_adapter_added(self, adapter):
+        """Called when a new adapter is detected."""
+        adapter_type = adapter.get("type", "unknown")
+        adapter_id = adapter.get("adapterID", "unknown")
+        adapter_state = adapter.get("state", "unknown")
+
+        logging.info(f"➕ Adapter added - Type: {adapter_type}, ID: {adapter_id}, State: {adapter_state}")
+        # Put your custom code here for when adapters are added
+        # Examples:
+        # - Update UI to show new adapter
+        # - Configure adapter priority/settings
+        # - Send notification about new network interface
+        # - Automatically enable/disable based on type
+        # - Log hardware connection event
+
+    def on_adapter_removed(self, adapter):
+        """Called when an adapter is no longer detected."""
+        adapter_type = adapter.get("type", "unknown")
+        adapter_id = adapter.get("adapterID", "unknown")
+        adapter_state = adapter.get("state", "unknown")
+
+        logging.info(f"➖ Adapter removed - Type: {adapter_type}, ID: {adapter_id}, State: {adapter_state}")
+        # Put your custom code here for when adapters are removed
+        # Examples:
+        # - Update UI to remove adapter from list
+        # - Clean up adapter-specific resources
+        # - Send notification about disconnected interface
+        # - Log hardware disconnection event
+        # - Switch to backup adapter if this was primary
+        # - Alert if critical adapter (e.g., cellular failover) is removed
+
+    def on_adapter_state_changed(self, adapter, old_state, new_state):
+        """Called when an adapter's state changes."""
+        adapter_type = adapter.get("type", "unknown")
+        adapter_id = adapter.get("adapterID", "unknown")
+
+        logging.info(f"🔄 Adapter state changed - Type: {adapter_type}, ID: {adapter_id}, {old_state} → {new_state}")
+        # Put your custom code here for adapter state changes
+        # Examples:
+        # - Update UI indicator (connected/disconnected/connecting)
+        # - Adjust bonding strategy based on available adapters
+        # - Log connection quality changes
+        # - Send notification if adapter goes down
+        # - Trigger reconnection logic
+        # - Update connection statistics display
+        # - Alert if adapter becomes unusable
+
+        # You can add specific logic based on the new state:
+        if new_state == "connected":
+            self.on_adapter_connected(adapter)
+        elif new_state == "disconnected":
+            self.on_adapter_disconnected(adapter)
+        elif new_state == "connecting":
+            self.on_adapter_connecting(adapter)
+
+    def on_adapter_connected(self, adapter):
+        """Called when an adapter successfully connects."""
+        adapter_type = adapter.get("type", "unknown")
+        adapter_id = adapter.get("adapterID", "unknown")
+
+        logging.info(f"✅ Adapter connected - Type: {adapter_type}, ID: {adapter_id}")
+        # Put your custom code here for adapter connection
+        # Examples:
+        # - Show "Connected via Wi-Fi" notification
+        # - Display connection speed/quality
+        # - Update bond quality indicator
+        # - Enable adapter-specific features
+
+    def on_adapter_disconnected(self, adapter):
+        """Called when an adapter disconnects."""
+        adapter_type = adapter.get("type", "unknown")
+        adapter_id = adapter.get("adapterID", "unknown")
+
+        logging.warning(f"❌ Adapter disconnected - Type: {adapter_type}, ID: {adapter_id}")
+        # Put your custom code here for adapter disconnection
+        # Examples:
+        # - Show "Lost Wi-Fi connection" alert
+        # - Attempt automatic reconnection
+        # - Switch to backup connection
+        # - Update UI to show disconnected state
+
+    def on_adapter_connecting(self, adapter):
+        """Called when an adapter is attempting to connect."""
+        adapter_type = adapter.get("type", "unknown")
+        adapter_id = adapter.get("adapterID", "unknown")
+
+        logging.info(f"🔄 Adapter connecting - Type: {adapter_type}, ID: {adapter_id}")
+        # Put your custom code here for adapter connection attempt
+        # Examples:
+        # - Show connection progress indicator
+        # - Display "Connecting via Cellular..." message
+        # - Monitor connection timeout
 
     def state_callback(self, callback_input):
         state_obj = callback_input[1]
