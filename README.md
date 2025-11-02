@@ -3,15 +3,15 @@ Speedify for Python
 
 Lets you control [Speedify](https://speedify.com), the bonding VPN, from Python.  Nearly everything available to the user interface is available via this library.
 
-This library exposes all of the functionality from the [Speedify CLI](https://support.speedify.com/article/285-speedify-command-line-interface).  
+This library exposes all of the functionality from the [Speedify CLI](https://support.speedify.com/article/285-speedify-command-line-interface).
 
 Tested on Windows, macOS, Ubuntu, Raspbian.
 
-Automatically looks for `speedify_cli` in a number of standard locations.  
+Automatically looks for `speedify_cli` in a number of standard locations.
 
 You can force it to use a particular location by either setting the environment variable `SPEEDIFY_CLI` or by calling `speedify.set_cli()`.  In either case it takes the full path of the `speedify_cli` executable.
 
-Please see the documentation on our [CLI](https://support.speedify.com/article/285-speedify-cli) for more information on the commands and options available.
+Please see the documentation on our [CLI](https://support.speedify.com/article/285-speedify-cli) for more information on the commands and options available. A local copy of the CLI documentation is also available in `reference/speedify_cli.md`.
 
 ## Examples
 

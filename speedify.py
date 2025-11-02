@@ -5,9 +5,10 @@ import json
 import logging
 import subprocess
 import os
+import platform
+import socket
 from enum import Enum
 from functools import wraps
-from utils import use_shell
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -51,6 +52,141 @@ Example:
 """
 
 
+# ============================================================================
+# Utility Functions (merged from utils.py and speedifyutil.py)
+# ============================================================================
+
+def ping_internet(host="8.8.8.8", port=53, timeout=3):
+    """
+    Check if internet connection is available by connecting to a host.
+
+    :param host: Host to connect to (default: 8.8.8.8 - Google Public DNS)
+    :param port: Port to connect to (default: 53 - DNS)
+    :param timeout: Connection timeout in seconds (default: 3)
+    :return: True if connection successful, False otherwise
+
+    Example:
+        >>> ping_internet()
+        True
+        >>> ping_internet(host="1.1.1.1", port=80)
+        True
+    """
+    try:
+        socket.setdefaulttimeout(timeout)
+        socket.socket(socket.AF_INET, socket.SOCK_STREAM).connect((host, port))
+        return True
+    except socket.error as ex:
+        logging.warning(str(ex))
+        return False
+
+
+def use_shell():
+    """
+    Determine if shell=True should be used for subprocess calls.
+
+    :return: True on Windows, False on macOS/Linux
+
+    This is needed because Windows requires shell=True for some commands,
+    while Unix-like systems work better with shell=False.
+    """
+    if platform.system().lower() == "darwin":
+        return False
+    if platform.system().lower() == "linux":
+        return False
+    else:
+        return True
+
+
+def confirm_state_speedify(state):
+    """
+    Confirm whether Speedify is in the specified state.
+
+    :param state: Expected State enum value
+    :return: True if Speedify is in the specified state, False otherwise
+
+    Example:
+        >>> confirm_state_speedify(State.CONNECTED)
+        True
+    """
+    desc = show_state()
+    if state == desc:
+        return True
+    else:
+        logging.error("confirmStateSpeedify Failed command results: " + str(desc))
+        return False
+
+
+def list_servers_speedify(public=True, private=False, excludeTest=True):
+    """
+    Get a flattened list of Speedify server tags.
+
+    :param public: Include public servers (default: True)
+    :param private: Include private/dedicated servers (default: False)
+    :param excludeTest: Exclude servers with '-test' in the name (default: True)
+    :return: List of server tags, or "ERROR" on failure
+
+    Example:
+        >>> servers = list_servers_speedify()
+        >>> 'us-nyc' in servers
+        True
+    """
+    try:
+        serverlist = []
+        jret = show_servers()
+        if public:
+            if "public" in jret:
+                for server in jret["public"]:
+                    serverlist.append(server["tag"])
+
+        if private:
+            if "private" in jret:
+                for server in jret["private"]:
+                    serverlist.append(server["tag"])
+        if excludeTest:
+            # servers with "test" in the name are bad news
+            serverlist2 = [x for x in serverlist if "-test" not in x]
+            serverlist = serverlist2
+        return serverlist
+    except SpeedifyError as err:
+        logging.error("Failed to get server list: " + str(err))
+        return "ERROR"
+
+
+def using_speedify(destination="8.8.8.8"):
+    """
+    Check if internet traffic is really going through Speedify.
+
+    Uses traceroute/mtr to verify that traffic is passing through 10.202.0.1
+    (the Speedify virtual adapter IP).
+
+    :param destination: Destination IP to trace (default: 8.8.8.8)
+    :return: True if traffic is going through Speedify, False otherwise
+
+    Example:
+        >>> using_speedify()
+        True
+    """
+    tracert = ["traceroute", "-m", "2", destination]
+    if platform.system() == "Windows":
+        tracert = ["tracert", "-h", "1", "-d", destination]
+    elif platform.system() == "Linux":
+        tracert = ["mtr", "-m", "2", "-c", "2", "--report", destination]
+    try:
+        result = subprocess.run(tracert, stdout=subprocess.PIPE, shell=use_shell())
+    except FileNotFoundError as e:
+        logging.error(e)
+        raise e
+    resultstr = result.stdout.decode("utf-8")
+    if "10.202.0.1" in resultstr:
+        return True
+    else:
+        return False
+
+
+# ============================================================================
+# Enums and Exception Classes
+# ============================================================================
+
 class State(Enum):
     """Enum of speedify states."""
 
@@ -68,6 +204,7 @@ class State(Enum):
 class Priority(Enum):
     """Enum of speedify connection priorities."""
 
+    AUTOMATIC = "automatic"
     ALWAYS = "always"
     BACKUP = "backup"
     SECONDARY = "secondary"
