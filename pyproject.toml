@@ -1,0 +1,62 @@
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "speedify-py"
+version = "16.0.2"
+description = "Python library to control Speedify bonding VPN via CLI"
+readme = "README.md"
+license = {file = "LICENSE"}
+authors = [
+    {name = "Speedify Team"}
+]
+maintainers = [
+    {name = "Speedify Team"}
+]
+keywords = ["speedify", "vpn", "bonding", "cli", "networking"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: System :: Networking",
+]
+requires-python = ">=3.7"
+
+[project.urls]
+Homepage = "https://speedify.com"
+Documentation = "https://support.speedify.com/article/285-speedify-command-line-interface"
+Repository = "https://github.com/speedify/speedify-py"
+Issues = "https://github.com/speedify/speedify-py/issues"
+
+[tool.setuptools]
+py-modules = ["speedify", "speedifysettings"]
+
+[project.optional-dependencies]
+test = [
+    "pytest>=7.0",
+    "pytest-mock>=3.10",
+    "pytest-cov>=4.0",
+]
+
+[tool.pytest.ini_options]
+minversion = "7.0"
+addopts = "-ra -q --strict-markers"
+testpaths = ["tests"]
+python_files = "test_*.py"
+python_classes = "Test*"
+python_functions = "test_*"
+markers = [
+    "integration: Integration tests requiring Speedify daemon to be running",
+    "unit: Fast unit tests with mocking, no Speedify daemon required",
+    "slow: Tests that take more than 5 seconds to run",
+    "windows: Windows-specific tests (privacy settings)",
+]

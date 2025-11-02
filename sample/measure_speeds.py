@@ -4,7 +4,6 @@ sys.path.append("../")
 import speedify
 from speedify import State
 from speedifysettings import apply_setting
-import speedifyutil
 import time
 import math
 import json

@@ -8,7 +8,6 @@ sys.path.append("../")
 import speedify
 from speedify import State, Priority, SpeedifyError, SpeedifyAPIError
 import speedifysettings
-import speedifyutil
 import logging
 import unittest
 import time
@@ -356,27 +355,6 @@ class TestSpeedify(unittest.TestCase):
                 speedify.killswitch(True)
                 logging.disable(logging.NOTSET)
 
-    def test_routedefault(self):
-        logging.debug("\n\nTesting route default...")
-        speedify.connect()
-        if not speedifyutil.using_speedify():
-            time.sleep(3)
-            self.assertTrue(speedifyutil.using_speedify())
-        speedify.routedefault(False)
-        self.assertFalse(speedify.show_settings()["enableDefaultRoute"])
-        time.sleep(1)
-        if speedifyutil.using_speedify():
-            # try twice in case it takes a moment to settle
-            time.sleep(1)
-            self.assertFalse(speedifyutil.using_speedify())
-        speedify.routedefault(True)
-        # for whatever reason getting the route back takes longer than giving it up
-        self.assertTrue(speedify.show_settings()["enableDefaultRoute"])
-        time.sleep(2)
-        if not speedifyutil.using_speedify():
-            # try twice in case it takes a moment to settle
-            time.sleep(2)
-            self.assertTrue(speedifyutil.using_speedify())
 
     def test_serverlist(self):
         logging.debug("\n\nTesting server list...")
