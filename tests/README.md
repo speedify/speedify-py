@@ -31,15 +31,9 @@ The test suite is organized into several files:
   - Tests streaming bypass features
   - ~500 lines, runs in ~60 seconds
 
-- **test_integration_settings.py** - Integration tests for speedifysettings.py module
-  - Tests bulk settings application
-  - Tests JSON settings import/export
-  - Tests adapter-specific settings
-  - ~200 lines, runs in ~20 seconds
-
-### Legacy Tests (Being Phased Out)
+### Legacy Tests (unittest)
 - **test_speedify.py** - Original unittest-based tests (kept for compatibility)
-- **test_speedifysettings.py** - Original unittest-based tests (kept for compatibility)
+  - ~470 lines, runs in ~120 seconds
 
 ### Configuration
 - **conftest.py** - Pytest fixtures and configuration
@@ -96,9 +90,6 @@ pytest tests/test_unit_speedify.py
 
 # Run only integration tests for main module
 pytest tests/test_integration_speedify.py
-
-# Run only settings integration tests
-pytest tests/test_integration_settings.py
 ```
 
 ### Run Specific Tests
@@ -118,7 +109,7 @@ pytest tests/test_speedify.py::TestSpeedify::test_dns
 
 ```bash
 # Generate coverage report
-pytest --cov=speedify --cov=speedifysettings --cov-report=html
+pytest --cov=speedify --cov-report=html
 
 # View coverage report
 open htmlcov/index.html  # macOS
@@ -354,10 +345,10 @@ For CI/CD pipelines:
 
 ```bash
 # Run only unit tests (no Speedify installation needed)
-pytest -m unit --cov=speedify --cov=speedifysettings
+pytest -m unit --cov=speedify
 
 # Run all tests if Speedify is installed in CI environment
-pytest --cov=speedify --cov=speedifysettings --cov-report=xml
+pytest --cov=speedify --cov-report=xml
 ```
 
 ## Troubleshooting

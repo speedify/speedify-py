@@ -18,7 +18,7 @@ setup(
         "Documentation": "https://support.speedify.com/article/285-speedify-command-line-interface",
         "Source": "https://github.com/speedify/speedify-py",
     },
-    py_modules=["speedify", "speedifysettings", "speedifyutil", "utils"],
+    py_modules=["speedify"],
     classifiers=[
         "Development Status :: 4 - Beta",
         "Intended Audience :: Developers",

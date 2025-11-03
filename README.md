@@ -15,42 +15,45 @@ Please see the documentation on our [CLI](https://support.speedify.com/article/2
 
 ## Examples
 
-Put Speedify in speed mode with UDP transport
+Put Speedify in speed mode with UDP transport:
 ```python
 import speedify
+
+# Configure settings
 speedify.mode("speed")
 speedify.transport("udp")
+speedify.encryption(True)
+speedify.jumbo(True)
+
+# Connect to closest server
+speedify.connect_closest()
+
+# Check current state
+state = speedify.show_state()
+print(f"State: {state}")
+
+# Disconnect
+speedify.disconnect()
 ```
 
-Alternatively:
+Query and display current settings:
 ```python
-from speedifysettings import apply_setting
-#Put Speedify in speed mode with UDP transport
-apply_setting("mode", "speed")
-apply_setting("transport", "udp")
+import speedify
+
+# Get all current settings
+settings = speedify.show_settings()
+print(f"Mode: {settings['bondingMode']}")
+print(f"Transport: {settings['transportMode']}")
+print(f"Encrypted: {settings['encrypted']}")
+print(f"Jumbo packets: {settings['jumboPackets']}")
+
+# Get adapter information
+adapters = speedify.show_adapters()
+for adapter in adapters:
+    print(f"Adapter: {adapter['type']}, State: {adapter['state']}, Priority: {adapter['priority']}")
 ```
 
-Apply multiple settings at once, and print current settings:
-```python
-from speedifysettings import apply_speedify_settings, get_speedify_settings
-
-speedify_settings = '''{"connectmethod" : "closest","encryption" : true, "jumbo" : true,
-    "mode" : "speed", "privacy_killswitch":false, "privacy_dnsleak": true, 
-    "startupconnect": true,    "transport":"auto","overflow_threshold": 30.0,
-    "adapter_priority_ethernet" : "always","adapter_priority_wifi" : "always",
-    "adapter_priority_cellular" : "secondary", "adapter_datalimit_daily_all" : 0,
-    "adapter_datalimit_monthly_all" : 0, "adapter_ratelimit" : {"download_bps": 0, "upload_bps": 0},
-    }'''
-
-#Apply settings
-apply_speedify_settings(speedify_settings)
-#Print current settings
-print(get_speedify_settings())
-```
-
-`privacy_killswitch` and `privacy_dnsleak` are only supported on Windows.
-
-The example settings above contain all of the possible settings.
+**Note:** `privacy_killswitch` and `privacy_dnsleak` are only supported on Windows.
 
 ## Changelog
 

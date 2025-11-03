@@ -7,7 +7,6 @@ sys.path.append("../")
 
 import speedify
 from speedify import State, Priority, SpeedifyError, SpeedifyAPIError
-import speedifysettings
 import logging
 import unittest
 import time
@@ -466,6 +465,4 @@ class TestSpeedify(unittest.TestCase):
 
 
 if __name__ == "__main__":
-    speedifysettings.apply_speedify_settings(speedifysettings.speedify_defaults)
     unittest.main()
-    speedifysettings.apply_speedify_settings(speedifysettings.speedify_defaults)
